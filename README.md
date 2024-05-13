@@ -4,7 +4,7 @@
 
 - version >= 1.78
 
-> SurrealDB over RocketDB
+> SurrealDB over RocksDB
 
 > Docker
 
