@@ -1,0 +1,31 @@
+[package]
+name = "mtc-api"
+description="Military training center CMS API"
+version = "0.1.0"
+edition = "2021"
+authors=["Anatolii Shliakhto <a.shlyakhto@gmail.com>"]
+license = "GPL-3"
+resolver="2"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.7.5", features = ["multipart", "macros"] }
+serde = { version = "1.0.201", features = ["derive"] }
+tokio = { version = "1.37.0", features = ["full"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tower-http = { version = "0.5.2", features = ["fs", "cors"] }
+dotenvy = "0.15.7"
+axum-extra = { version = "0.9.3", features = ["cookie", "cookie-signed"] }
+tower = "0.4.13"
+argon2 = "0.5.3"
+serde_json = "1.0.117"
+surrealdb = { version = "1.4.2", features = ["kv-rocksdb"] }
+chrono = "0.4.38"
+tower-sessions = { version = "0.12.2" }
+tower-sessions-surrealdb-store = "0.4.0"
+once_cell = "1.19.0"
+thiserror = "1.0.60"
+tracing-appender = "0.2.3"

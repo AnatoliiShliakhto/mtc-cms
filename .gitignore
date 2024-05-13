@@ -1,0 +1,10 @@
+/target/
+/data/
+/.idea/
+/.vscode/
+/Cargo.lock
+/.env
+/package-lock.json
+/log/
+/public/
+/node_modules/
