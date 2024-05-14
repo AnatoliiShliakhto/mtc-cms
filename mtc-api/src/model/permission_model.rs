@@ -13,11 +13,6 @@ pub struct PermissionModel {
 }
 
 #[derive(Deserialize)]
-pub struct PermissionsModel {
-    pub permissions: Vec<String>,
-}
-
-#[derive(Deserialize)]
 pub struct PermissionCreateModel {
     pub name: String,
 }

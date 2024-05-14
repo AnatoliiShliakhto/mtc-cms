@@ -1,4 +1,4 @@
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 use surrealdb::sql::Thing;
 
 pub mod role_model;
@@ -6,6 +6,13 @@ pub mod permission_model;
 pub mod response_model;
 pub mod request_model;
 pub mod user_model;
+pub mod auth_model;
+pub mod group_model;
+
+#[derive(Deserialize, Serialize)]
+pub struct StringListModel {
+    pub items: Vec<String>,
+}
 
 pub fn from_thing<'de, D>(deserializer: D) -> Result<String, D::Error>
     where

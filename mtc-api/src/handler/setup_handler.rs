@@ -11,16 +11,16 @@ use crate::provider::database_provider::DB;
 pub async fn setup_handler() -> Result<ApiResponse<()>, ApiError> {
     let sql = r#"
         REMOVE TABLE users;
-        REMOVE TABLE user_role;
+        REMOVE TABLE user_roles;
         REMOVE TABLE roles;
         REMOVE TABLE role_permissions;
         REMOVE TABLE permissions;
-        REMOVE TABLE fields;
-        REMOVE TABLE single_type;
+        REMOVE TABLE user_groups;
+        REMOVE TABLE groups;
 
         BEGIN TRANSACTION;
 
-        DEFINE TABLE users;
+        DEFINE TABLE users SCHEMAFULL;
 
         DEFINE FIELD login ON TABLE users TYPE string;
         DEFINE FIELD password ON TABLE users TYPE string;
@@ -35,7 +35,7 @@ pub async fn setup_handler() -> Result<ApiResponse<()>, ApiError> {
             password: $password
         };
 
-        DEFINE TABLE roles;
+        DEFINE TABLE roles SCHEMAFULL;
 
         DEFINE FIELD name ON TABLE roles TYPE string;
         DEFINE FIELD title ON TABLE roles TYPE string;
@@ -55,7 +55,7 @@ pub async fn setup_handler() -> Result<ApiResponse<()>, ApiError> {
             title: 'Анонім'
         };
 
-        DEFINE TABLE permissions;
+        DEFINE TABLE permissions SCHEMAFULL;
 
         DEFINE FIELD name ON TABLE permissions TYPE string;
         DEFINE FIELD created_at ON TABLE permissions TYPE datetime DEFAULT time::now();
@@ -74,20 +74,80 @@ pub async fn setup_handler() -> Result<ApiResponse<()>, ApiError> {
             id: 'roles_delete',
             name: 'roles::delete'
         };
+        CREATE permissions CONTENT {
+            id: 'groups_read',
+            name: 'groups::read'
+        };
+        CREATE permissions CONTENT {
+            id: 'groups_write',
+            name: 'groups::write'
+        };
+        CREATE permissions CONTENT {
+            id: 'groups_delete',
+            name: 'groups::delete'
+        };
+        CREATE permissions CONTENT {
+            id: 'users_read',
+            name: 'users::read'
+        };
+        CREATE permissions CONTENT {
+            id: 'users_write',
+            name: 'users::write'
+        };
+        CREATE permissions CONTENT {
+            id: 'users_delete',
+            name: 'users::delete'
+        };
+        CREATE permissions CONTENT {
+            id: 'permissions_read',
+            name: 'permissions::read'
+        };
+        CREATE permissions CONTENT {
+            id: 'permissions_write',
+            name: 'permissions::write'
+        };
+        CREATE permissions CONTENT {
+            id: 'permissions_delete',
+            name: 'permissions::delete'
+        };
 
-        DEFINE TABLE role_permissions;
+        DEFINE TABLE role_permissions; #SCHEMAFULL TYPE RELATION IN roles OUT permissions;
 
-        DEFINE FIELD created_at ON TABLE permissions TYPE datetime VALUE time::now();
+        DEFINE FIELD created_at ON TABLE role_permissions TYPE datetime VALUE time::now();
+        DEFINE INDEX idx_role_permissions ON TABLE role_permissions COLUMNS in, out UNIQUE;
 
         RELATE roles:administrator->role_permissions->permissions:roles_read;
         RELATE roles:administrator->role_permissions->permissions:roles_write;
         RELATE roles:administrator->role_permissions->permissions:roles_delete;
+        RELATE roles:administrator->role_permissions->permissions:groups_read;
+        RELATE roles:administrator->role_permissions->permissions:groups_write;
+        RELATE roles:administrator->role_permissions->permissions:groups_delete;
+        RELATE roles:administrator->role_permissions->permissions:users_read;
+        RELATE roles:administrator->role_permissions->permissions:users_write;
+        RELATE roles:administrator->role_permissions->permissions:users_delete;
+        RELATE roles:administrator->role_permissions->permissions:permissions_read;
+        RELATE roles:administrator->role_permissions->permissions:permissions_write;
+        RELATE roles:administrator->role_permissions->permissions:permissions_delete;
 
-        DEFINE TABLE user_roles;
+        DEFINE TABLE user_roles; # SCHEMAFULL TYPE RELATION IN users OUT roles;
 
-        DEFINE FIELD created_at ON TABLE user_role TYPE datetime VALUE time::now();
+        DEFINE FIELD created_at ON TABLE user_roles TYPE datetime VALUE time::now();
+        DEFINE INDEX idx_user_roles ON TABLE user_roles COLUMNS in, out UNIQUE;
 
         RELATE users:sa->user_roles->roles:administrator;
+
+        DEFINE TABLE groups SCHEMAFULL;
+
+        DEFINE FIELD name ON TABLE groups TYPE string;
+        DEFINE FIELD title ON TABLE groups TYPE string;
+        DEFINE FIELD created_at ON TABLE groups TYPE datetime DEFAULT time::now();
+        DEFINE FIELD updated_at ON TABLE groups TYPE datetime VALUE time::now();
+        DEFINE INDEX idx_groups_name ON TABLE groups COLUMNS name UNIQUE;
+
+        DEFINE TABLE user_groups; # SCHEMAFULL TYPE RELATION IN users OUT groups;
+
+        DEFINE FIELD created_at ON TABLE user_groups TYPE datetime VALUE time::now();
+        DEFINE INDEX idx_user_groups ON TABLE user_groups COLUMNS in, out UNIQUE;
 
         COMMIT TRANSACTION;
     "#;

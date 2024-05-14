@@ -1,3 +1,7 @@
+#![forbid(unsafe_code)]
+
+use std::future::Future;
+use std::process::ExitCode;
 use std::sync::Arc;
 
 use axum::extract::DefaultBodyLimit;
@@ -8,6 +12,7 @@ use tower_http::services::ServeDir;
 use tower_sessions::{ExpiredDeletion, Expiry, SessionManagerLayer};
 use tower_sessions::cookie::time::Duration;
 use tower_sessions_surrealdb_store::SurrealSessionStore;
+use tracing::error;
 use tracing::log::info;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::EnvFilter;
@@ -15,7 +20,7 @@ use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-use crate::provider::config_provider::CFG;
+use crate::provider::config_provider::{CFG, RUNTIME_MAX_BLOCKING_THREADS, RUNTIME_STACK_SIZE};
 use crate::provider::database_provider::{DB, db_init};
 use crate::routes::routes;
 use crate::state::AppState;
@@ -31,8 +36,15 @@ mod middleware;
 pub mod routes;
 pub mod handler;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> ExitCode {
+    with_enough_stack(app()).map_err(|e| {
+        error!(e);
+        ExitCode::FAILURE
+    }).unwrap();
+    ExitCode::SUCCESS
+}
+
+async fn app() -> Result<(), Box<dyn std::error::Error>> {
     let env_filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env_lossy();
@@ -68,8 +80,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let session_service = ServiceBuilder::new().layer(
         SessionManagerLayer::new(session_store)
-            .with_secure(false)
-            .with_path("/mtc/api")
+            .with_name("mtc-api.sid")
+            .with_secure(true)
+//            .with_path("/mtc/api")
             .with_expiry(Expiry::OnInactivity(Duration::minutes(CFG.session_expiration as i64))),
     );
 
@@ -90,4 +103,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     axum::serve(listener, app.into_make_service()).await?;
 
     Ok(())
+}
+
+fn with_enough_stack<T>(fut: impl Future<Output=T> + Send) -> T {
+    // Start a Tokio runtime with custom configuration
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .max_blocking_threads(*RUNTIME_MAX_BLOCKING_THREADS)
+        .thread_stack_size(*RUNTIME_STACK_SIZE)
+        .thread_name("mtc-api-worker")
+        .build()
+        .unwrap()
+        .block_on(fut)
 }

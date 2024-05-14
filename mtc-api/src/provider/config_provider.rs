@@ -20,6 +20,19 @@ pub struct ConfigProvider {
     pub rows_per_page: usize,
 }
 
+// 2 MiB default stack size is not enough for deep queries
+pub static RUNTIME_STACK_SIZE: Lazy<usize> = Lazy::new(|| {
+    if cfg!(debug_assertions) {
+        20 * 1024 * 1024 // 20MiB in debug mode
+    } else {
+        10 * 1024 * 1024 // 10MiB in release mode
+    }
+});
+
+pub static RUNTIME_MAX_BLOCKING_THREADS: Lazy<usize> = Lazy::new(|| 512);
+
+pub const SESSION_USER_KEY: &str = "user";
+
 pub static CFG: Lazy<ConfigProvider> = Lazy::new(|| {
     dotenv().ok();
     ConfigProvider {

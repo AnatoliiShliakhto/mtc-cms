@@ -27,6 +27,6 @@ impl PermissionsServiceTrait for PermissionsService {
     }
 
     async fn get(&self, role_id: &str) -> Result<Vec<String>, ApiError> {
-        self.repository.get(role_id).await
+        self.repository.find_by_role(role_id).await
     }
 }
