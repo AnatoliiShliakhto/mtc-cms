@@ -6,30 +6,30 @@ use crate::model::response_model::ApiErrorResponse;
 
 #[derive(Error, Debug)]
 pub enum SessionError {
-    #[error("Invalid session token")]
-    InvalidSessionToken,
+    #[error("Invalid session")]
+    InvalidSession,
     #[error("Session has expired")]
     SessionExpired,
-    #[error("Session token error: {0}")]
-    SessionTokenError(String),
+    #[error("Session token error")]
+    SessionToken,
     #[error("Access forbidden")]
     AccessForbidden,
     #[error("Invalid credentials")]
     InvalidCredentials,
     #[error("User blocked")]
     UserBlocked,
-    #[error("Can't generate password hash")]
+    #[error("Generate password hash error")]
     PasswordHash,
 }
 
 impl IntoResponse for SessionError {
     fn into_response(self) -> Response {
         let status_code = match self {
-            SessionError::InvalidSessionToken
+            SessionError::InvalidSession
             | SessionError::InvalidCredentials
             | SessionError::SessionExpired => StatusCode::UNAUTHORIZED,
             SessionError::PasswordHash
-            | SessionError::SessionTokenError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            | SessionError::SessionToken => StatusCode::INTERNAL_SERVER_ERROR,
             SessionError::UserBlocked
             | SessionError::AccessForbidden => StatusCode::FORBIDDEN,
         };

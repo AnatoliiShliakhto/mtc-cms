@@ -3,9 +3,9 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use tower_sessions::Session;
 
-use crate::error::api_error::ApiError;
+use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::request_model::{ApiJson, PageRequest};
+use crate::model::request_model::{PageRequest, ValidatedPayload};
 use crate::model::response_model::ApiResponse;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 use crate::paginator::{ModelPagination, ServicePaginate};
@@ -15,8 +15,8 @@ use crate::state::AppState;
 pub async fn role_list_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    ApiJson(payload): ApiJson<PageRequest>,
-) -> Result<ApiResponse<ModelPagination<Vec<RoleModel>>>, ApiError> {
+    ValidatedPayload(payload): ValidatedPayload<PageRequest>,
+) -> Result<ApiResponse<ModelPagination<Vec<RoleModel>>>> {
     session.permission("roles::read").await?;
 
     let role_pagination = state.role_service
@@ -29,7 +29,7 @@ pub async fn role_get_handler(
     Path(id): Path<String>,
     session: Session,
     state: State<Arc<AppState>>,
-) -> Result<ApiResponse<RoleModel>, ApiError> {
+) -> Result<ApiResponse<RoleModel>> {
     session.permission("roles::read").await?;
 
     let role_model = state
@@ -43,8 +43,8 @@ pub async fn role_get_handler(
 pub async fn role_create_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    ApiJson(payload): ApiJson<RoleCreateModel>,
-) -> Result<ApiResponse<RoleModel>, ApiError> {
+    ValidatedPayload(payload): ValidatedPayload<RoleCreateModel>,
+) -> Result<ApiResponse<RoleModel>> {
     session.permission("roles::write").await?;
 
     let role_model = state
@@ -59,8 +59,8 @@ pub async fn role_update_handler(
     Path(id): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-    ApiJson(payload): ApiJson<RoleUpdateModel>,
-) -> Result<ApiResponse<RoleModel>, ApiError> {
+    ValidatedPayload(payload): ValidatedPayload<RoleUpdateModel>,
+) -> Result<ApiResponse<RoleModel>> {
     session.permission("roles::write").await?;
 
     let role_model = state
@@ -75,7 +75,7 @@ pub async fn role_delete_handler(
     Path(id): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<ApiResponse<()>, ApiError> {
+) -> Result<ApiResponse<()>> {
     session.permission("roles::delete").await?;
 
     state

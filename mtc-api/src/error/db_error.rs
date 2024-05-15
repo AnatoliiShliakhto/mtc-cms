@@ -6,8 +6,8 @@ use crate::model::response_model::ApiErrorResponse;
 
 #[derive(Error, Debug)]
 pub enum DbError {
-    #[error("{0}")]
-    SomethingWentWrong(String),
+    #[error("Something went wrong")]
+    SomethingWentWrong,
     #[error("Entry already exists")]
     EntryAlreadyExists,
     #[error("Entry not found")]
@@ -21,7 +21,7 @@ pub enum DbError {
 impl IntoResponse for DbError {
     fn into_response(self) -> Response {
         let status_code = match self {
-            DbError::SomethingWentWrong(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            DbError::SomethingWentWrong => StatusCode::INTERNAL_SERVER_ERROR,
             DbError::EntryAlreadyExists
             | DbError::EntryNotFound
             | DbError::EntryUpdate

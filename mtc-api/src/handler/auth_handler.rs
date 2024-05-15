@@ -3,12 +3,13 @@ use std::sync::Arc;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::extract::State;
 use tower_sessions::Session;
-
 use crate::error::api_error::ApiError;
+
+use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::auth_model::{AuthModel, SignInModel};
-use crate::model::request_model::ApiJson;
+use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::ApiResponse;
 use crate::model::user_model::UserModel;
 use crate::service::user_service::UserServiceTrait;
@@ -17,8 +18,8 @@ use crate::state::AppState;
 pub async fn sign_in_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    ApiJson(payload): ApiJson<SignInModel>,
-) -> Result<ApiResponse<UserModel>, ApiError> {
+    ValidatedPayload(payload): ValidatedPayload<SignInModel>,
+) -> Result<ApiResponse<UserModel>> {
     let user_model = match state
         .user_service
         .find_by_login(&payload.login).await {
@@ -34,7 +35,7 @@ pub async fn sign_in_handler(
 
     let parsed_hash = match PasswordHash::new(&user_model.password) {
         Ok(value) => value,
-        _ => Err(ApiError::from(SessionError::InvalidCredentials))?,
+        _ => Err(ApiError::from(SessionError::PasswordHash))?,
     };
     if !argon2.verify_password(payload.password.as_bytes(), &parsed_hash).is_ok() {
         return Err(ApiError::from(SessionError::InvalidCredentials));
@@ -54,7 +55,7 @@ pub async fn sign_in_handler(
 
 pub async fn sign_out_handler(
     session: Session,
-) -> Result<ApiResponse<()>, ApiError> {
+) -> Result<ApiResponse<()>> {
     session.sign_out().await?;
 
     Ok(ApiResponse::Ok)

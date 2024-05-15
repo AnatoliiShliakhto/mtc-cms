@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Datetime;
+use validator::Validate;
 
 use crate::model::from_thing;
 
@@ -15,19 +16,26 @@ pub struct UserModel {
     pub updated_at: Datetime,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct UserCreateModel {
     pub login: String,
     pub password: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct UserUpdateModel {
     pub login: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct UserChangePasswordModel {
+    #[validate(length(min = 6, message = "Password must be 6 characters at least"))]
     pub password: String,
+    #[validate(must_match(other = "password"))]
     pub confirm_password: String,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct UserAssignRolesModel {
+    pub roles: Vec<String>,
 }

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Datetime;
+use validator::Validate;
 
 use crate::model::from_thing;
 
@@ -13,13 +14,13 @@ pub struct RoleModel {
     pub updated_at: Datetime,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct RoleCreateModel {
     pub name: String,
     pub title: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Validate)]
 pub struct RoleUpdateModel {
     pub name: String,
     pub title: String,

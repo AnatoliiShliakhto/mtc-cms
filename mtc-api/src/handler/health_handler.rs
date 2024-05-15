@@ -1,6 +1,6 @@
-use crate::error::api_error::ApiError;
+use crate::error::Result;
 use crate::model::response_model::ApiResponse;
 
-pub async fn health_handler() -> Result<ApiResponse<()>, ApiError> {
+pub async fn health_handler() -> Result<ApiResponse<()>> {
     Ok(ApiResponse::Ok)
 }

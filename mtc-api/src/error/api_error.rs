@@ -1,10 +1,11 @@
-use axum::extract::rejection::JsonRejection;
+use axum::extract::rejection::{FormRejection, JsonRejection};
 use axum::response::{IntoResponse, Response};
 use thiserror::Error;
+use tracing::error;
 
 use crate::error::db_error::DbError;
+use crate::error::generic_error::GenericError;
 use crate::error::session_error::SessionError;
-use crate::model::response_model::ApiErrorResponse;
 
 #[derive(Error, Debug)]
 pub enum ApiError {
@@ -12,10 +13,8 @@ pub enum ApiError {
     SessionError(#[from] SessionError),
     #[error(transparent)]
     DbError(#[from] DbError),
-    #[error("Something went wrong: {0}")]
-    Generic(String),
     #[error(transparent)]
-    JsonRejection(JsonRejection),
+    GenericError(#[from] GenericError),
 }
 
 impl IntoResponse for ApiError {
@@ -23,22 +22,46 @@ impl IntoResponse for ApiError {
         match self {
             ApiError::SessionError(error) => error.into_response(),
             ApiError::DbError(error) => error.into_response(),
-            ApiError::Generic(error) => error.into_response(),
-            ApiError::JsonRejection(rejection) =>
-                ApiErrorResponse::send(rejection.status().as_u16(),
-                                       Some(rejection.body_text().to_string())),
+            ApiError::GenericError(error) => error.into_response(),
         }
     }
 }
 
 impl From<surrealdb::Error> for ApiError {
-    fn from(_val: surrealdb::Error) -> Self {
-        ApiError::from(DbError::SomethingWentWrong(_val.to_string()))
+    fn from(err: surrealdb::Error) -> Self {
+        error!(target: "SurrealDB", "{err}");
+        Self::from(DbError::SomethingWentWrong)
+    }
+}
+
+impl From<serde_json::Error> for ApiError {
+    fn from(err: serde_json::Error) -> Self {
+        error!(target: "serde_json", "{err}");
+        Self::from(GenericError::ConflictError("Json deserialization error".to_string()))
     }
 }
 
 impl From<JsonRejection> for ApiError {
     fn from(rejection: JsonRejection) -> Self {
-        Self::JsonRejection(rejection)
+        Self::from(GenericError::BadRequest(rejection.to_string()))
+    }
+}
+
+impl From<FormRejection> for ApiError {
+    fn from(rejection: FormRejection) -> Self {
+        Self::from(GenericError::BadRequest(rejection.to_string()))
+    }
+}
+
+impl From<validator::ValidationErrors> for ApiError {
+    fn from(errors: validator::ValidationErrors) -> Self {
+        let message = format!("Input validation error: [{errors}]").replace('\n', ", ");
+        Self::from(GenericError::BadRequest(message))
+    }
+}
+
+impl From<&str> for ApiError {
+    fn from(message: &str) -> Self {
+        Self::from(GenericError::ConflictError(message.to_string()))
     }
 }

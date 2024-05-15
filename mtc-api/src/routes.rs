@@ -20,7 +20,9 @@ use crate::middleware::auth_middleware::middleware_auth_handler;
 use crate::provider::config_provider::CFG;
 use crate::state::AppState;
 
-pub fn routes(state: Arc<AppState>) -> Router {
+pub fn routes(
+    state: Arc<AppState>
+) -> Router {
     let front_end_url = &CFG.front_end_url;
 
     info!("\x1b[38;5;6mFront end CORS allowed URL: \x1b[38;5;13m{front_end_url}\x1b[0m");
@@ -36,6 +38,8 @@ pub fn routes(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/permissions/:id", get(permissions_role_handler))
         .route("/permissions", get(permissions_list_handler))
+        .route("/user/:id/role/:role", post(user_assign_role_handler))
+        .route("/user/:id/role", post(user_assign_roles_handler))
         .route("/user/:id", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
         .route("/user", get(user_list_handler))
         .route("/group/:id", get(group_get_handler).post(group_update_handler).delete(group_delete_handler))
@@ -44,10 +48,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
         .route("/role", get(role_list_handler).post(role_create_handler))
         .route("/auth", post(sign_in_handler).delete(sign_out_handler))
         .route("/setup", post(setup_handler))
-        .layer(ServiceBuilder::new().layer(from_fn_with_state(
-            Arc::clone(&state),
-            middleware_auth_handler,
-        )))
+        .layer(ServiceBuilder::new().layer(from_fn_with_state(Arc::clone(&state), middleware_auth_handler)))
         .with_state(state)
         .route("/health", get(health_handler))
         .layer(cors_layer)

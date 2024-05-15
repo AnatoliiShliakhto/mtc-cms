@@ -1,7 +1,7 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::error::api_error::ApiError;
+use crate::error::Result;
 
 #[derive(Serialize, Debug, Deserialize, Clone, Default)]
 pub struct Pagination {
@@ -29,8 +29,8 @@ pub struct DataPagination<T> {
 
 #[async_trait]
 pub trait RepositoryPaginate<T> {
-    async fn paginate(&self, start: usize) -> Result<Vec<T>, ApiError>;
-    async fn get_total_count(&self) -> Result<ModelCount, ApiError>;
+    async fn paginate(&self, start: usize) -> Result<Vec<T>>;
+    async fn get_total_count(&self) -> Result<ModelCount>;
 }
 
 #[macro_export]
@@ -38,7 +38,7 @@ macro_rules! repository_paginate {
     ($repository:ident, $model:ident, $table:literal) => {
         #[async_trait]
         impl RepositoryPaginate<$model> for $repository {
-            async fn paginate(&self, start: usize) -> Result<Vec<$model>, ApiError> {
+            async fn paginate(&self, start: usize) -> Result<Vec<$model>> {
                 let mut result = DB
                 .query(r#"SELECT * FROM type::table($table) LIMIT $limit START $start;"#)
                 .bind(("table", $table))
@@ -49,13 +49,16 @@ macro_rules! repository_paginate {
                 Ok(result)
             }
 
-            async fn get_total_count(&self) -> Result<crate::paginator::ModelCount, ApiError> {
+            async fn get_total_count(&self) -> Result<crate::paginator::ModelCount> {
                 let mut result = DB
                 .query(r#"SELECT count() FROM type::table($table) GROUP ALL;"#)
                 .bind(("table", $table))
                 .await?;
                 let result: Option<crate::paginator::ModelCount> = result.take(0)?;
-                result.ok_or(ApiError::from(DbError::EntryNotFound))
+                match result {
+                    Some(value) => Ok(value),
+                    _ => Err(ApiError::from(DbError::EntryNotFound))
+                }
             }
         }
     };
@@ -69,7 +72,7 @@ pub struct ModelPagination<T> {
 
 #[async_trait]
 pub trait ServicePaginate<T> {
-    async fn paginate(&self, current_page: usize) -> Result<ModelPagination<Vec<T>>, ApiError>;
+    async fn paginate(&self, current_page: usize) -> Result<ModelPagination<Vec<T>>>;
 }
 #[macro_export]
 macro_rules! service_paginate {
@@ -77,7 +80,7 @@ macro_rules! service_paginate {
         #[async_trait]
         impl ServicePaginate<$model> for $service {
             async fn paginate(&self, current_page: usize)
-            -> Result<crate::paginator::ModelPagination<Vec<$model>>, ApiError> {
+            -> Result<crate::paginator::ModelPagination<Vec<$model>>> {
                 let current_page = match current_page {
                     n if n > 1 => n,
                     _ => 1,

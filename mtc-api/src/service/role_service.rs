@@ -1,7 +1,7 @@
 use axum::async_trait;
 
 use crate::CFG;
-use crate::error::api_error::ApiError;
+use crate::error::Result;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 use crate::paginator::*;
 use crate::paginator::ModelPagination;
@@ -13,35 +13,55 @@ pub struct RoleService {
 }
 
 service_paginate!(RoleService, RoleModel);
+
 impl RoleService {
-    pub fn new(repository: RoleRepository) -> Result<Self, ApiError> {
-        Ok(Self { repository })
-    }
+    pub fn new(repository: RoleRepository) -> Result<Self> { Ok(Self { repository }) }
 }
 
 #[async_trait]
 pub trait RoleServiceTrait {
-    async fn find(&self, id: &str) -> Result<RoleModel, ApiError>;
-    async fn create(&self, role_create_model: RoleCreateModel) -> Result<RoleModel, ApiError>;
-    async fn update(&self, id: &str, role_update_model: RoleUpdateModel) -> Result<RoleModel, ApiError>;
-    async fn delete(&self, id: &str) -> Result<(), ApiError>;
+    async fn find(&self, id: &str) -> Result<RoleModel>;
+    async fn find_by_name(&self, name: &str) -> Result<RoleModel>;
+    async fn create(&self, model: RoleCreateModel) -> Result<RoleModel>;
+    async fn update(&self, id: &str, model: RoleUpdateModel) -> Result<RoleModel>;
+    async fn delete(&self, id: &str) -> Result<()>;
 }
 
 #[async_trait]
 impl RoleServiceTrait for RoleService {
-    async fn find(&self, id: &str) -> Result<RoleModel, ApiError> {
+    async fn find(
+        &self,
+        id: &str,
+    ) -> Result<RoleModel> {
         self.repository.find(id).await
     }
 
-    async fn create(&self, role_create_model: RoleCreateModel) -> Result<RoleModel, ApiError> {
-        self.repository.create(role_create_model).await
+    async fn find_by_name(
+        &self,
+        name: &str,
+    ) -> Result<RoleModel> {
+        self.repository.find_by_name(name).await
     }
 
-    async fn update(&self, id: &str, role_update_model: RoleUpdateModel) -> Result<RoleModel, ApiError> {
-        self.repository.update(id, role_update_model).await
+    async fn create(
+        &self,
+        model: RoleCreateModel,
+    ) -> Result<RoleModel> {
+        self.repository.create(model).await
     }
 
-    async fn delete(&self, id: &str) -> Result<(), ApiError> {
+    async fn update(
+        &self,
+        id: &str,
+        model: RoleUpdateModel,
+    ) -> Result<RoleModel> {
+        self.repository.update(id, model).await
+    }
+
+    async fn delete(
+        &self,
+        id: &str,
+    ) -> Result<()> {
         self.repository.delete(id).await
     }
 }

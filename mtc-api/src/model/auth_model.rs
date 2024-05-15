@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 #[derive(Serialize, Deserialize)]
 pub struct AuthModel {
@@ -28,8 +29,10 @@ impl AuthModelTrait for AuthModel {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct SignInModel {
+    #[validate(length(min = 5, max = 15, message = "incorrect"))]
     pub login: String,
+    #[validate(length(min = 6, message = "must be 6 characters at least"))]
     pub password: String,
 }

@@ -37,11 +37,13 @@ pub mod routes;
 pub mod handler;
 
 fn main() -> ExitCode {
-    with_enough_stack(app()).map_err(|e| {
-        error!(e);
-        ExitCode::FAILURE
-    }).unwrap();
-    ExitCode::SUCCESS
+    match with_enough_stack(app()) {
+        Ok(..) => ExitCode::SUCCESS,
+        Err(e) => {
+            error!(e);
+            ExitCode::FAILURE
+        }
+    }
 }
 
 async fn app() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,16 +84,12 @@ async fn app() -> Result<(), Box<dyn std::error::Error>> {
         SessionManagerLayer::new(session_store)
             .with_name("mtc-api.sid")
             .with_secure(true)
-//            .with_path("/mtc/api")
             .with_expiry(Expiry::OnInactivity(Duration::minutes(CFG.session_expiration as i64))),
     );
 
-    let static_routing_service = ServeDir::new("public");
-
     let app = Router::new()
         .nest("/api", routes(state))
-//        .merge(routes(state))
-        .nest_service("/", static_routing_service)
+        .nest_service("/", ServeDir::new("public"))
         .layer(session_service)
         .layer(DefaultBodyLimit::max(CFG.max_body_limit));
 
@@ -106,7 +104,7 @@ async fn app() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn with_enough_stack<T>(fut: impl Future<Output=T> + Send) -> T {
-    // Start a Tokio runtime with custom configuration
+    // Start a Tokio runtime with custom configuration for embedded SurrealDB
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .max_blocking_threads(*RUNTIME_MAX_BLOCKING_THREADS)
