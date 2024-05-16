@@ -4,13 +4,14 @@ use axum::async_trait;
 use axum::extract::{Request, State};
 use axum::middleware::Next;
 use axum::response::IntoResponse;
-use tower_sessions::Session;
+use tower_sessions::{Expiry, Session};
+use tower_sessions::cookie::time::Duration;
 
 use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::model::auth_model::{AuthModel, AuthModelTrait};
-use crate::provider::config_provider::SESSION_USER_KEY;
+use crate::provider::config_provider::{CFG, SESSION_USER_KEY};
 use crate::service::user_service::UserServiceTrait;
 use crate::state::AppState;
 
@@ -33,6 +34,9 @@ pub async fn middleware_auth_handler(
             _ => Err(ApiError::from(SessionError::InvalidSession))?
         };
     }
+
+    //todo make refresh session more complex
+    session.set_expiry(Some(Expiry::OnInactivity(Duration::minutes(CFG.session_expiration as i64))));
 
     Ok(next.run(req).await)
 }

@@ -8,6 +8,8 @@ pub mod request_model;
 pub mod user_model;
 pub mod auth_model;
 pub mod group_model;
+pub mod field_model;
+pub mod single_type_model;
 
 #[derive(Deserialize, Serialize)]
 pub struct StringListModel {

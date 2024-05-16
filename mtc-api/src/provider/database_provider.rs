@@ -31,14 +31,14 @@ pub type Database = Surreal<Db>;
 
 #[cfg(not(debug_assertions))]
 async fn db_pre_init() {
-    DB.connect::<SpeeDb>(&CFG.db_url).await.unwrap();
+    DB.connect::<SpeeDb>(&CFG.db_path).await.unwrap();
 }
 
 pub async fn db_init() {
     db_pre_init().await;
 
     let version = DB.version().await.unwrap();
-    info!("\x1b[38;5;6mSurreal DB version: \x1b[38;5;13m{version}\x1b[0m");
+    info!("\x1b[38;5;6mSurrealDB \x1b[38;5;15mversion: \x1b[38;5;13m{version}\x1b[0m");
 
     DB.use_ns(&CFG.db_namespace).use_db(&CFG.db_name).await.unwrap();
     info!(

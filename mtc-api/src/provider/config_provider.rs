@@ -9,10 +9,9 @@ pub struct ConfigProvider {
     pub host: String,
     pub setup_login: String,
     pub setup_password: String,
-    pub db_url: String,
+    pub db_path: String,
     pub db_namespace: String,
     pub db_name: String,
-    pub session_secret_key: String,
     pub session_expiration: usize,
     pub front_end_url: String,
     pub password_salt: String,
@@ -38,10 +37,9 @@ pub static CFG: Lazy<ConfigProvider> = Lazy::new(|| {
     ConfigProvider {
         host: get_env("HOST"),
         password_salt: get_env("PASSWORD_SALT"),
-        db_url: get_env("DB_URL"),
+        db_path: get_env("DB_PATH"),
         db_namespace: get_env("DB_NAMESPACE"),
         db_name: get_env("DB_NAME"),
-        session_secret_key: get_env("SESSION_SECRET_KEY"),
         session_expiration: get_env("SESSION_EXPIRATION_IN_MINUTES")
             .trim().parse::<usize>().unwrap_or(30),
         front_end_url: get_env("FRONT_END_URL"),

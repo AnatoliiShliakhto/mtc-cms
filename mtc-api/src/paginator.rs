@@ -82,8 +82,7 @@ macro_rules! service_paginate {
             async fn paginate(&self, current_page: usize)
             -> Result<crate::paginator::ModelPagination<Vec<$model>>> {
                 let current_page = match current_page {
-                    n if n > 1 => n,
-                    _ => 1,
+                    n if n > 1 => n, _ => 1
                 };
 
                 let start = (current_page - 1) * CFG.rows_per_page;

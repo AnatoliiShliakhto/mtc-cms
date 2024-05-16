@@ -95,7 +95,7 @@ async fn app() -> Result<(), Box<dyn std::error::Error>> {
 
 
     let listener = TcpListener::bind(&CFG.host).await?;
-    info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{}\x1b[0m", &CFG.host);
+    info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{}\x1b[0m -> http://localhost:8080", &CFG.host);
 
     //todo: add HTTPS with rustls/axum_server
     axum::serve(listener, app.into_make_service()).await?;
