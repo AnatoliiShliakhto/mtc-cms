@@ -9,6 +9,7 @@ use crate::model::request_model::{PageRequest, ValidatedPayload};
 use crate::model::response_model::ApiResponse;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 use crate::paginator::{ModelPagination, ServicePaginate};
+use crate::service::permissions_service::PermissionsServiceTrait;
 use crate::service::role_service::RoleServiceTrait;
 use crate::state::AppState;
 
@@ -82,6 +83,34 @@ pub async fn role_delete_handler(
         .role_service
         .delete(&id)
         .await?;
+
+    Ok(ApiResponse::Ok)
+}
+
+pub async fn role_permission_assign_handler(
+    Path((id, permission_id)): Path<(String, String)>,
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<ApiResponse<()>> {
+    session.permission("roles::write").await?;
+
+    let role_model = state.role_service.find(&id).await?;
+    let permission_model = state.permissions_service.find(&permission_id).await?;
+    state.role_service.permission_assign(&role_model.id, &permission_model.id).await?;
+
+    Ok(ApiResponse::Ok)
+}
+
+pub async fn role_permission_unassign_handler(
+    Path((id, permission_id)): Path<(String, String)>,
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<ApiResponse<()>> {
+    session.permission("roles::write").await?;
+
+    let role_model = state.role_service.find(&id).await?;
+    let permission_model = state.permissions_service.find(&permission_id).await?;
+    state.role_service.permission_unassign(&role_model.id, &permission_model.id).await?;
 
     Ok(ApiResponse::Ok)
 }

@@ -1,6 +1,6 @@
 use axum::async_trait;
-use crate::error::api_error::ApiError;
 
+use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::permission_model::{PermissionCreateModel, PermissionModel};
@@ -12,6 +12,7 @@ pub struct PermissionsRepository;
 #[async_trait]
 pub trait PermissionsRepositoryTrait {
     async fn all(&self) -> Result<Vec<PermissionModel>>;
+    async fn find(&self, id: &str) -> Result<PermissionModel>;
     async fn find_by_role(&self, role: &str) -> Result<Vec<String>>;
     async fn create(&self, model: PermissionCreateModel) -> Result<PermissionModel>;
     async fn delete(&self, id: &str) -> Result<()>;
@@ -21,13 +22,26 @@ pub trait PermissionsRepositoryTrait {
 impl PermissionsRepositoryTrait for PermissionsRepository {
     async fn all(&self) -> Result<Vec<PermissionModel>> {
         let result: Vec<PermissionModel> = DB.query(r#"
-            SELECT * FROM type::table($table);
+            SELECT * FROM permissions;
             "#)
-            .bind(("table", "permissions"))
             .await?
             .take(0)?;
 
         Ok(result)
+    }
+
+    async fn find(&self, id: &str) -> Result<PermissionModel> {
+        let result: Option<PermissionModel> = DB.query(r#"
+            SELECT * FROM type::thing('permissions', $id);
+            "#)
+            .bind(("id", id.to_string()))
+            .await?
+            .take(0)?;
+
+        match result {
+            Some(value) => Ok(value),
+            _ => Err(ApiError::from(DbError::EntryNotFound))
+        }
     }
 
     async fn find_by_role(
@@ -35,9 +49,8 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         role_id: &str,
     ) -> Result<Vec<String>> {
         let result: Option<StringListModel> = DB.query(r#"
-            SELECT array::distinct(->role_permissions->permissions.name) as items FROM type::thing($table, $id);
+            SELECT array::distinct(->role_permissions->permissions.name) as items FROM type::thing('roles', $id);
             "#)
-            .bind(("table", "roles"))
             .bind(("id", role_id.to_string()))
             .await?
             .take(0)?;
@@ -53,12 +66,11 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         model: PermissionCreateModel,
     ) -> Result<PermissionModel> {
         let result: Option<PermissionModel> = DB.query(r#"
-            CREATE type::table($table) CONTENT {
+            CREATE permissions CONTENT {
 	            name: $name,
 	            title: $title
             };
             "#)
-            .bind(("table", "permissions"))
             .bind(("name", model.name))
             .await?
             .take(0)?;
@@ -74,17 +86,12 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         id: &str,
     ) -> Result<()> {
         match DB.query(r#"
-            BEGIN TRANSACTION;
-            DELETE type::thing($table, $id);
-            DELETE FROM type::table($rel_table) WHERE IN = type::thing($table, $id) OR OUT = type::thing($table, $id);
-            COMMIT TRANSACTION;
+            DELETE type::thing('permissions', $id);
             "#)
-            .bind(("table", "permissions"))
-            .bind(("rel_table", "role_permissions"))
             .bind(("id", id))
             .await {
             Ok(..) => Ok(()),
-            Err(_) => Err(ApiError::from(DbError::EntryDelete))
+            Err(e) => Err(ApiError::from(e))
         }
     }
 }

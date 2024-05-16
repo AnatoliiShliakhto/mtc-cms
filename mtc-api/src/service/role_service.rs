@@ -1,6 +1,7 @@
 use axum::async_trait;
 
 use crate::CFG;
+use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 use crate::paginator::*;
@@ -25,6 +26,8 @@ pub trait RoleServiceTrait {
     async fn create(&self, model: RoleCreateModel) -> Result<RoleModel>;
     async fn update(&self, id: &str, model: RoleUpdateModel) -> Result<RoleModel>;
     async fn delete(&self, id: &str) -> Result<()>;
+    async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()>;
+    async fn permission_unassign(&self, role_id: &str, permission_id: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -63,5 +66,16 @@ impl RoleServiceTrait for RoleService {
         id: &str,
     ) -> Result<()> {
         self.repository.delete(id).await
+    }
+
+    async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()> {
+        match self.repository.permission_assign(role_id, permission_id).await {
+            Ok(()) => Ok(()),
+            Err(_) => Err(ApiError::from("Permission not assigned"))
+        }
+    }
+
+    async fn permission_unassign(&self, role_id: &str, permission_id: &str) -> Result<()> {
+        self.repository.permission_unassign(role_id, permission_id).await
     }
 }

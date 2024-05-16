@@ -30,8 +30,10 @@ pub trait UserServiceTrait {
     async fn permissions(&self, id: &str) -> Result<Vec<String>>;
     async fn roles(&self, id: &str) -> Result<Vec<String>>;
     async fn groups(&self, id: &str) -> Result<Vec<String>>;
-    async fn assign_role(&self, user_id: &str, role_id: &str) -> Result<()>;
-    async fn unassign_role(&self, user_id: &str, role_id: &str) -> Result<()>;
+    async fn role_assign(&self, user_id: &str, role_id: &str) -> Result<()>;
+    async fn role_unassign(&self, user_id: &str, role_id: &str) -> Result<()>;
+    async fn group_assign(&self, user_id: &str, group_id: &str) -> Result<()>;
+    async fn group_unassign(&self, user_id: &str, group_id: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -93,22 +95,33 @@ impl UserServiceTrait for UserService {
         self.repository.groups(id).await
     }
 
-    async fn assign_role(
+    async fn role_assign(
         &self,
         user_id: &str,
         role_id: &str,
     ) -> Result<()> {
-        match self.repository.assign_role(user_id, role_id).await {
+        match self.repository.role_assign(user_id, role_id).await {
             Ok(()) => Ok(()),
             Err(_) => Err(ApiError::from("Role not assigned"))
         }
     }
 
-    async fn unassign_role(
+    async fn role_unassign(
         &self,
         user_id: &str,
         role_id: &str,
     ) -> Result<()> {
-        self.repository.unassign_role(user_id, role_id).await
+        self.repository.role_unassign(user_id, role_id).await
+    }
+
+    async fn group_assign(&self, user_id: &str, group_id: &str) -> Result<()> {
+        match self.repository.group_assign(user_id, group_id).await {
+            Ok(()) => Ok(()),
+            Err(_) => Err(ApiError::from("Group not assigned"))
+        }
+    }
+
+    async fn group_unassign(&self, user_id: &str, group_id: &str) -> Result<()> {
+        self.repository.group_unassign(user_id, group_id).await
     }
 }

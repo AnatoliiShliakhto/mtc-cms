@@ -28,9 +28,8 @@ impl GroupRepositoryTrait for GroupRepository {
         id: &str,
     ) -> Result<GroupModel> {
         let result: Option<GroupModel> = DB.query(r#"
-            SELECT * FROM type::thing($table, $id);
+            SELECT * FROM type::thing('groups', $id);
             "#)
-            .bind(("table", "groups"))
             .bind(("id", id.to_string()))
             .await?
             .take(0)?;
@@ -46,12 +45,11 @@ impl GroupRepositoryTrait for GroupRepository {
         model: GroupCreateModel,
     ) -> Result<GroupModel> {
         let result: Option<GroupModel> = DB.query(r#"
-            CREATE type::table($table) CONTENT {
+            CREATE groups CONTENT {
 	            name: $name,
 	            title: $title
             };
             "#)
-            .bind(("table", "groups"))
             .bind(("name", model.name))
             .bind(("title", model.title))
             .await?
@@ -69,12 +67,11 @@ impl GroupRepositoryTrait for GroupRepository {
         model: GroupUpdateModel,
     ) -> Result<GroupModel> {
         let result: Option<GroupModel> = DB.query(r#"
-            UPDATE type::thing($table, $id) MERGE {
+            UPDATE type::thing('groups', $id) MERGE {
 	            name: $name,
 	            title: $title
             } WHERE id;
             "#)
-            .bind(("table", "groups"))
             .bind(("id", id))
             .bind(("name", model.name))
             .bind(("title", model.title))
@@ -92,17 +89,13 @@ impl GroupRepositoryTrait for GroupRepository {
         id: &str,
     ) -> Result<()> {
         match DB.query(r#"
-            BEGIN TRANSACTION;
-            DELETE type::thing($table, $id);
-            DELETE FROM type::table($rel_table) WHERE IN = type::thing($table, $id) OR OUT = type::thing($table, $id);
-            COMMIT TRANSACTION;
+            DELETE type::thing('groups', $id);
             "#)
-            .bind(("table", "groups"))
             .bind(("id", id))
             .bind(("rel_table", "user_groups"))
             .await {
             Ok(..) => Ok(()),
-            Err(_) => Err(ApiError::from(DbError::EntryDelete))
+            Err(e) => Err(ApiError::from(e))
         }
     }
 }

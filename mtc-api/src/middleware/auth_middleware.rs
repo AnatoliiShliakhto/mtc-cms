@@ -5,8 +5,8 @@ use axum::extract::{Request, State};
 use axum::middleware::Next;
 use axum::response::IntoResponse;
 use tower_sessions::Session;
-use crate::error::api_error::ApiError;
 
+use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::model::auth_model::{AuthModel, AuthModelTrait};
@@ -71,8 +71,7 @@ impl UserSession for Session {
     ) -> Result<()> {
         match self.get::<AuthModel>(SESSION_USER_KEY)
             .await
-            .unwrap()
-            .unwrap()
+            .unwrap().ok_or(ApiError::from(SessionError::InvalidSession))?
             .is_role(name) {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))
@@ -85,8 +84,7 @@ impl UserSession for Session {
     ) -> Result<()> {
         match self.get::<AuthModel>(SESSION_USER_KEY)
             .await
-            .unwrap()
-            .unwrap()
+            .unwrap().ok_or(ApiError::from(SessionError::InvalidSession))?
             .is_group(name) {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))
@@ -99,8 +97,7 @@ impl UserSession for Session {
     ) -> Result<()> {
         match self.get::<AuthModel>(SESSION_USER_KEY)
             .await
-            .unwrap()
-            .unwrap()
+            .unwrap().ok_or(ApiError::from(SessionError::InvalidSession))?
             .is_permission(name) {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))

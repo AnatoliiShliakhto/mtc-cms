@@ -27,8 +27,10 @@ pub trait UserRepositoryTrait {
     async fn permissions(&self, id: &str) -> Result<Vec<String>>;
     async fn roles(&self, id: &str) -> Result<Vec<String>>;
     async fn groups(&self, id: &str) -> Result<Vec<String>>;
-    async fn assign_role(&self, user_id: &str, role_id: &str) -> Result<()>;
-    async fn unassign_role(&self, user_id: &str, role_id: &str) -> Result<()>;
+    async fn role_assign(&self, user_id: &str, role_id: &str) -> Result<()>;
+    async fn role_unassign(&self, user_id: &str, role_id: &str) -> Result<()>;
+    async fn group_assign(&self, user_id: &str, group_id: &str) -> Result<()>;
+    async fn group_unassign(&self, user_id: &str, group_id: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -38,9 +40,8 @@ impl UserRepositoryTrait for UserRepository {
         id: &str,
     ) -> Result<UserModel> {
         let result: Option<UserModel> = DB.query(r#"
-            SELECT * FROM type::thing($table, $id);
+            SELECT * FROM type::thing('users', $id);
             "#)
-            .bind(("table", "users"))
             .bind(("id", id.to_string()))
             .await?
             .take(0)?;
@@ -56,9 +57,8 @@ impl UserRepositoryTrait for UserRepository {
         login: &str,
     ) -> Result<UserModel> {
         let result: Option<UserModel> = DB.query(r#"
-            SELECT * FROM type::table($table) WHERE login=$login;
+            SELECT * FROM users WHERE login=$login;
             "#)
-            .bind(("table", "users"))
             .bind(("login", login.to_string()))
             .await?
             .take(0)?;
@@ -87,12 +87,11 @@ impl UserRepositoryTrait for UserRepository {
         };
 
         let result: Option<UserModel> = DB.query(r#"
-            CREATE type::table($table) CONTENT {
+            CREATE users CONTENT {
 	            login: $login,
 	            password: $password
             };
             "#)
-            .bind(("table", "users"))
             .bind(("name", model.login))
             .bind(("password", password_hash))
             .await?
@@ -109,11 +108,10 @@ impl UserRepositoryTrait for UserRepository {
         id: &str,
         model: UserUpdateModel) -> Result<UserModel> {
         let result: Option<UserModel> = DB.query(r#"
-            UPDATE type::thing($table, $id) MERGE {
+            UPDATE type::thing('users', $id) MERGE {
 	            login: $login
             } WHERE id;
             "#)
-            .bind(("table", "users"))
             .bind(("id", id))
             .bind(("login", model.login))
             .await?.take(0)?;
@@ -129,17 +127,12 @@ impl UserRepositoryTrait for UserRepository {
         id: &str,
     ) -> Result<()> {
         match DB.query(r#"
-            BEGIN TRANSACTION;
-            DELETE type::thing($table, $id);
-            DELETE FROM type::table($rel_table) WHERE IN = type::thing($table, $id) OR OUT = type::thing($table, $id);
-            COMMIT TRANSACTION;
+            DELETE type::thing('users', $id);
             "#)
-            .bind(("table", "users"))
             .bind(("id", id))
-            .bind(("rel_table", "user_roles"))
             .await {
             Ok(..) => Ok(()),
-            Err(_) => Err(ApiError::from(DbError::EntryDelete))
+            Err(e) => Err(ApiError::from(e))
         }
     }
 
@@ -149,9 +142,8 @@ impl UserRepositoryTrait for UserRepository {
     ) -> Result<Vec<String>> {
         let result: Option<StringListModel> = DB.query(r#"
             SELECT array::distinct(->user_roles->roles->role_permissions->permissions.name) as items
-            FROM type::thing($table, $id);
+            FROM type::thing('users', $id);
             "#)
-            .bind(("table", "users"))
             .bind(("id", id.to_string()))
             .await?
             .take(0)?;
@@ -168,9 +160,8 @@ impl UserRepositoryTrait for UserRepository {
     ) -> Result<Vec<String>> {
         let result: Option<StringListModel> = DB.query(r#"
             SELECT array::distinct(->user_roles->roles.name) as items
-            FROM type::thing($table, $id);
+            FROM type::thing('users', $id);
             "#)
-            .bind(("table", "users"))
             .bind(("id", id.to_string()))
             .await?
             .take(0)?;
@@ -187,9 +178,8 @@ impl UserRepositoryTrait for UserRepository {
     ) -> Result<Vec<String>> {
         let result: Option<StringListModel> = DB.query(r#"
             SELECT array::distinct(->user_groups->groups.name) as items
-            FROM type::thing($table, $id);
+            FROM type::thing('users', $id);
             "#)
-            .bind(("table", "users"))
             .bind(("id", id.to_string()))
             .await?
             .take(0)?;
@@ -200,7 +190,7 @@ impl UserRepositoryTrait for UserRepository {
         }
     }
 
-    async fn assign_role(
+    async fn role_assign(
         &self,
         user_id: &str,
         role_id: &str,
@@ -210,23 +200,45 @@ impl UserRepositoryTrait for UserRepository {
             "#, user_id, role_id))
             .await {
             Ok(..) => Ok(()),
-            Err(_) => Err(ApiError::from(DbError::EntryUpdate))
+            Err(e) => Err(ApiError::from(e))
         }
     }
 
-    async fn unassign_role(
+    async fn role_unassign(
         &self,
         user_id: &str,
         role_id: &str,
     ) -> Result<()> {
         match DB.query(r#"
-            DELETE type::thing('users', $user)->user_roles WHERE out=type::thing('roles', $role);
+            DELETE type::thing('users', $user_id)->user_roles WHERE out=type::thing('roles', $role_id);
             "#)
-            .bind(("user", user_id))
-            .bind(("role", role_id))
+            .bind(("user_id", user_id))
+            .bind(("role_id", role_id))
             .await {
             Ok(..) => Ok(()),
-            Err(_) => Err(ApiError::from(DbError::EntryDelete))
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+
+    async fn group_assign(&self, user_id: &str, group_id: &str) -> Result<()> {
+        match DB.query(format!(r#"
+            RELATE users:{}->user_groups->groups:{};
+            "#, user_id, group_id))
+            .await {
+            Ok(..) => Ok(()),
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+
+    async fn group_unassign(&self, user_id: &str, group_id: &str) -> Result<()> {
+        match DB.query(r#"
+            DELETE type::thing('users', $user_id)->user_groups WHERE out=type::thing('groups', $group_id);
+            "#)
+            .bind(("user_id", user_id))
+            .bind(("group_id", group_id))
+            .await {
+            Ok(..) => Ok(()),
+            Err(e) => Err(ApiError::from(e))
         }
     }
 }

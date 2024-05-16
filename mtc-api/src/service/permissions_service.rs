@@ -17,6 +17,7 @@ impl PermissionsService {
 #[async_trait]
 pub trait PermissionsServiceTrait {
     async fn all(&self) -> Result<Vec<PermissionModel>>;
+    async fn find(&self, id: &str) -> Result<PermissionModel>;
     async fn find_by_role(&self, id: &str) -> Result<Vec<String>>;
 }
 
@@ -24,6 +25,13 @@ pub trait PermissionsServiceTrait {
 impl PermissionsServiceTrait for PermissionsService {
     async fn all(&self) -> Result<Vec<PermissionModel>> {
         self.repository.all().await
+    }
+
+    async fn find(
+        &self,
+        id: &str,
+    ) -> Result<PermissionModel> {
+        self.repository.find(id).await
     }
 
     async fn find_by_role(

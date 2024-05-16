@@ -1,6 +1,6 @@
 use axum::async_trait;
-use crate::error::api_error::ApiError;
 
+use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
@@ -20,6 +20,8 @@ pub trait RoleRepositoryTrait {
     async fn create(&self, model: RoleCreateModel) -> Result<RoleModel>;
     async fn update(&self, id: &str, model: RoleUpdateModel) -> Result<RoleModel>;
     async fn delete(&self, id: &str) -> Result<()>;
+    async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()>;
+    async fn permission_unassign(&self, role_id: &str, permission_id: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -29,9 +31,8 @@ impl RoleRepositoryTrait for RoleRepository {
         id: &str,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = DB.query(r#"
-            SELECT * FROM type::thing($table, $id);
+            SELECT * FROM type::thing('roles', $id);
             "#)
-            .bind(("table", "roles"))
             .bind(("id", id.to_string()))
             .await?
             .take(0)?;
@@ -47,9 +48,8 @@ impl RoleRepositoryTrait for RoleRepository {
         name: &str,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = DB.query(r#"
-            SELECT * FROM type::table($table) WHERE name=$name;
+            SELECT * FROM roles WHERE name=$name;
             "#)
-            .bind(("table", "roles"))
             .bind(("name", name.to_string()))
             .await?
             .take(0)?;
@@ -65,12 +65,11 @@ impl RoleRepositoryTrait for RoleRepository {
         model: RoleCreateModel,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = DB.query(r#"
-            CREATE type::table($table) CONTENT {
+            CREATE roles CONTENT {
 	            name: $name,
 	            title: $title
             };
             "#)
-            .bind(("table", "roles"))
             .bind(("name", model.name))
             .bind(("title", model.title))
             .await?
@@ -88,12 +87,11 @@ impl RoleRepositoryTrait for RoleRepository {
         model: RoleUpdateModel,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = DB.query(r#"
-            UPDATE type::thing($table, $id) MERGE {
+            UPDATE type::thing('roles', $id) MERGE {
 	            name: $name,
 	            title: $title
             } WHERE id;
             "#)
-            .bind(("table", "roles"))
             .bind(("id", id))
             .bind(("name", model.name))
             .bind(("title", model.title))
@@ -111,17 +109,34 @@ impl RoleRepositoryTrait for RoleRepository {
         id: &str,
     ) -> Result<()> {
         match DB.query(r#"
-            BEGIN TRANSACTION;
-            DELETE type::thing($table, $id);
-            DELETE FROM type::table($rel_table) WHERE IN = type::thing($table, $id) OR OUT = type::thing($table, $id);
-            COMMIT TRANSACTION;
+            DELETE type::thing('roles', $id);
             "#)
-            .bind(("table", "roles"))
             .bind(("id", id))
-            .bind(("rel_table", "role_permissions"))
             .await {
             Ok(..) => Ok(()),
-            Err(_) => Err(ApiError::from(DbError::EntryDelete))
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+
+    async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()> {
+        match DB.query(format!(r#"
+            RELATE roles:{}->role_permissions->permissions:{};
+            "#, role_id, permission_id))
+            .await {
+            Ok(..) => Ok(()),
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+
+    async fn permission_unassign(&self, role_id: &str, permission_id: &str) -> Result<()> {
+        match DB.query(r#"
+            DELETE type::thing('roles', $role_id)->role_permissions WHERE out=type::thing('permissions', $permission_id);
+            "#)
+            .bind(("role_id", role_id))
+            .bind(("permission_id", permission_id))
+            .await {
+            Ok(..) => Ok(()),
+            Err(e) => Err(ApiError::from(e))
         }
     }
 }

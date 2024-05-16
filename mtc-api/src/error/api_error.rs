@@ -60,6 +60,13 @@ impl From<validator::ValidationErrors> for ApiError {
     }
 }
 
+impl From<tower_sessions::session::Error> for ApiError {
+    fn from(error: tower_sessions::session::Error) -> Self {
+        error!(target: "session", "{error}");
+        Self::from(SessionError::InvalidSession)
+    }
+}
+
 impl From<&str> for ApiError {
     fn from(message: &str) -> Self {
         Self::from(GenericError::ConflictError(message.to_string()))
