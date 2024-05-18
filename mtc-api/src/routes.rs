@@ -17,13 +17,12 @@ use crate::handler::role_handler::*;
 use crate::handler::setup_handler::*;
 use crate::handler::user_handler::*;
 use crate::middleware::auth_middleware::middleware_auth_handler;
-use crate::provider::config_provider::CFG;
 use crate::state::AppState;
 
 pub fn routes(
     state: Arc<AppState>
 ) -> Router {
-    let front_end_url = &CFG.front_end_url;
+    let front_end_url = &state.cfg.front_end_url;
 
     info!("\x1b[38;5;6mFront end CORS allowed URL: \x1b[38;5;13m{front_end_url}\x1b[0m");
     let cors_layer = CorsLayer::new()
@@ -42,7 +41,7 @@ pub fn routes(
         .route("/user/:id/role/:role_id", post(user_role_assign_handler).delete(user_role_unassign_handler))
         .route("/user/:id/role", post(user_roles_assign_handler))
         .route("/user/:id", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
-        .route("/user", get(user_list_handler))
+        .route("/user", get(user_list_handler).post(user_create_handler))
         .route("/group/:id", get(group_get_handler).post(group_update_handler).delete(group_delete_handler))
         .route("/group", get(group_list_handler).post(group_create_handler))
         .route("/role/:id/permission/:permission_id", post(role_permission_assign_handler).delete(role_permission_unassign_handler))

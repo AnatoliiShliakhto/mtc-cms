@@ -1,32 +1,49 @@
+use std::sync::Arc;
+
 use crate::error::Result;
-use crate::repository::group_repository::GroupRepository;
-use crate::repository::permissions_repository::PermissionsRepository;
-use crate::repository::role_repository::RoleRepository;
-use crate::repository::user_repository::UserRepository;
+use crate::provider::config_provider::Config;
+use crate::provider::database_provider::Database;
 use crate::service::group_service::GroupService;
 use crate::service::permissions_service::PermissionsService;
 use crate::service::role_service::RoleService;
+use crate::service::schema_service::SchemaService;
+use crate::service::single_type_service::SingleTypeService;
 use crate::service::user_service::UserService;
 
 pub struct AppState {
+    pub cfg: Arc<Config>,
+    pub db: Arc<Database>,
+
+    pub schema_service: SchemaService,
     pub group_service: GroupService,
     pub role_service: RoleService,
     pub user_service: UserService,
     pub permissions_service: PermissionsService,
+    pub single_type_service: SingleTypeService,
 }
 
 impl AppState {
-    pub async fn new() -> Result<AppState> {
-        let group_service = GroupService::new(GroupRepository)?;
-        let role_service = RoleService::new(RoleRepository)?;
-        let user_service = UserService::new(UserRepository)?;
-        let permissions_service = PermissionsService::new(PermissionsRepository)?;
+    pub async fn new(cfg: Config, db: Database) -> Result<AppState> {
+        let cfg = Arc::new(cfg);
+        let db = Arc::new(db);
+
+        let schema_service = SchemaService::new(&cfg, &db);
+        let group_service = GroupService::new(&cfg, &db);
+        let permissions_service = PermissionsService::new(&cfg, &db);
+        let role_service = RoleService::new(&cfg, &db);
+        let user_service = UserService::new(&cfg, &db);
+        let single_type_service = SingleTypeService::new(&cfg, &db);
 
         Ok(Self {
+            cfg,
+            db,
+
+            schema_service,
             group_service,
             role_service,
             user_service,
             permissions_service,
+            single_type_service,
         })
     }
 }

@@ -2,20 +2,17 @@ use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::SaltString;
 use axum::async_trait;
 
-use crate::CFG;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::model::StringListModel;
 use crate::model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
-use crate::paginator::RepositoryPaginate;
-use crate::provider::database_provider::DB;
+use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
+use crate::service::user_service::UserService;
 
-pub struct UserRepository;
-
-repository_paginate!(UserRepository, UserModel, "users");
+repository_paginate!(UserService, UserModel, "users");
 
 #[async_trait]
 pub trait UserRepositoryTrait {
@@ -34,12 +31,12 @@ pub trait UserRepositoryTrait {
 }
 
 #[async_trait]
-impl UserRepositoryTrait for UserRepository {
+impl UserRepositoryTrait for UserService {
     async fn find(
         &self,
         id: &str,
     ) -> Result<UserModel> {
-        let result: Option<UserModel> = DB.query(r#"
+        let result: Option<UserModel> = self.db.query(r#"
             SELECT * FROM type::thing('users', $id);
             "#)
             .bind(("id", id.to_string()))
@@ -56,7 +53,7 @@ impl UserRepositoryTrait for UserRepository {
         &self,
         login: &str,
     ) -> Result<UserModel> {
-        let result: Option<UserModel> = DB.query(r#"
+        let result: Option<UserModel> = self.db.query(r#"
             SELECT * FROM users WHERE login=$login;
             "#)
             .bind(("login", login.to_string()))
@@ -74,7 +71,7 @@ impl UserRepositoryTrait for UserRepository {
         model: UserCreateModel,
     ) -> Result<UserModel> {
         let password = model.password.as_bytes();
-        let salt = match SaltString::from_b64(&CFG.password_salt) {
+        let salt = match SaltString::from_b64(&self.cfg.password_salt) {
             Ok(value) => value,
             _ => Err(ApiError::from(SessionError::PasswordHash))?
         };
@@ -86,7 +83,7 @@ impl UserRepositoryTrait for UserRepository {
             _ => Err(ApiError::from(SessionError::PasswordHash))?
         };
 
-        let result: Option<UserModel> = DB.query(r#"
+        let result: Option<UserModel> = self.db.query(r#"
             CREATE users CONTENT {
 	            login: $login,
 	            password: $password
@@ -106,8 +103,9 @@ impl UserRepositoryTrait for UserRepository {
     async fn update(
         &self,
         id: &str,
-        model: UserUpdateModel) -> Result<UserModel> {
-        let result: Option<UserModel> = DB.query(r#"
+        model: UserUpdateModel,
+    ) -> Result<UserModel> {
+        let result: Option<UserModel> = self.db.query(r#"
             UPDATE type::thing('users', $id) MERGE {
 	            login: $login
             } WHERE id;
@@ -126,7 +124,7 @@ impl UserRepositoryTrait for UserRepository {
         &self,
         id: &str,
     ) -> Result<()> {
-        match DB.query(r#"
+        match self.db.query(r#"
             DELETE type::thing('users', $id);
             "#)
             .bind(("id", id))
@@ -140,7 +138,7 @@ impl UserRepositoryTrait for UserRepository {
         &self,
         id: &str,
     ) -> Result<Vec<String>> {
-        let result: Option<StringListModel> = DB.query(r#"
+        let result: Option<StringListModel> = self.db.query(r#"
             SELECT array::distinct(->user_roles->roles->role_permissions->permissions.name) as items
             FROM type::thing('users', $id);
             "#)
@@ -158,7 +156,7 @@ impl UserRepositoryTrait for UserRepository {
         &self,
         id: &str,
     ) -> Result<Vec<String>> {
-        let result: Option<StringListModel> = DB.query(r#"
+        let result: Option<StringListModel> = self.db.query(r#"
             SELECT array::distinct(->user_roles->roles.name) as items
             FROM type::thing('users', $id);
             "#)
@@ -176,7 +174,7 @@ impl UserRepositoryTrait for UserRepository {
         &self,
         id: &str,
     ) -> Result<Vec<String>> {
-        let result: Option<StringListModel> = DB.query(r#"
+        let result: Option<StringListModel> = self.db.query(r#"
             SELECT array::distinct(->user_groups->groups.name) as items
             FROM type::thing('users', $id);
             "#)
@@ -195,7 +193,7 @@ impl UserRepositoryTrait for UserRepository {
         user_id: &str,
         role_id: &str,
     ) -> Result<()> {
-        match DB.query(format!(r#"
+        match self.db.query(format!(r#"
             RELATE users:{}->user_roles->roles:{};
             "#, user_id, role_id))
             .await {
@@ -209,7 +207,7 @@ impl UserRepositoryTrait for UserRepository {
         user_id: &str,
         role_id: &str,
     ) -> Result<()> {
-        match DB.query(r#"
+        match self.db.query(r#"
             DELETE type::thing('users', $user_id)->user_roles WHERE out=type::thing('roles', $role_id);
             "#)
             .bind(("user_id", user_id))
@@ -220,8 +218,12 @@ impl UserRepositoryTrait for UserRepository {
         }
     }
 
-    async fn group_assign(&self, user_id: &str, group_id: &str) -> Result<()> {
-        match DB.query(format!(r#"
+    async fn group_assign(
+        &self,
+        user_id: &str,
+        group_id: &str,
+    ) -> Result<()> {
+        match self.db.query(format!(r#"
             RELATE users:{}->user_groups->groups:{};
             "#, user_id, group_id))
             .await {
@@ -230,8 +232,12 @@ impl UserRepositoryTrait for UserRepository {
         }
     }
 
-    async fn group_unassign(&self, user_id: &str, group_id: &str) -> Result<()> {
-        match DB.query(r#"
+    async fn group_unassign(
+        &self,
+        user_id: &str,
+        group_id: &str,
+    ) -> Result<()> {
+        match self.db.query(r#"
             DELETE type::thing('users', $user_id)->user_groups WHERE out=type::thing('groups', $group_id);
             "#)
             .bind(("user_id", user_id))

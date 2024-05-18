@@ -7,7 +7,6 @@ authors = ["Anatolii Shliakhto <a.shlyakhto@gmail.com>"]
 license = "GPL-3"
 resolver = "2"
 
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -26,7 +25,6 @@ surrealdb = { version = "1.5.0", features = ["sql2"] }
 chrono = "0.4.38"
 tower-sessions = { version = "0.12.2" }
 tower-sessions-surrealdb-store = "0.4.0"
-once_cell = "1.19.0"
-thiserror = "1.0.60"
+thiserror = "1.0.61"
 tracing-appender = "0.2.3"
 validator = { version = "0.18.1", features = ["derive"] }

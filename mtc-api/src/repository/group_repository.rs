@@ -4,14 +4,11 @@ use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
-use crate::paginator::RepositoryPaginate;
-use crate::provider::config_provider::CFG;
-use crate::provider::database_provider::DB;
+use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
+use crate::service::group_service::GroupService;
 
-pub struct GroupRepository;
-
-repository_paginate!(GroupRepository, GroupModel, "groups");
+repository_paginate!(GroupService, GroupModel, "groups");
 
 #[async_trait]
 pub trait GroupRepositoryTrait {
@@ -22,12 +19,12 @@ pub trait GroupRepositoryTrait {
 }
 
 #[async_trait]
-impl GroupRepositoryTrait for GroupRepository {
+impl GroupRepositoryTrait for GroupService {
     async fn find(
         &self,
         id: &str,
     ) -> Result<GroupModel> {
-        let result: Option<GroupModel> = DB.query(r#"
+        let result: Option<GroupModel> = self.db.query(r#"
             SELECT * FROM type::thing('groups', $id);
             "#)
             .bind(("id", id.to_string()))
@@ -44,7 +41,7 @@ impl GroupRepositoryTrait for GroupRepository {
         &self,
         model: GroupCreateModel,
     ) -> Result<GroupModel> {
-        let result: Option<GroupModel> = DB.query(r#"
+        let result: Option<GroupModel> = self.db.query(r#"
             CREATE groups CONTENT {
 	            name: $name,
 	            title: $title
@@ -66,7 +63,7 @@ impl GroupRepositoryTrait for GroupRepository {
         id: &str,
         model: GroupUpdateModel,
     ) -> Result<GroupModel> {
-        let result: Option<GroupModel> = DB.query(r#"
+        let result: Option<GroupModel> = self.db.query(r#"
             UPDATE type::thing('groups', $id) MERGE {
 	            name: $name,
 	            title: $title
@@ -88,7 +85,7 @@ impl GroupRepositoryTrait for GroupRepository {
         &self,
         id: &str,
     ) -> Result<()> {
-        match DB.query(r#"
+        match self.db.query(r#"
             DELETE type::thing('groups', $id);
             "#)
             .bind(("id", id))

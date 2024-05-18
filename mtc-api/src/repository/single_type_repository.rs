@@ -1,14 +1,4 @@
-use axum::async_trait;
-
-use crate::error::api_error::ApiError;
-use crate::error::db_error::DbError;
-use crate::error::Result;
-use crate::model::single_type_model::{SingleTypeCreateModel, SingleTypeModel};
-use crate::paginator::RepositoryPaginate;
-use crate::provider::config_provider::CFG;
-use crate::provider::database_provider::DB;
-use crate::repository_paginate;
-
+/*
 pub struct SingleTypeRepository;
 
 repository_paginate!(SingleTypeRepository, SingleTypeModel, "single_types");
@@ -18,6 +8,7 @@ pub trait SingleTypeRepositoryTrait {
     async fn find(&self, id: &str) -> Result<SingleTypeModel>;
     async fn find_by_api(&self, api: &str) -> Result<SingleTypeModel>;
     async fn create(&self, model: SingleTypeCreateModel) -> Result<SingleTypeModel>;
+    async fn delete(&self, api: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -57,16 +48,20 @@ impl SingleTypeRepositoryTrait for SingleTypeRepository {
     }
 
     async fn create(&self, model: SingleTypeCreateModel) -> Result<SingleTypeModel> {
+        if !can_api_create(&model.api).await? {
+            Err(ApiError::from(DbError::EntryAlreadyExists))?
+        }
+
         let result: Option<SingleTypeModel> = DB.query(r#"
             BEGIN TRANSACTION;
+
+            CREATE single_types CONTENT {
+	            api: $api,
+            };
 
             CREATE tables CONTENT {
                 name: $api,
                 is_core: false
-            };
-
-            CREATE single_types CONTENT {
-	            api: $api,
             };
 
             CREATE permissions CONTENT {
@@ -97,8 +92,50 @@ impl SingleTypeRepositoryTrait for SingleTypeRepository {
             .take(0)?;
 
         match result {
-            Some(value) => Ok(value),
+            Some(value) => {
+                DB.query(format!(r#"
+                    BEGIN TRANSACTION;
+                    DEFINE TABLE {0};
+                    DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
+                    DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
+                    COMMIT TRANSACTION;
+                    "#, model.api)).await?;
+                Ok(value)
+            }
             _ => Err(ApiError::from(DbError::EntryAlreadyExists))
         }
     }
+
+    async fn delete(&self, api: &str) -> Result<()> {
+        if !can_api_delete(api).await? {
+            Err(ApiError::from(DbError::EntryNotFound))?
+        }
+
+        DB.query(r#"
+            BEGIN TRANSACTION;
+
+            DELETE FROM single_types WHERE api=$api;
+            DELETE FROM tables WHERE name=$api;
+
+            DELETE type::thing('permissions', $permission_read_id);
+            DELETE type::thing('permissions', $permission_write_id);
+            DELETE type::thing('permissions', $permission_delete_id);
+
+            COMMIT TRANSACTION;
+            "#)
+            .bind(("api", api))
+            .bind(("permission_read_id", format!("{}_read", api)))
+            .bind(("permission_write_id", format!("{}_write", api)))
+            .bind(("permission_delete_id", format!("{}_delete", api)))
+            .await?;
+
+        DB.query(format!(r#"
+                REMOVE TABLE IF EXISTS {};
+                "#, api))
+            .await?;
+
+        Ok(())
+    }
 }
+
+ */

@@ -11,8 +11,8 @@ use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::model::auth_model::{AuthModel, AuthModelTrait};
-use crate::provider::config_provider::{CFG, SESSION_USER_KEY};
-use crate::service::user_service::UserServiceTrait;
+use crate::provider::config_provider::SESSION_USER_KEY;
+use crate::repository::user_repository::UserRepositoryTrait;
 use crate::state::AppState;
 
 pub async fn middleware_auth_handler(
@@ -36,7 +36,7 @@ pub async fn middleware_auth_handler(
     }
 
     //todo make refresh session more complex
-    session.set_expiry(Some(Expiry::OnInactivity(Duration::minutes(CFG.session_expiration as i64))));
+    session.set_expiry(Some(Expiry::OnInactivity(Duration::minutes(state.cfg.session_expiration as i64))));
 
     Ok(next.run(req).await)
 }

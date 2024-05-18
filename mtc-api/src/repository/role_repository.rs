@@ -4,14 +4,11 @@ use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
-use crate::paginator::RepositoryPaginate;
-use crate::provider::config_provider::CFG;
-use crate::provider::database_provider::DB;
+use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
+use crate::service::role_service::RoleService;
 
-pub struct RoleRepository;
-
-repository_paginate!(RoleRepository, RoleModel, "roles");
+repository_paginate!(RoleService, RoleModel, "roles");
 
 #[async_trait]
 pub trait RoleRepositoryTrait {
@@ -25,12 +22,12 @@ pub trait RoleRepositoryTrait {
 }
 
 #[async_trait]
-impl RoleRepositoryTrait for RoleRepository {
+impl RoleRepositoryTrait for RoleService {
     async fn find(
         &self,
         id: &str,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = DB.query(r#"
+        let result: Option<RoleModel> = self.db.query(r#"
             SELECT * FROM type::thing('roles', $id);
             "#)
             .bind(("id", id.to_string()))
@@ -47,7 +44,7 @@ impl RoleRepositoryTrait for RoleRepository {
         &self,
         name: &str,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = DB.query(r#"
+        let result: Option<RoleModel> = self.db.query(r#"
             SELECT * FROM roles WHERE name=$name;
             "#)
             .bind(("name", name.to_string()))
@@ -64,7 +61,7 @@ impl RoleRepositoryTrait for RoleRepository {
         &self,
         model: RoleCreateModel,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = DB.query(r#"
+        let result: Option<RoleModel> = self.db.query(r#"
             CREATE roles CONTENT {
 	            name: $name,
 	            title: $title
@@ -86,7 +83,7 @@ impl RoleRepositoryTrait for RoleRepository {
         id: &str,
         model: RoleUpdateModel,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = DB.query(r#"
+        let result: Option<RoleModel> = self.db.query(r#"
             UPDATE type::thing('roles', $id) MERGE {
 	            name: $name,
 	            title: $title
@@ -108,7 +105,7 @@ impl RoleRepositoryTrait for RoleRepository {
         &self,
         id: &str,
     ) -> Result<()> {
-        match DB.query(r#"
+        match self.db.query(r#"
             DELETE type::thing('roles', $id);
             "#)
             .bind(("id", id))
@@ -118,8 +115,13 @@ impl RoleRepositoryTrait for RoleRepository {
         }
     }
 
-    async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()> {
-        match DB.query(format!(r#"
+    async fn permission_assign(
+        &self,
+        role_id: &str,
+        permission_id:
+        &str,
+    ) -> Result<()> {
+        match self.db.query(format!(r#"
             RELATE roles:{}->role_permissions->permissions:{};
             "#, role_id, permission_id))
             .await {
@@ -128,8 +130,12 @@ impl RoleRepositoryTrait for RoleRepository {
         }
     }
 
-    async fn permission_unassign(&self, role_id: &str, permission_id: &str) -> Result<()> {
-        match DB.query(r#"
+    async fn permission_unassign(
+        &self,
+        role_id: &str,
+        permission_id: &str,
+    ) -> Result<()> {
+        match self.db.query(r#"
             DELETE type::thing('roles', $role_id)->role_permissions WHERE out=type::thing('permissions', $permission_id);
             "#)
             .bind(("role_id", role_id))

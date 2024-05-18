@@ -7,7 +7,7 @@ use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::permission_model::PermissionModel;
 use crate::model::response_model::ApiResponse;
-use crate::service::permissions_service::PermissionsServiceTrait;
+use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::state::AppState;
 
 pub async fn permissions_list_handler(

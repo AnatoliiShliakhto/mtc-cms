@@ -3,8 +3,8 @@ use std::sync::Arc;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::extract::State;
 use tower_sessions::Session;
-use crate::error::api_error::ApiError;
 
+use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::middleware::auth_middleware::UserSession;
@@ -12,7 +12,7 @@ use crate::model::auth_model::{AuthModel, SignInModel};
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::ApiResponse;
 use crate::model::user_model::UserModel;
-use crate::service::user_service::UserServiceTrait;
+use crate::repository::user_repository::UserRepositoryTrait;
 use crate::state::AppState;
 
 pub async fn sign_in_handler(

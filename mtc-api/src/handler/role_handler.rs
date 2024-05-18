@@ -5,25 +5,31 @@ use tower_sessions::Session;
 
 use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
+use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
 use crate::model::request_model::{PageRequest, ValidatedPayload};
 use crate::model::response_model::ApiResponse;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
-use crate::paginator::{ModelPagination, ServicePaginate};
-use crate::service::permissions_service::PermissionsServiceTrait;
-use crate::service::role_service::RoleServiceTrait;
+use crate::repository::permissions_repository::PermissionsRepositoryTrait;
+use crate::repository::RepositoryPaginate;
+use crate::repository::role_repository::RoleRepositoryTrait;
 use crate::state::AppState;
 
 pub async fn role_list_handler(
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<PageRequest>,
-) -> Result<ApiResponse<ModelPagination<Vec<RoleModel>>>> {
+) -> Result<ApiResponse<Vec<RoleModel>>> {
     session.permission("roles::read").await?;
 
-    let role_pagination = state.role_service
-        .paginate(payload.page.unwrap_or(1)).await?;
+    let pagination = PaginationModel::new(
+        state.role_service.get_total().await?,
+        state.cfg.rows_per_page,
+    )
+        .page(payload.page.unwrap_or(1));
 
-    Ok(ApiResponse::Json(role_pagination))
+    let data = state.role_service.get_page(pagination.from, pagination.per_page).await?;
+
+    Ok(ApiResponse::DataPage(data, pagination))
 }
 
 pub async fn role_get_handler(

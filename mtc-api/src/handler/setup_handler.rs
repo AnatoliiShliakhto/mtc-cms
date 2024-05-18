@@ -1,43 +1,47 @@
+use std::sync::Arc;
+
 use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::SaltString;
+use axum::extract::State;
 
 use crate::error::Result;
 use crate::model::response_model::ApiResponse;
-use crate::provider::config_provider::CFG;
-use crate::provider::database_provider::DB;
+use crate::state::AppState;
 
 //todo: Make migration service from SQL files or etc
-pub async fn setup_handler() -> Result<ApiResponse<()>> {
+pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<ApiResponse<()>> {
     let sql = r#"
         BEGIN TRANSACTION;
 
-        REMOVE TABLE IF EXISTS tables;
-        DEFINE TABLE tables SCHEMAFULL;
+        REMOVE TABLE IF EXISTS schemas;
+        DEFINE TABLE schemas SCHEMAFULL;
 
-        DEFINE FIELD name ON TABLE tables TYPE string;
-        DEFINE FIELD is_core ON TABLE tables TYPE bool DEFAULT false;
-        DEFINE FIELD created_at ON TABLE tables TYPE datetime DEFAULT time::now();
-        DEFINE FIELD updated_at ON TABLE tables TYPE datetime VALUE time::now();
-        DEFINE INDEX idx_tables_name ON TABLE tables COLUMNS name UNIQUE;
+        DEFINE FIELD name ON TABLE schemas TYPE string;
+        DEFINE FIELD fields ON TABLE schemas TYPE option<array>;
+        DEFINE FIELD is_system ON TABLE schemas TYPE bool DEFAULT false;
+        DEFINE FIELD is_collection ON TABLE schemas TYPE bool DEFAULT false;
+        DEFINE FIELD created_at ON TABLE schemas TYPE datetime DEFAULT time::now();
+        DEFINE FIELD updated_at ON TABLE schemas TYPE datetime VALUE time::now();
+        DEFINE INDEX idx_schemas_name ON TABLE schemas COLUMNS name UNIQUE;
 
-        CREATE tables CONTENT {
-            name: 'tables',
-            is_core: true
+        CREATE schemas CONTENT {
+            name: 'schemas',
+            is_system: true
         };
 
         REMOVE TABLE IF EXISTS sessions;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'sessions',
-            is_core: true
+            is_system: true
         };
 
         REMOVE TABLE IF EXISTS users;
         DEFINE TABLE users SCHEMAFULL;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'users',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD login ON TABLE users TYPE string;
@@ -56,9 +60,9 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
         REMOVE TABLE IF EXISTS roles;
         DEFINE TABLE roles SCHEMAFULL;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'roles',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD name ON TABLE roles TYPE string;
@@ -82,9 +86,9 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
         REMOVE TABLE IF EXISTS permissions;
         DEFINE TABLE permissions SCHEMAFULL;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'permissions',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD name ON TABLE permissions TYPE string;
@@ -129,24 +133,24 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
             name: 'users::delete'
         };
         CREATE permissions CONTENT {
-            id: 'permissions_read',
-            name: 'permissions::read'
+            id: 'schemas_read',
+            name: 'schemas::read'
         };
         CREATE permissions CONTENT {
-            id: 'permissions_write',
-            name: 'permissions::write'
+            id: 'schemas_write',
+            name: 'schemas::write'
         };
         CREATE permissions CONTENT {
-            id: 'permissions_delete',
-            name: 'permissions::delete'
+            id: 'schemas_delete',
+            name: 'schemas::delete'
         };
 
         REMOVE TABLE IF EXISTS role_permissions;
         DEFINE TABLE role_permissions SCHEMAFULL TYPE RELATION IN roles OUT permissions;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'role_permissions',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD created_at ON TABLE role_permissions TYPE datetime VALUE time::now();
@@ -161,16 +165,16 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
         RELATE roles:administrator->role_permissions->permissions:users_read;
         RELATE roles:administrator->role_permissions->permissions:users_write;
         RELATE roles:administrator->role_permissions->permissions:users_delete;
-        RELATE roles:administrator->role_permissions->permissions:permissions_read;
-        RELATE roles:administrator->role_permissions->permissions:permissions_write;
-        RELATE roles:administrator->role_permissions->permissions:permissions_delete;
+        RELATE roles:administrator->role_permissions->permissions:schemas_read;
+        RELATE roles:administrator->role_permissions->permissions:schemas_write;
+        RELATE roles:administrator->role_permissions->permissions:schemas_delete;
 
         REMOVE TABLE IF EXISTS user_roles;
         DEFINE TABLE user_roles SCHEMAFULL TYPE RELATION IN users OUT roles;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'user_roles',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD created_at ON TABLE user_roles TYPE datetime VALUE time::now();
@@ -181,9 +185,9 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
         REMOVE TABLE IF EXISTS groups;
         DEFINE TABLE groups SCHEMAFULL;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'groups',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD name ON TABLE groups TYPE string;
@@ -195,33 +199,19 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
         REMOVE TABLE IF EXISTS user_groups;
         DEFINE TABLE user_groups SCHEMAFULL TYPE RELATION IN users OUT groups;
 
-        CREATE tables CONTENT {
+        CREATE schemas CONTENT {
             name: 'user_groups',
-            is_core: true
+            is_system: true
         };
 
         DEFINE FIELD created_at ON TABLE user_groups TYPE datetime VALUE time::now();
         DEFINE INDEX idx_user_groups ON TABLE user_groups COLUMNS in, out UNIQUE;
 
-        REMOVE TABLE IF EXISTS single_types;
-        DEFINE TABLE single_types SCHEMAFULL;
-
-        CREATE tables CONTENT {
-            name: 'single_types',
-            is_core: true
-        };
-
-        DEFINE FIELD api ON TABLE single_types TYPE string;
-        DEFINE FIELD fields ON TABLE single_types TYPE array;
-        DEFINE FIELD created_at ON TABLE single_types TYPE datetime DEFAULT time::now();
-        DEFINE FIELD updated_at ON TABLE single_types TYPE datetime VALUE time::now();
-        DEFINE INDEX idx_single_types_api ON TABLE single_types COLUMNS api UNIQUE;
-
         COMMIT TRANSACTION;
     "#;
 
-    let password = CFG.setup_password.clone();
-    let salt = SaltString::from_b64(&CFG.password_salt).unwrap();
+    let password = state.cfg.setup_password.clone();
+    let salt = SaltString::from_b64(&state.cfg.password_salt).unwrap();
 
     let argon2 = Argon2::default();
     let password_hash = argon2
@@ -229,14 +219,12 @@ pub async fn setup_handler() -> Result<ApiResponse<()>> {
         .expect("Error occurred while encrypted password")
         .to_string();
 
-    let responses = DB.query(sql)
-        .bind(("login", CFG.setup_login.clone()))
+    let responses = state.db.query(sql)
+        .bind(("login", state.cfg.setup_login.clone()))
         .bind(("password", password_hash.as_str()))
         .await?;
 
-    println!("{responses:?}");
-    println!();
-    println!("Initial migrate done!");
+    println!("{responses:#?}\nInitial migrate done!");
 
     Ok(ApiResponse::Ok)
 }

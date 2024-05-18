@@ -6,23 +6,29 @@ use tower_sessions::Session;
 use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
+use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
 use crate::model::request_model::{PageRequest, ValidatedPayload};
 use crate::model::response_model::ApiResponse;
-use crate::paginator::{ModelPagination, ServicePaginate};
-use crate::service::group_service::GroupServiceTrait;
+use crate::repository::group_repository::GroupRepositoryTrait;
+use crate::repository::RepositoryPaginate;
 use crate::state::AppState;
 
 pub async fn group_list_handler(
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<PageRequest>,
-) -> Result<ApiResponse<ModelPagination<Vec<GroupModel>>>> {
+) -> Result<ApiResponse<Vec<GroupModel>>> {
     session.permission("groups::read").await?;
 
-    let group_pagination = state.group_service
-        .paginate(payload.page.unwrap_or(1)).await?;
+    let pagination = PaginationModel::new(
+        state.group_service.get_total().await?,
+        state.cfg.rows_per_page,
+    )
+        .page(payload.page.unwrap_or(1));
 
-    Ok(ApiResponse::Json(group_pagination))
+    let data = state.group_service.get_page(pagination.from, pagination.per_page).await?;
+
+    Ok(ApiResponse::DataPage(data, pagination))
 }
 
 pub async fn group_get_handler(

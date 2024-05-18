@@ -10,6 +10,8 @@ pub mod auth_model;
 pub mod group_model;
 pub mod field_model;
 pub mod single_type_model;
+pub mod schema_model;
+pub mod pagination_model;
 
 #[derive(Deserialize, Serialize)]
 pub struct StringListModel {

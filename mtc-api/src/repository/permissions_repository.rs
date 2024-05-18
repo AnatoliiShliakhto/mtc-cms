@@ -5,9 +5,7 @@ use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::permission_model::{PermissionCreateModel, PermissionModel};
 use crate::model::StringListModel;
-use crate::provider::database_provider::DB;
-
-pub struct PermissionsRepository;
+use crate::service::permissions_service::PermissionsService;
 
 #[async_trait]
 pub trait PermissionsRepositoryTrait {
@@ -19,9 +17,9 @@ pub trait PermissionsRepositoryTrait {
 }
 
 #[async_trait]
-impl PermissionsRepositoryTrait for PermissionsRepository {
+impl PermissionsRepositoryTrait for PermissionsService {
     async fn all(&self) -> Result<Vec<PermissionModel>> {
-        let result: Vec<PermissionModel> = DB.query(r#"
+        let result: Vec<PermissionModel> = self.db.query(r#"
             SELECT * FROM permissions;
             "#)
             .await?
@@ -30,8 +28,11 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         Ok(result)
     }
 
-    async fn find(&self, id: &str) -> Result<PermissionModel> {
-        let result: Option<PermissionModel> = DB.query(r#"
+    async fn find(
+        &self,
+        id: &str,
+    ) -> Result<PermissionModel> {
+        let result: Option<PermissionModel> = self.db.query(r#"
             SELECT * FROM type::thing('permissions', $id);
             "#)
             .bind(("id", id.to_string()))
@@ -48,7 +49,7 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         &self,
         role_id: &str,
     ) -> Result<Vec<String>> {
-        let result: Option<StringListModel> = DB.query(r#"
+        let result: Option<StringListModel> = self.db.query(r#"
             SELECT array::distinct(->role_permissions->permissions.name) as items FROM type::thing('roles', $id);
             "#)
             .bind(("id", role_id.to_string()))
@@ -65,7 +66,7 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         &self,
         model: PermissionCreateModel,
     ) -> Result<PermissionModel> {
-        let result: Option<PermissionModel> = DB.query(r#"
+        let result: Option<PermissionModel> = self.db.query(r#"
             CREATE permissions CONTENT {
 	            name: $name,
 	            title: $title
@@ -85,7 +86,7 @@ impl PermissionsRepositoryTrait for PermissionsRepository {
         &self,
         id: &str,
     ) -> Result<()> {
-        match DB.query(r#"
+        match self.db.query(r#"
             DELETE type::thing('permissions', $id);
             "#)
             .bind(("id", id))
