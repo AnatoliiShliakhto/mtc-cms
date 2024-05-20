@@ -16,9 +16,9 @@
 ```
 cargo install cross --git https://github.com/cross-rs/cross
 
-cross build --target x86_64-unknown-linux-gnu
+cross build --target x86_64-unknown-linux-musl
 
-cross build --release --target x86_64-unknown-linux-gnu
+cross build --release --target x86_64-unknown-linux-musl
 ```
 
 > CMS-WEB

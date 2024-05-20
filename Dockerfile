@@ -1,10 +1,26 @@
-FROM alpine AS runtime
-MAINTAINER Anatolii Shliakhto <a.shlyakhto@gmail.com>
+FROM alpine:latest AS runtime
 
-RUN addgroup -S coolguys && adduser -S seiko -G seiko
-COPY /target/x86_64-unknown-linux-gnu/release/mtc-api /usr/local/bin/
-USER seiko
+# add user
+ARG UID=10001
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    mtc-user
 
+RUN mkdir -p ./mtc-cms \
+  && chown -R mtc-user ./mtc-cms
+
+USER mtc-user
+
+# copy app with assets to container volume
+COPY ./target/x86_64-unknown-linux-musl/release/mtc-api ./mtc-cms/
+COPY ./public ./mtc-cms/public
+
+# run app
+WORKDIR /mtc-cms
 EXPOSE 8080
-
-CMD ["/usr/local/bin/mtc-api"]
+CMD ["/mtc-cms/mtc-api"]

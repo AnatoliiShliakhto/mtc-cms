@@ -32,8 +32,8 @@ mod model;
 mod repository;
 mod service;
 mod middleware;
-pub mod routes;
-pub mod handler;
+mod routes;
+mod handler;
 
 fn main() -> ExitCode {
     match with_enough_stack(app()) {

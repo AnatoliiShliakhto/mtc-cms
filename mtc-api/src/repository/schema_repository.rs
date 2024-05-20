@@ -59,7 +59,7 @@ impl SchemaRepositoryTrait for SchemaService {
         name: &str,
     ) -> Result<bool> {
         let result: Option<String> = self.db.query(r#"
-            SELECT name FROM ONLY schemas WHERE name=$name;
+            SELECT name FROM schemas WHERE name=$name;
             "#)
             .bind(("name", name))
             .await?
@@ -76,7 +76,7 @@ impl SchemaRepositoryTrait for SchemaService {
         name: &str,
     ) -> Result<bool> {
         let result: Option<bool> = self.db.query(r#"
-            SELECT is_system FROM ONLY schemas WHERE name=$name;
+            SELECT is_system FROM schemas WHERE name=$name;
             "#)
             .bind(("name", name))
             .await?

@@ -2,6 +2,7 @@
 use surrealdb::engine::local::{Db, SpeeDb};
 #[cfg(debug_assertions)]
 use surrealdb::engine::remote::ws::{Client, Ws};
+#[cfg(debug_assertions)]
 use surrealdb::opt::auth::Root;
 use surrealdb::Surreal;
 use tracing::log::info;
@@ -49,8 +50,7 @@ async fn db_pre_init(database_path: &str) -> Result<Database> {
 }
 
 #[cfg(not(debug_assertions))]
-async fn db_pre_init(database_path: &str) {
-    let db = Database::new(Db).await?;
-    db.connect::<SpeeDb>(database_path).await?;
+async fn db_pre_init(database_path: &str) -> Result<Database> {
+    let db = Database::new::<SpeeDb>(database_path).await?;
     Ok(db)
 }

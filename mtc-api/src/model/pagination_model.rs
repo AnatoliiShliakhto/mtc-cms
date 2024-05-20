@@ -43,7 +43,8 @@ pub trait PaginationBuilder {
 impl PaginationBuilder for PaginationModel {
     fn page(&mut self, page: usize) -> Self {
         self.current_page = match page {
-            n if n > 1 => n, _ => 1
+            n if n > 1 => n,
+            _ => 1
         };
 
         self.from = (self.current_page - 1) * self.per_page + 1;

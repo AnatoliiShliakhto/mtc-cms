@@ -1,0 +1,14 @@
+version: "3"
+services:
+  web:
+    build:
+      context: .
+    container_name: mtc-cms
+    ports:
+      - "8080:8080"
+    volumes:
+      - data:/mtc-cms/
+    env_file:
+      - .env
+volumes:
+  data:
