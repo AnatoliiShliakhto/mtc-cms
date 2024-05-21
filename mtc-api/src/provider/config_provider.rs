@@ -6,14 +6,23 @@ use tracing::error;
 #[derive(Debug, Clone)]
 pub struct Config {
     pub host: String,
+    pub http_port: String,
+    pub https_port: String,
+    pub front_end_url: String,
+
+    pub password_salt: String,
     pub setup_login: String,
     pub setup_password: String,
+
+    pub public_path: String,
+    pub cert_path: String,
+    pub log_path: String,
     pub db_path: String,
+
     pub db_namespace: String,
     pub db_name: String,
     pub session_expiration: usize,
-    pub front_end_url: String,
-    pub password_salt: String,
+
     pub max_body_limit: usize,
     pub rows_per_page: usize,
 }
@@ -33,6 +42,8 @@ impl Config {
 
         Self {
             host: get_env("HOST"),
+            http_port: get_env("HTTP_PORT"),
+            https_port: get_env("HTTPS_PORT"),
             password_salt: get_env("PASSWORD_SALT"),
             db_path: get_env("DB_PATH"),
             db_namespace: get_env("DB_NAMESPACE"),
@@ -46,6 +57,9 @@ impl Config {
                 .trim().parse::<usize>().unwrap_or(10),
             setup_login: get_env("SETUP_ADMIN_LOGIN"),
             setup_password: get_env("SETUP_ADMIN_PASSWORD"),
+            public_path: get_env("PUBLIC_PATH"),
+            cert_path: get_env("CERT_PATH"),
+            log_path: get_env("LOG_PATH"),
         }
     }
 }

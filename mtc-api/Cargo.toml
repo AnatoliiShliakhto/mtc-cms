@@ -28,3 +28,4 @@ tower-sessions-surrealdb-store = "0.4.0"
 thiserror = "1.0.61"
 tracing-appender = "0.2.3"
 validator = { version = "0.18.1", features = ["derive"] }
+axum-server = {  version = "0.6.0", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
