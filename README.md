@@ -23,7 +23,7 @@ cargo install dioxus-cli
 ```bash
 cargo install cross --git https://github.com/cross-rs/cross
 ```
-- PEM certificate (or make them for localhost with [**MkCert**]() utility)
+- PEM certificate (or make them for localhost with [**MkCert**](https://github.com/Subash/mkcert) utility)
 ```bash
 mkcert -install
 mkcert localhost
