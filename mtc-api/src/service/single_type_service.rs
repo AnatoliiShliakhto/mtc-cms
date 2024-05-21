@@ -1,1 +1,0 @@
-crate::impl_service!(SingleTypeService);

@@ -45,10 +45,10 @@ fn main() -> ExitCode {
 }
 
 async fn app() -> Result<(), Box<dyn std::error::Error>> {
-    info!("\x1b[38;5;11m🌟 242 MTC REST API Service 🌟\x1b[0m");
-
     let config = Config::init();
     Logger::init(&config);
+    info!("\x1b[38;5;11m🌟 242 MTC REST API Service 🌟\x1b[0m");
+
     let db = DatabaseProvider::init(&config).await?;
     info!("\x1b[38;5;6mConnection to the database is successful!\x1b[0m");
 

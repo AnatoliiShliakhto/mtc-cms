@@ -2,7 +2,6 @@ pub mod role_service;
 pub mod user_service;
 pub mod permissions_service;
 pub mod group_service;
-pub mod single_type_service;
 pub mod schema_service;
 
 #[macro_export]

@@ -14,6 +14,7 @@ use crate::handler::group_handler::*;
 use crate::handler::health_handler::*;
 use crate::handler::permissions_handler::*;
 use crate::handler::role_handler::*;
+use crate::handler::schema_handler::*;
 use crate::handler::setup_handler::*;
 use crate::handler::user_handler::*;
 use crate::middleware::auth_middleware::middleware_auth_handler;
@@ -35,6 +36,8 @@ pub fn routes(
         ]);
 
     Router::new()
+        .route("/schema/:id", get(schema_get_handler).delete(schema_delete_handler))
+        .route("/schema", get(schema_list_handler).post(schema_create_handler))
         .route("/permissions/:id", get(permissions_role_handler))
         .route("/permissions", get(permissions_list_handler))
         .route("/user/:id/group/:group_id", post(user_group_assign_handler).delete(user_group_unassign_handler))
