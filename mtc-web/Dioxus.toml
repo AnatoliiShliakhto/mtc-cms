@@ -44,4 +44,4 @@ script = []
 script = []
 
 [[web.proxy]]
-backend = "http://localhost:8080/api/"
+backend = "http://localhost/api/"

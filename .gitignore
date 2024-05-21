@@ -10,4 +10,6 @@
 /node_modules/
 /surrealdb/
 /README.Docker.md
-/cert/
+!/cert/
+/cert/cert.pem
+/cert/key.pem
