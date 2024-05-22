@@ -36,24 +36,34 @@ pub fn routes(
         ]);
 
     Router::new()
-        .route("/schema/:id", get(schema_get_handler).delete(schema_delete_handler))
-        .route("/schema", get(schema_list_handler).post(schema_create_handler))
-        .route("/permissions/:id", get(permissions_role_handler))
+        .route("/schema/:slug", get(schema_get_handler).post(schema_update_handler).delete(schema_delete_handler))
+        .route("/schema", post(schema_create_handler))
+        .route("/schemas", get(schema_list_handler).post(schema_create_handler))
+
+        .route("/user/:login/groups", get(user_get_groups_handler).post(user_set_groups_handler))
+        .route("/user/:login/permissions", get(user_get_permissions_handler))
+        .route("/user/:login/roles", get(user_get_roles_handler).post(user_set_roles_handler))
+        .route("/user/:slug", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
+        .route("/user", post(user_create_handler))
+        .route("/users", get(user_list_handler).post(user_create_handler))
+
+        .route("/group/:slug", get(group_get_handler).post(group_update_handler).delete(group_delete_handler))
+        .route("/group", post(group_create_handler))
+        .route("/groups", get(group_list_handler).post(group_create_handler))
+
+        .route("/role/:slug/permissions", get(role_get_permissions).post(role_set_permissions))
+        .route("/role/:slug", get(role_get_handler).post(role_update_handler).delete(role_delete_handler))
+        .route("/role", post(role_create_handler))
+        .route("/roles", get(role_list_handler).post(role_create_handler))
+
         .route("/permissions", get(permissions_list_handler))
-        .route("/user/:id/group/:group_id", post(user_group_assign_handler).delete(user_group_unassign_handler))
-        .route("/user/:id/role/:role_id", post(user_role_assign_handler).delete(user_role_unassign_handler))
-        .route("/user/:id/role", post(user_roles_assign_handler))
-        .route("/user/:id", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
-        .route("/user", get(user_list_handler).post(user_create_handler))
-        .route("/group/:id", get(group_get_handler).post(group_update_handler).delete(group_delete_handler))
-        .route("/group", get(group_list_handler).post(group_create_handler))
-        .route("/role/:id/permission/:permission_id", post(role_permission_assign_handler).delete(role_permission_unassign_handler))
-        .route("/role/:id", get(role_get_handler).post(role_update_handler).delete(role_delete_handler))
-        .route("/role", get(role_list_handler).post(role_create_handler))
+
         .route("/auth", post(sign_in_handler).delete(sign_out_handler))
+
         .route("/setup", post(setup_handler))
+        .route("/health", get(health_handler))
+
         .layer(ServiceBuilder::new().layer(from_fn_with_state(Arc::clone(&state), middleware_auth_handler)))
         .with_state(state)
-        .route("/health", get(health_handler))
         .layer(cors_layer)
 }

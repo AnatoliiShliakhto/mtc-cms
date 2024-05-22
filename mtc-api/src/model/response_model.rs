@@ -14,21 +14,17 @@ struct ApiData<T: Serialize> {
 
 pub enum ApiResponse<T: Serialize> {
     Ok,
-    Created,
     Data(T),
     DataPage(T, PaginationModel),
-    Json(T),
 }
 
 impl<T: Serialize> IntoResponse for ApiResponse<T> {
     fn into_response(self) -> Response {
         match self {
             Self::Ok => StatusCode::OK.into_response(),
-            Self::Created => StatusCode::CREATED.into_response(),
             Self::Data(data) => Json(ApiData::<T> { data, pagination: None }).into_response(),
             Self::DataPage(data, pagination) =>
                 Json(ApiData::<T> { data, pagination: Some(pagination) }).into_response(),
-            Self::Json(data) => Json(data).into_response(),
         }
     }
 }

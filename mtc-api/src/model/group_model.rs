@@ -8,7 +8,7 @@ use crate::model::from_thing;
 pub struct GroupModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,
-    pub name: String,
+    pub slug: String,
     pub title: String,
     pub created_at: Datetime,
     pub updated_at: Datetime,
@@ -16,12 +16,16 @@ pub struct GroupModel {
 
 #[derive(Deserialize, Validate)]
 pub struct GroupCreateModel {
-    pub name: String,
+    pub slug: String,
     pub title: String,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct GroupUpdateModel {
-    pub name: String,
     pub title: String,
+}
+
+#[derive(Deserialize, Serialize, Validate)]
+pub struct GroupsModel {
+    pub groups: Vec<String>,
 }

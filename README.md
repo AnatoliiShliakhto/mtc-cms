@@ -10,7 +10,7 @@ RUST Content Management System Core Project `In-Dev`
 - daisyUI - [Components for Tailwind CSS](https://daisyui.com/)
 
 > **Docker** `container` production release
-- ALPINE - [Linux OS x86_64-unknown-linux-musl](https://www.alpinelinux.org/)
+- ALPINE - [OS Linux x86_64-unknown-linux-musl](https://www.alpinelinux.org/)
 
 ## Pre-requires
 - Rust, SurrealDB, Node.Js

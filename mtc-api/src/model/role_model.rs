@@ -8,7 +8,7 @@ use crate::model::from_thing;
 pub struct RoleModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,
-    pub name: String,
+    pub slug: String,
     pub title: String,
     pub created_at: Datetime,
     pub updated_at: Datetime,
@@ -16,12 +16,16 @@ pub struct RoleModel {
 
 #[derive(Deserialize, Validate)]
 pub struct RoleCreateModel {
-    pub name: String,
+    pub slug: String,
     pub title: String,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct RoleUpdateModel {
-    pub name: String,
     pub title: String,
+}
+
+#[derive(Deserialize, Serialize, Validate)]
+pub struct RolesModel {
+    pub roles: Vec<String>,
 }

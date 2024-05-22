@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FieldModel {
-    pub name: String,
-    pub order: usize,
+    pub slug: String,
+    pub title: String,
+    #[serde(rename = "type")]
     pub field_type: FieldTypeModel,
 }
 

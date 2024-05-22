@@ -2,17 +2,22 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use tower_sessions::Session;
+use tracing::warn;
 
 use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
+use crate::model::group_model::GroupsModel;
 use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
+use crate::model::permission_model::PermissionsModel;
 use crate::model::request_model::{PageRequest, ValidatedPayload};
 use crate::model::response_model::ApiResponse;
-use crate::model::user_model::{UserAssignRolesModel, UserCreateModel, UserModel, UserUpdateModel};
+use crate::model::role_model::RolesModel;
+use crate::model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 use crate::repository::group_repository::GroupRepositoryTrait;
+use crate::repository::permissions_repository::PermissionsRepositoryTrait;
+use crate::repository::RepositoryPaginate;
 use crate::repository::role_repository::RoleRepositoryTrait;
 use crate::repository::user_repository::UserRepositoryTrait;
-use crate::repository::RepositoryPaginate;
 use crate::state::AppState;
 
 pub async fn user_list_handler(
@@ -20,7 +25,7 @@ pub async fn user_list_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<PageRequest>,
 ) -> Result<ApiResponse<Vec<UserModel>>> {
-    session.permission("users::read").await?;
+    session.permission("user::read").await?;
 
     let pagination = PaginationModel::new(
         state.user_service.get_total().await?,
@@ -34,15 +39,15 @@ pub async fn user_list_handler(
 }
 
 pub async fn user_get_handler(
-    Path(id): Path<String>,
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
 ) -> Result<ApiResponse<UserModel>> {
-    session.permission("users::read").await?;
+    session.permission("user::read").await?;
 
     let user_model = state
         .user_service
-        .find(&id)
+        .find_by_login(&login)
         .await?;
 
     Ok(ApiResponse::Data(user_model))
@@ -53,7 +58,7 @@ pub async fn user_create_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<UserCreateModel>,
 ) -> Result<ApiResponse<UserModel>> {
-    session.permission("users::write").await?;
+    session.permission("user::write").await?;
 
     let user_model = state
         .user_service
@@ -64,107 +69,125 @@ pub async fn user_create_handler(
 }
 
 pub async fn user_update_handler(
-    Path(id): Path<String>,
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<UserUpdateModel>,
 ) -> Result<ApiResponse<UserModel>> {
-    session.permission("users::write").await?;
+    session.permission("user::write").await?;
 
     let user_model = state
         .user_service
-        .update(&id, payload)
+        .update(&login, payload)
         .await?;
 
     Ok(ApiResponse::Data(user_model))
 }
 
 pub async fn user_delete_handler(
-    Path(id): Path<String>,
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
 ) -> Result<ApiResponse<()>> {
-    session.permission("users::delete").await?;
+    session.permission("user::delete").await?;
 
     state
         .user_service
-        .delete(&id)
+        .delete(&login)
         .await?;
 
     Ok(ApiResponse::Ok)
 }
 
-
-pub async fn user_roles_assign_handler(
-    Path(id): Path<String>,
+pub async fn user_get_roles_handler(
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<UserAssignRolesModel>,
+) -> Result<ApiResponse<RolesModel>> {
+    session.permission("user::read").await?;
+
+    let roles = state
+        .role_service
+        .find_by_user(&login)
+        .await?;
+
+    Ok(ApiResponse::Data(roles))
+}
+
+pub async fn user_set_roles_handler(
+    Path(login): Path<String>,
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<RolesModel>,
 ) -> Result<ApiResponse<()>> {
-    session.permission("users::write").await?;
+    session.permission("user::write").await?;
 
-    let user_model = state.user_service.find(&id).await?;
+    let user_model = state.user_service.find_by_login(&login).await?;
 
-    for role_id in payload.roles.iter() {
-        let role_model = state.role_service.find(role_id).await?;
-        state.user_service.role_assign(&user_model.id, &role_model.id).await?;
+    state.user_service.roles_drop(&user_model.id).await?;
+
+    for role in payload.roles {
+        match state.role_service.find_by_slug(&role).await {
+            Ok(value) => {
+                state.user_service.role_assign(&user_model.id, &value.id).await?
+            }
+            _ => warn!("can't find role -> {role}")
+        }
     }
 
     Ok(ApiResponse::Ok)
 }
 
-pub async fn user_role_assign_handler(
-    Path((id, role_id)): Path<(String, String)>,
+pub async fn user_get_permissions_handler(
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<ApiResponse<()>> {
-    session.permission("users::write").await?;
+) -> Result<ApiResponse<PermissionsModel>> {
+    session.permission("user::read").await?;
 
-    let role_model = state.role_service.find(&role_id).await?;
-    let user_model = state.user_service.find(&id).await?;
-    state.user_service.role_assign(&user_model.id, &role_model.id).await?;
+    let permissions = state
+        .permissions_service
+        .find_by_user(&login)
+        .await?;
 
-    Ok(ApiResponse::Ok)
+    Ok(ApiResponse::Data(permissions))
 }
 
-pub async fn user_role_unassign_handler(
-    Path((id, role_id)): Path<(String, String)>,
+pub async fn user_get_groups_handler(
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<ApiResponse<()>> {
-    session.permission("users::write").await?;
+) -> Result<ApiResponse<GroupsModel>> {
+    session.permission("user::read").await?;
 
-    let user_model = state.user_service.find(&id).await?;
-    let role_model = state.role_service.find(&role_id).await?;
-    state.user_service.role_unassign(&user_model.id, &role_model.id).await?;
+    let groups = state
+        .group_service
+        .find_by_user(&login)
+        .await?;
 
-    Ok(ApiResponse::Ok)
+    Ok(ApiResponse::Data(groups))
 }
 
-pub async fn user_group_assign_handler(
-    Path((id, group_id)): Path<(String, String)>,
+pub async fn user_set_groups_handler(
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
+    ValidatedPayload(payload): ValidatedPayload<GroupsModel>,
 ) -> Result<ApiResponse<()>> {
-    session.permission("users::write").await?;
+    session.permission("user::write").await?;
 
-    let group_model = state.group_service.find(&group_id).await?;
-    let user_model = state.user_service.find(&id).await?;
-    state.user_service.group_assign(&user_model.id, &group_model.id).await?;
+    let user_model = state.user_service.find_by_login(&login).await?;
 
-    Ok(ApiResponse::Ok)
-}
+    state.user_service.groups_drop(&user_model.id).await?;
 
-pub async fn user_group_unassign_handler(
-    Path((id, group_id)): Path<(String, String)>,
-    state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<ApiResponse<()>> {
-    session.permission("users::write").await?;
-
-    let user_model = state.user_service.find(&id).await?;
-    let group_model = state.group_service.find(&group_id).await?;
-    state.user_service.group_unassign(&user_model.id, &group_model.id).await?;
+    for group in payload.groups {
+        match state.group_service.find_by_slug(&group).await {
+            Ok(value) => {
+                state.user_service.group_assign(&user_model.id, &value.id).await?
+            }
+            _ => warn!("can't find group -> {group}")
+        }
+    }
 
     Ok(ApiResponse::Ok)
 }

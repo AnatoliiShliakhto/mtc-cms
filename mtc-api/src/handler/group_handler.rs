@@ -18,7 +18,7 @@ pub async fn group_list_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<PageRequest>,
 ) -> Result<ApiResponse<Vec<GroupModel>>> {
-    session.permission("groups::read").await?;
+    session.permission("group::read").await?;
 
     let pagination = PaginationModel::new(
         state.group_service.get_total().await?,
@@ -32,15 +32,15 @@ pub async fn group_list_handler(
 }
 
 pub async fn group_get_handler(
-    Path(id): Path<String>,
+    Path(slug): Path<String>,
     session: Session,
     state: State<Arc<AppState>>,
 ) -> Result<ApiResponse<GroupModel>> {
-    session.permission("groups::read").await?;
+    session.permission("group::read").await?;
 
     let group_model = state
         .group_service
-        .find(&id)
+        .find_by_slug(&slug)
         .await?;
 
     Ok(ApiResponse::Data(group_model))
@@ -51,7 +51,7 @@ pub async fn group_create_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<GroupCreateModel>,
 ) -> Result<ApiResponse<GroupModel>> {
-    session.permission("groups::write").await?;
+    session.permission("group::write").await?;
 
     let group_model = state
         .group_service
@@ -62,31 +62,31 @@ pub async fn group_create_handler(
 }
 
 pub async fn group_update_handler(
-    Path(id): Path<String>,
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<GroupUpdateModel>,
 ) -> Result<ApiResponse<GroupModel>> {
-    session.permission("groups::write").await?;
+    session.permission("group::write").await?;
 
     let group_model = state
         .group_service
-        .update(&id, payload)
+        .update(&slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(group_model))
 }
 
 pub async fn group_delete_handler(
-    Path(id): Path<String>,
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
 ) -> Result<ApiResponse<()>> {
-    session.permission("groups::delete").await?;
+    session.permission("group::delete").await?;
 
     state
         .group_service
-        .delete(&id)
+        .delete(&slug)
         .await?;
 
     Ok(ApiResponse::Ok)

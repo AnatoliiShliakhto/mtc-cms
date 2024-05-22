@@ -11,8 +11,9 @@ use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
 use crate::model::auth_model::{AuthModel, AuthModelTrait};
+use crate::model::permission_model::PermissionsModel;
 use crate::provider::config_provider::SESSION_USER_KEY;
-use crate::repository::user_repository::UserRepositoryTrait;
+use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::state::AppState;
 
 pub async fn middleware_auth_handler(
@@ -26,7 +27,11 @@ pub async fn middleware_auth_handler(
             id: "anonymous".to_string(),
             roles: vec!["anonymous".to_string()],
             groups: vec![],
-            permissions: state.user_service.permissions("anonymous").await.unwrap_or(vec![]),
+            permissions: state.permissions_service
+                .find_by_user("anonymous")
+                .await
+                .unwrap_or(PermissionsModel { permissions: vec![] })
+                .permissions,
         };
 
         match session.insert(SESSION_USER_KEY, anon_user).await {
@@ -45,9 +50,9 @@ pub async fn middleware_auth_handler(
 pub trait UserSession {
     async fn sign_in(&self, auth: AuthModel) -> Result<()>;
     async fn sign_out(&self) -> Result<()>;
-    async fn role(&self, name: &str) -> Result<()>;
-    async fn group(&self, name: &str) -> Result<()>;
-    async fn permission(&self, name: &str) -> Result<()>;
+    async fn role(&self, slug: &str) -> Result<()>;
+    async fn group(&self, slug: &str) -> Result<()>;
+    async fn permission(&self, slug: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -71,12 +76,13 @@ impl UserSession for Session {
 
     async fn role(
         &self,
-        name: &str,
+        slug: &str,
     ) -> Result<()> {
         match self.get::<AuthModel>(SESSION_USER_KEY)
             .await
-            .unwrap().ok_or(ApiError::from(SessionError::InvalidSession))?
-            .is_role(name) {
+            .unwrap()
+            .ok_or(ApiError::from(SessionError::InvalidSession))?
+            .is_role(slug) {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))
         }
@@ -84,12 +90,13 @@ impl UserSession for Session {
 
     async fn group(
         &self,
-        name: &str,
+        slug: &str,
     ) -> Result<()> {
         match self.get::<AuthModel>(SESSION_USER_KEY)
             .await
-            .unwrap().ok_or(ApiError::from(SessionError::InvalidSession))?
-            .is_group(name) {
+            .unwrap()
+            .ok_or(ApiError::from(SessionError::InvalidSession))?
+            .is_group(slug) {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))
         }
@@ -97,12 +104,13 @@ impl UserSession for Session {
 
     async fn permission(
         &self,
-        name: &str,
+        slug: &str,
     ) -> Result<()> {
         match self.get::<AuthModel>(SESSION_USER_KEY)
             .await
-            .unwrap().ok_or(ApiError::from(SessionError::InvalidSession))?
-            .is_permission(name) {
+            .unwrap()
+            .ok_or(ApiError::from(SessionError::InvalidSession))?
+            .is_permission(slug) {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))
         }

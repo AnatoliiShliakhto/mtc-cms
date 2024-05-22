@@ -2,10 +2,12 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use tower_sessions::Session;
+use tracing::warn;
 
 use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
+use crate::model::permission_model::PermissionsModel;
 use crate::model::request_model::{PageRequest, ValidatedPayload};
 use crate::model::response_model::ApiResponse;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
@@ -19,7 +21,7 @@ pub async fn role_list_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<PageRequest>,
 ) -> Result<ApiResponse<Vec<RoleModel>>> {
-    session.permission("roles::read").await?;
+    session.permission("role::read").await?;
 
     let pagination = PaginationModel::new(
         state.role_service.get_total().await?,
@@ -33,15 +35,15 @@ pub async fn role_list_handler(
 }
 
 pub async fn role_get_handler(
-    Path(id): Path<String>,
+    Path(slug): Path<String>,
     session: Session,
     state: State<Arc<AppState>>,
 ) -> Result<ApiResponse<RoleModel>> {
-    session.permission("roles::read").await?;
+    session.permission("role::read").await?;
 
     let role_model = state
         .role_service
-        .find(&id)
+        .find_by_slug(&slug)
         .await?;
 
     Ok(ApiResponse::Data(role_model))
@@ -52,7 +54,7 @@ pub async fn role_create_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<RoleCreateModel>,
 ) -> Result<ApiResponse<RoleModel>> {
-    session.permission("roles::write").await?;
+    session.permission("role::write").await?;
 
     let role_model = state
         .role_service
@@ -63,60 +65,71 @@ pub async fn role_create_handler(
 }
 
 pub async fn role_update_handler(
-    Path(id): Path<String>,
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<RoleUpdateModel>,
 ) -> Result<ApiResponse<RoleModel>> {
-    session.permission("roles::write").await?;
+    session.permission("role::write").await?;
 
     let role_model = state
         .role_service
-        .update(&id, payload)
+        .update(&slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(role_model))
 }
 
 pub async fn role_delete_handler(
-    Path(id): Path<String>,
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
 ) -> Result<ApiResponse<()>> {
-    session.permission("roles::delete").await?;
+    session.permission("role::delete").await?;
 
     state
         .role_service
-        .delete(&id)
+        .delete(&slug)
         .await?;
 
     Ok(ApiResponse::Ok)
 }
 
-pub async fn role_permission_assign_handler(
-    Path((id, permission_id)): Path<(String, String)>,
-    state: State<Arc<AppState>>,
+pub async fn role_get_permissions(
+    Path(slug): Path<String>,
     session: Session,
-) -> Result<ApiResponse<()>> {
-    session.permission("roles::write").await?;
+    state: State<Arc<AppState>>,
+) -> Result<ApiResponse<PermissionsModel>> {
+    session.permission("role::read").await?;
 
-    let role_model = state.role_service.find(&id).await?;
-    let permission_model = state.permissions_service.find(&permission_id).await?;
-    state.role_service.permission_assign(&role_model.id, &permission_model.id).await?;
+    let permissions = state
+        .permissions_service
+        .find_by_role(&slug)
+        .await?;
 
-    Ok(ApiResponse::Ok)
+    Ok(ApiResponse::Data(permissions))
 }
 
-pub async fn role_permission_unassign_handler(
-    Path((id, permission_id)): Path<(String, String)>,
-    state: State<Arc<AppState>>,
+pub async fn role_set_permissions(
+    Path(slug): Path<String>,
     session: Session,
+    state: State<Arc<AppState>>,
+    ValidatedPayload(payload): ValidatedPayload<PermissionsModel>,
 ) -> Result<ApiResponse<()>> {
-    session.permission("roles::write").await?;
+    session.permission("role::write").await?;
 
-    let role_model = state.role_service.find(&id).await?;
-    let permission_model = state.permissions_service.find(&permission_id).await?;
-    state.role_service.permission_unassign(&role_model.id, &permission_model.id).await?;
+    let role_model = state.role_service.find_by_slug(&slug).await?;
+
+    state.role_service.permissions_drop(&role_model.id).await?;
+
+    for permission in payload.permissions {
+        match state.permissions_service.find_by_slug(&permission).await {
+            Ok(value) => {
+                state.role_service.permission_assign(&role_model.id, &value.id).await?
+            }
+            _ => warn!("can't find permission -> {permission}")
+        }
+    }
 
     Ok(ApiResponse::Ok)
 }

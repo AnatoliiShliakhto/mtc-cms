@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Datetime;
 use validator::Validate;
+use crate::model::field_model::FieldModel;
 
 use crate::model::from_thing;
 
@@ -12,6 +13,8 @@ pub struct UserModel {
     #[serde(skip_serializing)]
     pub password: String,
     pub blocked: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fields: Option<Vec<FieldModel>>,
     pub created_at: Datetime,
     pub updated_at: Datetime,
 }
@@ -24,7 +27,7 @@ pub struct UserCreateModel {
 
 #[derive(Deserialize, Validate)]
 pub struct UserUpdateModel {
-    pub login: String,
+    pub fields: Option<Vec<FieldModel>>,
 }
 
 #[derive(Deserialize, Validate)]
@@ -38,4 +41,9 @@ pub struct UserChangePasswordModel {
 #[derive(Deserialize, Validate)]
 pub struct UserAssignRolesModel {
     pub roles: Vec<String>,
+}
+
+#[derive(Deserialize, Validate)]
+pub struct UserAssignGroupsModel {
+    pub groups: Vec<String>,
 }

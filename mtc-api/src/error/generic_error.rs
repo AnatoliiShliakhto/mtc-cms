@@ -6,8 +6,6 @@ use crate::model::response_model::ApiErrorResponse;
 
 #[derive(Error, Debug)]
 pub enum GenericError {
-    #[error("Internal server error")]
-    SomethingWentWrong,
     #[error("{0}")]
     ConflictError(String),
     #[error("{0}")]
@@ -19,7 +17,6 @@ pub enum GenericError {
 impl IntoResponse for GenericError {
     fn into_response(self) -> Response {
         let status_code = match self {
-            GenericError::SomethingWentWrong => StatusCode::INTERNAL_SERVER_ERROR,
             GenericError::ConflictError(..) => StatusCode::CONFLICT,
             GenericError::BadRequest(..) => StatusCode::BAD_REQUEST,
             GenericError::UnsupportedMediaType => StatusCode::UNSUPPORTED_MEDIA_TYPE,

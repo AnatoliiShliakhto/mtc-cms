@@ -3,7 +3,7 @@ use axum::async_trait;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
+use crate::model::role_model::{RoleCreateModel, RoleModel, RolesModel, RoleUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::role_service::RoleService;
@@ -12,25 +12,25 @@ repository_paginate!(RoleService, RoleModel, "roles");
 
 #[async_trait]
 pub trait RoleRepositoryTrait {
-    async fn find(&self, id: &str) -> Result<RoleModel>;
-    async fn find_by_name(&self, name: &str) -> Result<RoleModel>;
+    async fn find_by_slug(&self, slug: &str) -> Result<RoleModel>;
+    async fn find_by_user(&self, login: &str) -> Result<RolesModel>;
     async fn create(&self, model: RoleCreateModel) -> Result<RoleModel>;
-    async fn update(&self, id: &str, model: RoleUpdateModel) -> Result<RoleModel>;
-    async fn delete(&self, id: &str) -> Result<()>;
+    async fn update(&self, slug: &str, model: RoleUpdateModel) -> Result<RoleModel>;
+    async fn delete(&self, slug: &str) -> Result<()>;
     async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()>;
-    async fn permission_unassign(&self, role_id: &str, permission_id: &str) -> Result<()>;
+    async fn permissions_drop(&self, role_id: &str) -> Result<()>;
 }
 
 #[async_trait]
 impl RoleRepositoryTrait for RoleService {
-    async fn find(
+    async fn find_by_slug(
         &self,
-        id: &str,
+        slug: &str,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = self.db.query(r#"
-            SELECT * FROM type::thing('roles', $id);
+            SELECT * FROM roles WHERE slug=$slug;
             "#)
-            .bind(("id", id.to_string()))
+            .bind(("slug", slug))
             .await?
             .take(0)?;
 
@@ -40,14 +40,11 @@ impl RoleRepositoryTrait for RoleService {
         }
     }
 
-    async fn find_by_name(
-        &self,
-        name: &str,
-    ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = self.db.query(r#"
-            SELECT * FROM roles WHERE name=$name;
+    async fn find_by_user(&self, login: &str) -> Result<RolesModel> {
+        let result: Option<RolesModel> = self.db.query(r#"
+            SELECT array::sort(array::distinct(->user_roles->roles.slug)) as roles FROM users WHERE login=$login
             "#)
-            .bind(("name", name.to_string()))
+            .bind(("login", login))
             .await?
             .take(0)?;
 
@@ -63,11 +60,11 @@ impl RoleRepositoryTrait for RoleService {
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = self.db.query(r#"
             CREATE roles CONTENT {
-	            name: $name,
+	            slug: $slug,
 	            title: $title
             };
             "#)
-            .bind(("name", model.name))
+            .bind(("slug", model.slug))
             .bind(("title", model.title))
             .await?
             .take(0)?;
@@ -80,17 +77,15 @@ impl RoleRepositoryTrait for RoleService {
 
     async fn update(
         &self,
-        id: &str,
+        slug: &str,
         model: RoleUpdateModel,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = self.db.query(r#"
-            UPDATE type::thing('roles', $id) MERGE {
-	            name: $name,
+            UPDATE roles MERGE {
 	            title: $title
-            } WHERE id;
+            } WHERE slug=$slug;
             "#)
-            .bind(("id", id))
-            .bind(("name", model.name))
+            .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
             .take(0)?;
@@ -103,12 +98,12 @@ impl RoleRepositoryTrait for RoleService {
 
     async fn delete(
         &self,
-        id: &str,
+        slug: &str,
     ) -> Result<()> {
         match self.db.query(r#"
-            DELETE type::thing('roles', $id);
+            DELETE FROM roles WHERE slug=$slug;
             "#)
-            .bind(("id", id))
+            .bind(("slug", slug))
             .await {
             Ok(..) => Ok(()),
             Err(e) => Err(ApiError::from(e))
@@ -130,16 +125,14 @@ impl RoleRepositoryTrait for RoleService {
         }
     }
 
-    async fn permission_unassign(
+    async fn permissions_drop(
         &self,
         role_id: &str,
-        permission_id: &str,
     ) -> Result<()> {
         match self.db.query(r#"
-            DELETE type::thing('roles', $role_id)->role_permissions WHERE out=type::thing('permissions', $permission_id);
+            DELETE type::thing('roles', $role_id)->role_permissions;
             "#)
             .bind(("role_id", role_id))
-            .bind(("permission_id", permission_id))
             .await {
             Ok(..) => Ok(()),
             Err(e) => Err(ApiError::from(e))

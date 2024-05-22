@@ -8,12 +8,12 @@ use crate::model::from_thing;
 pub struct PermissionModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,
-    pub name: String,
+    pub slug: String,
     pub created_at: Option<Datetime>,
     pub updated_at: Option<Datetime>,
 }
 
-#[derive(Deserialize, Validate)]
-pub struct PermissionCreateModel {
-    pub name: String,
+#[derive(Serialize, Deserialize, Validate)]
+pub struct PermissionsModel {
+    pub permissions: Vec<String>,
 }

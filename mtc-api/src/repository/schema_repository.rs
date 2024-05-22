@@ -3,7 +3,7 @@ use axum::async_trait;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::schema_model::{SchemaCreateModel, SchemaModel};
+use crate::model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::schema_service::SchemaService;
@@ -12,40 +12,23 @@ repository_paginate!(SchemaService, SchemaModel, "schemas");
 
 #[async_trait]
 pub trait SchemaRepositoryTrait {
-    async fn find(&self, id: &str) -> Result<SchemaModel>;
-    async fn find_by_name(&self, name: &str) -> Result<SchemaModel>;
-    async fn can_create(&self, name: &str) -> Result<bool>;
-    async fn create(&self, model: SchemaCreateModel) -> Result<SchemaModel>;
-    async fn delete(&self, name: &str) -> Result<()>;
+    async fn find_by_slug(&self, slug: &str) -> Result<SchemaModel>;
+    async fn can_create(&self, slug: &str) -> Result<bool>;
+    async fn create(&self, slug: SchemaCreateModel) -> Result<SchemaModel>;
+    async fn delete(&self, slug: &str) -> Result<()>;
+    async fn update(&self, slug: &str, model: SchemaUpdateModel) -> Result<SchemaModel>;
 }
 
 #[async_trait]
 impl SchemaRepositoryTrait for SchemaService {
-    async fn find(
+    async fn find_by_slug(
         &self,
-        id: &str,
+        slug: &str,
     ) -> Result<SchemaModel> {
         let result: Option<SchemaModel> = self.db.query(r#"
-            SELECT * FROM type::thing('schemas', $id);
+            SELECT * FROM schemas WHERE slug=$slug;
             "#)
-            .bind(("id", id.to_string()))
-            .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
-    }
-
-    async fn find_by_name(
-        &self,
-        name: &str,
-    ) -> Result<SchemaModel> {
-        let result: Option<SchemaModel> = self.db.query(r#"
-            SELECT * FROM schemas WHERE name=$name;
-            "#)
-            .bind(("name", name.to_string()))
+            .bind(("slug", slug))
             .await?
             .take(0)?;
 
@@ -57,12 +40,12 @@ impl SchemaRepositoryTrait for SchemaService {
 
     async fn can_create(
         &self,
-        name: &str,
+        slug: &str,
     ) -> Result<bool> {
         let result: Option<String> = self.db.query(r#"
-            SELECT name FROM schemas WHERE name=$name;
+            SELECT slug FROM schemas WHERE slug=$slug;
             "#)
-            .bind(("name", name))
+            .bind(("slug", slug))
             .await?
             .take(0)?;
 
@@ -76,7 +59,7 @@ impl SchemaRepositoryTrait for SchemaService {
         &self,
         model: SchemaCreateModel,
     ) -> Result<SchemaModel> {
-        if !self.can_create(&model.name).await? {
+        if !self.can_create(&model.slug).await? {
             Err(ApiError::from(DbError::EntryAlreadyExists))?
         }
 
@@ -84,35 +67,37 @@ impl SchemaRepositoryTrait for SchemaService {
             BEGIN TRANSACTION;
 
             CREATE schemas CONTENT {
-	            name: $name,
+	            slug: $slug,
+	            title: $title,
 	            is_collection: $is_collection
             };
 
             CREATE permissions CONTENT {
                 id: $permission_read_id,
-                name: $permission_read_name
+                slug: $permission_read
             };
 
             CREATE permissions CONTENT {
                 id: $permission_write_id,
-                name: $permission_write_name
+                slug: $permission_write
             };
 
             CREATE permissions CONTENT {
                 id: $permission_delete_id,
-                name: $permission_delete_name
+                slug: $permission_delete
             };
 
             COMMIT TRANSACTION;
             "#)
-            .bind(("name", &model.name))
+            .bind(("slug", &model.slug))
+            .bind(("title", &model.title))
             .bind(("is_collection", &model.is_collection))
-            .bind(("permission_read_id", format!("{}_read", &model.name)))
-            .bind(("permission_read_name", format!("{}::read", &model.name)))
-            .bind(("permission_write_id", format!("{}_write", &model.name)))
-            .bind(("permission_write_name", format!("{}::write", &model.name)))
-            .bind(("permission_delete_id", format!("{}_delete", &model.name)))
-            .bind(("permission_delete_name", format!("{}::delete", &model.name)))
+            .bind(("permission_read_id", format!("{}_read", &model.slug)))
+            .bind(("permission_read", format!("{}::read", &model.slug)))
+            .bind(("permission_write_id", format!("{}_write", &model.slug)))
+            .bind(("permission_write", format!("{}::write", &model.slug)))
+            .bind(("permission_delete_id", format!("{}_delete", &model.slug)))
+            .bind(("permission_delete", format!("{}::delete", &model.slug)))
             .await?
             .take(0)?;
 
@@ -122,11 +107,12 @@ impl SchemaRepositoryTrait for SchemaService {
                     self.db.query(format!(r#"
                     BEGIN TRANSACTION;
                     DEFINE TABLE {0};
-                    DEFINE FIELD fields ON TABLE {0} TYPE option<array>;
+                    DEFINE FIELD slug ON TABLE {0} TYPE string;
                     DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
                     DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
+                    DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
                     COMMIT TRANSACTION;
-                    "#, model.name)).await?;
+                    "#, model.slug)).await?;
                 }
                 Ok(value)
             }
@@ -134,8 +120,8 @@ impl SchemaRepositoryTrait for SchemaService {
         }
     }
 
-    async fn delete(&self, name: &str) -> Result<()> {
-        let model = self.find_by_name(name).await?;
+    async fn delete(&self, slug: &str) -> Result<()> {
+        let model = self.find_by_slug(slug).await?;
 
         if model.is_system {
             Err(ApiError::from(DbError::EntryDelete))?
@@ -144,27 +130,44 @@ impl SchemaRepositoryTrait for SchemaService {
         self.db.query(r#"
             BEGIN TRANSACTION;
 
-            DELETE FROM schemas WHERE name=$name;
+            DELETE FROM schemas WHERE slug=$slug;
 
-            DELETE type::thing('permissions', $permission_read_id);
-            DELETE type::thing('permissions', $permission_write_id);
-            DELETE type::thing('permissions', $permission_delete_id);
+            DELETE FROM permissions WHERE slug=$permission_read;
+            DELETE FROM permissions WHERE slug=$permission_write;
+            DELETE FROM permissions WHERE slug=$permission_delete;
 
             COMMIT TRANSACTION;
             "#)
-            .bind(("name", &model.name))
-            .bind(("permission_read_id", format!("{}_read", &model.name)))
-            .bind(("permission_write_id", format!("{}_write", &model.name)))
-            .bind(("permission_delete_id", format!("{}_delete", &model.name)))
+            .bind(("slug", &model.slug))
+            .bind(("permission_read", format!("{}::read", &model.slug)))
+            .bind(("permission_write", format!("{}::write", &model.slug)))
+            .bind(("permission_delete", format!("{}::delete", &model.slug)))
             .await?;
 
         if model.is_collection {
             self.db.query(format!(r#"
                 REMOVE TABLE IF EXISTS {};
-                "#, &model.name))
+                "#, &model.slug))
                 .await?;
         }
 
         Ok(())
+    }
+
+    async fn update(&self, slug: &str, model: SchemaUpdateModel) -> Result<SchemaModel> {
+        let result: Option<SchemaModel> = self.db.query(r#"
+            UPDATE schemas MERGE {
+                title: $title
+            } WHERE slug=$slug;
+            "#)
+            .bind(("slug", slug))
+            .bind(("title", model.title))
+            .await?
+            .take(0)?;
+
+        match result {
+            Some(value) => Ok(value),
+            _ => Err(ApiError::from(DbError::EntryUpdate))
+        }
     }
 }
