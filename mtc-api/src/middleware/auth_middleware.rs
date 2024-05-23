@@ -23,16 +23,7 @@ pub async fn middleware_auth_handler(
     next: Next,
 ) -> Result<impl IntoResponse> {
     if session.is_empty().await {
-        let anon_user = AuthModel {
-            id: "anonymous".to_string(),
-            roles: vec!["anonymous".to_string()],
-            groups: vec![],
-            permissions: state.permissions_service
-                .find_by_user("anonymous")
-                .await
-                .unwrap_or(PermissionsModel { permissions: vec![] })
-                .permissions,
-        };
+        let anon_user = session.anonymous(&state).await?;
 
         match session.insert(SESSION_USER_KEY, anon_user).await {
             Ok(_) => (),
@@ -49,7 +40,8 @@ pub async fn middleware_auth_handler(
 #[async_trait]
 pub trait UserSession {
     async fn sign_in(&self, auth: AuthModel) -> Result<()>;
-    async fn sign_out(&self) -> Result<()>;
+    async fn credentials(&self) -> Result<AuthModel>;
+    async fn anonymous(&self, state: &State<Arc<AppState>>) -> Result<AuthModel>;
     async fn role(&self, slug: &str) -> Result<()>;
     async fn group(&self, slug: &str) -> Result<()>;
     async fn permission(&self, slug: &str) -> Result<()>;
@@ -67,11 +59,24 @@ impl UserSession for Session {
         }
     }
 
-    async fn sign_out(&self) -> Result<()> {
-        match self.flush().await {
-            Ok(_) => Ok(()),
-            _ => Err(ApiError::from(SessionError::InvalidSession))
-        }
+    async fn credentials(&self) -> Result<AuthModel> {
+        Ok(self.get::<AuthModel>(SESSION_USER_KEY)
+            .await
+            .unwrap()
+            .ok_or(ApiError::from(SessionError::InvalidSession))?)
+    }
+
+    async fn anonymous(&self, state: &State<Arc<AppState>>) -> Result<AuthModel> {
+        Ok(AuthModel {
+            id: "anonymous".to_string(),
+            roles: vec!["anonymous".to_string()],
+            groups: vec![],
+            permissions: state.permissions_service
+                .find_by_user("anonymous")
+                .await
+                .unwrap_or(PermissionsModel { permissions: vec![] })
+                .permissions,
+        })
     }
 
     async fn role(

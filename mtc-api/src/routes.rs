@@ -36,6 +36,7 @@ pub fn routes(
         ]);
 
     Router::new()
+        .route("/schema/:slug/fields", get(schema_get_fields_handler).post(schema_update_fields_handler))
         .route("/schema/:slug", get(schema_get_handler).post(schema_update_handler).delete(schema_delete_handler))
         .route("/schema", post(schema_create_handler))
         .route("/schemas", get(schema_list_handler).post(schema_create_handler))
@@ -43,7 +44,7 @@ pub fn routes(
         .route("/user/:login/groups", get(user_get_groups_handler).post(user_set_groups_handler))
         .route("/user/:login/permissions", get(user_get_permissions_handler))
         .route("/user/:login/roles", get(user_get_roles_handler).post(user_set_roles_handler))
-        .route("/user/:slug", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
+        .route("/user/:login", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
         .route("/user", post(user_create_handler))
         .route("/users", get(user_list_handler).post(user_create_handler))
 
@@ -58,7 +59,7 @@ pub fn routes(
 
         .route("/permissions", get(permissions_list_handler))
 
-        .route("/auth", post(sign_in_handler).delete(sign_out_handler))
+        .route("/auth", get(get_credentials_handler).post(sign_in_handler).delete(sign_out_handler))
 
         .route("/setup", post(setup_handler))
         .route("/health", get(health_handler))

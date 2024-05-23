@@ -14,7 +14,6 @@ use crate::model::permission_model::PermissionsModel;
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::ApiResponse;
 use crate::model::role_model::RolesModel;
-use crate::model::user_model::UserModel;
 use crate::repository::group_repository::GroupRepositoryTrait;
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::repository::role_repository::RoleRepositoryTrait;
@@ -25,7 +24,7 @@ pub async fn sign_in_handler(
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<SignInModel>,
-) -> Result<ApiResponse<UserModel>> {
+) -> Result<ApiResponse<AuthModel>> {
     let user_model = match state
         .user_service
         .find_by_login(&payload.login).await {
@@ -47,7 +46,7 @@ pub async fn sign_in_handler(
         return Err(ApiError::from(SessionError::InvalidCredentials));
     }
 
-    let auth_user = AuthModel {
+    let auth_model = AuthModel {
         id: user_model.id.clone(),
         roles: state.role_service
             .find_by_user(&user_model.login)
@@ -66,15 +65,26 @@ pub async fn sign_in_handler(
             .permissions,
     };
 
-    session.sign_in(auth_user).await?;
+    session.sign_in(auth_model.clone()).await?;
 
-    Ok(ApiResponse::Data(user_model))
+    Ok(ApiResponse::Data(auth_model))
 }
 
 pub async fn sign_out_handler(
+    state: State<Arc<AppState>>,
     session: Session,
-) -> Result<ApiResponse<()>> {
-    session.sign_out().await?;
+) -> Result<ApiResponse<AuthModel>> {
+    let auth_model = session.anonymous(&state).await?;
 
-    Ok(ApiResponse::Ok)
+    session.sign_in(auth_model.clone()).await?;
+
+    Ok(ApiResponse::Data(auth_model))
+}
+
+pub async fn get_credentials_handler(
+    session: Session,
+) -> Result<ApiResponse<AuthModel>> {
+    let credentials = session.credentials().await?;
+
+    Ok(ApiResponse::Data(credentials))
 }

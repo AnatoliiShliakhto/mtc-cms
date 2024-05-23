@@ -119,7 +119,7 @@ pub async fn user_set_roles_handler(
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<RolesModel>,
-) -> Result<ApiResponse<()>> {
+) -> Result<ApiResponse<RolesModel>> {
     session.permission("user::write").await?;
 
     let user_model = state.user_service.find_by_login(&login).await?;
@@ -135,7 +135,12 @@ pub async fn user_set_roles_handler(
         }
     }
 
-    Ok(ApiResponse::Ok)
+    let roles = state
+        .role_service
+        .find_by_user(&login)
+        .await?;
+
+    Ok(ApiResponse::Data(roles))
 }
 
 pub async fn user_get_permissions_handler(
@@ -173,7 +178,7 @@ pub async fn user_set_groups_handler(
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<GroupsModel>,
-) -> Result<ApiResponse<()>> {
+) -> Result<ApiResponse<GroupsModel>> {
     session.permission("user::write").await?;
 
     let user_model = state.user_service.find_by_login(&login).await?;
@@ -189,5 +194,10 @@ pub async fn user_set_groups_handler(
         }
     }
 
-    Ok(ApiResponse::Ok)
+    let groups = state
+        .group_service
+        .find_by_user(&login)
+        .await?;
+
+    Ok(ApiResponse::Data(groups))
 }

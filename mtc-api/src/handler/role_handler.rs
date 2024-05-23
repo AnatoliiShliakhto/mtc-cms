@@ -115,7 +115,7 @@ pub async fn role_set_permissions(
     session: Session,
     state: State<Arc<AppState>>,
     ValidatedPayload(payload): ValidatedPayload<PermissionsModel>,
-) -> Result<ApiResponse<()>> {
+) -> Result<ApiResponse<PermissionsModel>> {
     session.permission("role::write").await?;
 
     let role_model = state.role_service.find_by_slug(&slug).await?;
@@ -131,5 +131,10 @@ pub async fn role_set_permissions(
         }
     }
 
-    Ok(ApiResponse::Ok)
+    let permissions = state
+        .permissions_service
+        .find_by_role(&slug)
+        .await?;
+
+    Ok(ApiResponse::Data(permissions))
 }

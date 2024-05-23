@@ -3,7 +3,7 @@ use axum::async_trait;
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel};
+use crate::model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::schema_service::SchemaService;
@@ -14,9 +14,11 @@ repository_paginate!(SchemaService, SchemaModel, "schemas");
 pub trait SchemaRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<SchemaModel>;
     async fn can_create(&self, slug: &str) -> Result<bool>;
-    async fn create(&self, slug: SchemaCreateModel) -> Result<SchemaModel>;
+    async fn create(&self, model: SchemaCreateModel) -> Result<SchemaModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
     async fn update(&self, slug: &str, model: SchemaUpdateModel) -> Result<SchemaModel>;
+    async fn update_fields(&self, slug: &str, model: SchemaFieldsModel) -> Result<SchemaModel>;
+    async fn get_fields(&self, slug: &str) -> Result<SchemaFieldsModel>;
 }
 
 #[async_trait]
@@ -120,7 +122,10 @@ impl SchemaRepositoryTrait for SchemaService {
         }
     }
 
-    async fn delete(&self, slug: &str) -> Result<()> {
+    async fn delete(
+        &self,
+        slug: &str,
+    ) -> Result<()> {
         let model = self.find_by_slug(slug).await?;
 
         if model.is_system {
@@ -154,7 +159,11 @@ impl SchemaRepositoryTrait for SchemaService {
         Ok(())
     }
 
-    async fn update(&self, slug: &str, model: SchemaUpdateModel) -> Result<SchemaModel> {
+    async fn update(
+        &self,
+        slug: &str,
+        model: SchemaUpdateModel,
+    ) -> Result<SchemaModel> {
         let result: Option<SchemaModel> = self.db.query(r#"
             UPDATE schemas MERGE {
                 title: $title
@@ -168,6 +177,44 @@ impl SchemaRepositoryTrait for SchemaService {
         match result {
             Some(value) => Ok(value),
             _ => Err(ApiError::from(DbError::EntryUpdate))
+        }
+    }
+
+    async fn update_fields(
+        &self,
+        slug: &str,
+        model: SchemaFieldsModel,
+    ) -> Result<SchemaModel> {
+        let result: Option<SchemaModel> = self.db.query(r#"
+            UPDATE schemas MERGE {
+                fields: $fields
+            } WHERE slug=$slug;
+            "#)
+            .bind(("slug", slug))
+            .bind(("fields", model.fields))
+            .await?
+            .take(0)?;
+
+        match result {
+            Some(value) => Ok(value),
+            _ => Err(ApiError::from(DbError::EntryUpdate))
+        }
+    }
+
+    async fn get_fields(
+        &self,
+        slug: &str,
+    ) -> Result<SchemaFieldsModel> {
+        let result: Option<SchemaModel> = self.db.query(r#"
+            SELECT * FROM schemas WHERE slug=$slug;
+            "#)
+            .bind(("slug", slug))
+            .await?
+            .take(0)?;
+
+        match result {
+            Some(schema_model) => Ok(SchemaFieldsModel { fields: schema_model.fields }),
+            _ => Err(ApiError::from(DbError::EntryNotFound))
         }
     }
 }
