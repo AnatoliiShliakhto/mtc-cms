@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "daisyui": "^4.11.1"
+  },
+  "dependencies": {
+    "node": "^18.20.3"
   }
 }

@@ -3,16 +3,10 @@ use axum::extract::{FromRequest, Request};
 use axum::extract::rejection::{FormRejection, JsonRejection};
 use axum::http::header::CONTENT_TYPE;
 use serde::de::DeserializeOwned;
-use serde::Deserialize;
 use validator::Validate;
 
 use crate::error::api_error::ApiError;
 use crate::error::generic_error::GenericError;
-
-#[derive(Deserialize, Validate)]
-pub struct PageRequest {
-    pub page: Option<usize>,
-}
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ValidatedPayload<T>(pub T);

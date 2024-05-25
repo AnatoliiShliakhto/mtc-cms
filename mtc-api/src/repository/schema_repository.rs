@@ -108,14 +108,34 @@ impl SchemaRepositoryTrait for SchemaService {
                 if model.is_collection {
                     self.db.query(format!(r#"
                     BEGIN TRANSACTION;
-                    DEFINE TABLE {0};
+
+                    DEFINE TABLE {0} SCHEMAFULL;
                     DEFINE FIELD slug ON TABLE {0} TYPE string;
+                    DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<array>;
                     DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
                     DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
                     DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
+
                     COMMIT TRANSACTION;
                     "#, model.slug)).await?;
+                } else {
+                    self.db.query(r#"
+                    CREATE singles CONTENT {
+	                    slug: $slug,
+                    };
+                    "#)
+                        .bind(("slug", &model.slug))
+                        .await?;
                 }
+                self.db.query(format!(r#"
+                    BEGIN TRANSACTION;
+
+                    RELATE roles:administrator->role_permissions->permissions:{0}_read;
+                    RELATE roles:administrator->role_permissions->permissions:{0}_write;
+                    RELATE roles:administrator->role_permissions->permissions:{0}_delete;
+
+                    COMMIT TRANSACTION;
+                    "#, model.slug)).await?;
                 Ok(value)
             }
             _ => Err(ApiError::from(DbError::EntryAlreadyExists))
@@ -136,6 +156,7 @@ impl SchemaRepositoryTrait for SchemaService {
             BEGIN TRANSACTION;
 
             DELETE FROM schemas WHERE slug=$slug;
+            DELETE FROM singles WHERE slug=$slug;
 
             DELETE FROM permissions WHERE slug=$permission_read;
             DELETE FROM permissions WHERE slug=$permission_write;

@@ -6,7 +6,7 @@ use tower_sessions::Session;
 use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
-use crate::model::request_model::{PageRequest, ValidatedPayload};
+use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::ApiResponse;
 use crate::model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
 use crate::repository::RepositoryPaginate;
@@ -14,17 +14,21 @@ use crate::repository::schema_repository::SchemaRepositoryTrait;
 use crate::state::AppState;
 
 pub async fn schema_list_handler(
+    page: Option<Path<usize>>,
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<PageRequest>,
 ) -> Result<ApiResponse<Vec<SchemaModel>>> {
     session.permission("schema::read").await?;
+    let page: usize = match page {
+        Some(Path(value)) => value,
+        _ => 1
+    };
 
     let pagination = PaginationModel::new(
         state.schema_service.get_total().await?,
         state.cfg.rows_per_page,
     )
-        .page(payload.page.unwrap_or(1));
+        .page(page);
 
     let data = state.schema_service.get_page(pagination.from, pagination.per_page).await?;
 

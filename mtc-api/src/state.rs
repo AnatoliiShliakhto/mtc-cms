@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::error::Result;
 use crate::provider::config_provider::Config;
 use crate::provider::database_provider::Database;
+use crate::service::api_service::ApiService;
 use crate::service::group_service::GroupService;
 use crate::service::permissions_service::PermissionsService;
 use crate::service::role_service::RoleService;
@@ -18,6 +19,7 @@ pub struct AppState {
     pub role_service: RoleService,
     pub user_service: UserService,
     pub permissions_service: PermissionsService,
+    pub api_service: ApiService,
 }
 
 impl AppState {
@@ -30,6 +32,7 @@ impl AppState {
         let permissions_service = PermissionsService::new(&cfg, &db);
         let role_service = RoleService::new(&cfg, &db);
         let user_service = UserService::new(&cfg, &db);
+        let api_service = ApiService::new(&cfg, &db);
 
         Ok(Self {
             cfg,
@@ -40,6 +43,7 @@ impl AppState {
             role_service,
             user_service,
             permissions_service,
+            api_service,
         })
     }
 }

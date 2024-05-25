@@ -11,6 +11,7 @@ pub mod group_model;
 pub mod field_model;
 pub mod schema_model;
 pub mod pagination_model;
+pub mod api_model;
 
 pub fn from_thing<'de, D>(deserializer: D) -> Result<String, D::Error>
     where

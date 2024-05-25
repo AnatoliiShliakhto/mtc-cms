@@ -218,6 +218,21 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<ApiResponse<()
         DEFINE FIELD created_at ON TABLE user_groups TYPE datetime VALUE time::now();
         DEFINE INDEX idx_user_groups ON TABLE user_groups COLUMNS in, out UNIQUE;
 
+        REMOVE TABLE IF EXISTS singles;
+        DEFINE TABLE singles SCHEMAFULL;
+
+        CREATE schemas CONTENT {
+            slug: 'singles',
+            title: 'Singles',
+            is_system: true
+        };
+
+        DEFINE FIELD slug ON TABLE singles TYPE string;
+        DEFINE FIELD fields ON TABLE singles FLEXIBLE TYPE option<array>;
+        DEFINE FIELD created_at ON TABLE singles TYPE datetime DEFAULT time::now();
+        DEFINE FIELD updated_at ON TABLE singles TYPE datetime VALUE time::now();
+        DEFINE INDEX idx_singles_slug ON TABLE singles COLUMNS slug UNIQUE;
+
         COMMIT TRANSACTION;
     "#;
 

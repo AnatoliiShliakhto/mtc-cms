@@ -22,5 +22,6 @@ COPY ./public ./mtc-cms/public
 
 # run app
 WORKDIR /mtc-cms
-EXPOSE 8080
+EXPOSE 80/tcp
+EXPOSE 443/tcp
 CMD ["/mtc-cms/mtc-api"]
