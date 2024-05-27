@@ -16,7 +16,6 @@ pub struct GroupModel {
 
 #[derive(Deserialize, Validate)]
 pub struct GroupCreateModel {
-    pub slug: String,
     pub title: String,
 }
 

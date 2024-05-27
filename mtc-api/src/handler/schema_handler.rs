@@ -51,6 +51,7 @@ pub async fn schema_get_handler(
 }
 
 pub async fn schema_create_handler(
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<SchemaCreateModel>,
@@ -59,7 +60,7 @@ pub async fn schema_create_handler(
 
     let schema_model = state
         .schema_service
-        .create(payload)
+        .create(&slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(schema_model))

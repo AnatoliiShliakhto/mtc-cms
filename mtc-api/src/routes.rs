@@ -33,39 +33,37 @@ pub fn routes(
         .allow_methods([
             axum::http::Method::GET,
             axum::http::Method::POST,
+            axum::http::Method::PUT,
+            axum::http::Method::PATCH,
             axum::http::Method::DELETE,
         ]);
 
     Router::new()
         //todo: universal custom api handlers
-        .route("/:api/:slug", get(api_get_collection_item_handler))
-        .route("/:api", get(api_get_single_handler).post(api_create_handler))
+        .route("/:api/:slug", get(api_get_collection_item_handler).post(api_create_collection_item_handler).patch(api_update_collection_item_handler))
+        .route("/:api", get(api_get_single_handler).patch(api_update_single_item_handler))
 
         .route("/schema/:slug/fields", get(schema_get_fields_handler).post(schema_update_fields_handler))
-        .route("/schema/:slug", get(schema_get_handler).post(schema_update_handler).delete(schema_delete_handler))
-        .route("/schema", post(schema_create_handler))
-        .route("/schemas/:page", get(schema_list_handler))
-        .route("/schemas", get(schema_list_handler).post(schema_create_handler))
+        .route("/schema/:slug", post(schema_create_handler).get(schema_get_handler).patch(schema_update_handler).delete(schema_delete_handler))
+        .route("/schema/list/:page", get(schema_list_handler))
+        .route("/schema/list", get(schema_list_handler))
 
         //todo: additional user fields
-        .route("/user/:login/groups", get(user_get_groups_handler).post(user_set_groups_handler))
         .route("/user/:login/permissions", get(user_get_permissions_handler))
+        .route("/user/:login/groups", get(user_get_groups_handler).post(user_set_groups_handler))
         .route("/user/:login/roles", get(user_get_roles_handler).post(user_set_roles_handler))
-        .route("/user/:login", get(user_get_handler).post(user_update_handler).delete(user_delete_handler))
-        .route("/user", post(user_create_handler))
-        .route("/users/:page", get(user_list_handler))
-        .route("/users", get(user_list_handler).post(user_create_handler))
+        .route("/user/:login", post(user_create_handler).get(user_get_handler).patch(user_update_handler).delete(user_delete_handler))
+        .route("/user/list/:page", get(user_list_handler))
+        .route("/user/list", get(user_list_handler))
 
-        .route("/group/:slug", get(group_get_handler).post(group_update_handler).delete(group_delete_handler))
-        .route("/group", post(group_create_handler))
-        .route("/groups/:page", get(group_list_handler))
-        .route("/groups", get(group_list_handler).post(group_create_handler))
+        .route("/group/:slug", get(group_get_handler).post(group_create_handler).patch(group_update_handler).delete(group_delete_handler))
+        .route("/group/list/:page", get(group_list_handler))
+        .route("/group/list", get(group_list_handler))
 
         .route("/role/:slug/permissions", get(role_get_permissions).post(role_set_permissions))
-        .route("/role/:slug", get(role_get_handler).post(role_update_handler).delete(role_delete_handler))
-        .route("/role", post(role_create_handler))
-        .route("/roles/:page", get(role_list_handler))
-        .route("/roles", get(role_list_handler).post(role_create_handler))
+        .route("/role/:slug", get(role_get_handler).post(role_create_handler).patch(role_update_handler).delete(role_delete_handler))
+        .route("/role/list/:page", get(role_list_handler))
+        .route("/role/list", get(role_list_handler))
 
         .route("/permissions", get(permissions_list_handler))
 

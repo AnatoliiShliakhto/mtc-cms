@@ -14,7 +14,7 @@ repository_paginate!(RoleService, RoleModel, "roles");
 pub trait RoleRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<RoleModel>;
     async fn find_by_user(&self, login: &str) -> Result<RolesModel>;
-    async fn create(&self, model: RoleCreateModel) -> Result<RoleModel>;
+    async fn create(&self, slug: &str, model: RoleCreateModel) -> Result<RoleModel>;
     async fn update(&self, slug: &str, model: RoleUpdateModel) -> Result<RoleModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
     async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()>;
@@ -56,6 +56,7 @@ impl RoleRepositoryTrait for RoleService {
 
     async fn create(
         &self,
+        slug: &str,
         model: RoleCreateModel,
     ) -> Result<RoleModel> {
         let result: Option<RoleModel> = self.db.query(r#"
@@ -64,7 +65,7 @@ impl RoleRepositoryTrait for RoleService {
 	            title: $title
             };
             "#)
-            .bind(("slug", model.slug))
+            .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
             .take(0)?;

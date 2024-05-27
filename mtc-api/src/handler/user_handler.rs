@@ -59,6 +59,7 @@ pub async fn user_get_handler(
 }
 
 pub async fn user_create_handler(
+    Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<UserCreateModel>,
@@ -67,7 +68,7 @@ pub async fn user_create_handler(
 
     let user_model = state
         .user_service
-        .create(payload)
+        .create(&login, payload)
         .await?;
 
     Ok(ApiResponse::Data(user_model))

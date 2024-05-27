@@ -14,7 +14,7 @@ repository_paginate!(SchemaService, SchemaModel, "schemas");
 pub trait SchemaRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<SchemaModel>;
     async fn can_create(&self, slug: &str) -> Result<bool>;
-    async fn create(&self, model: SchemaCreateModel) -> Result<SchemaModel>;
+    async fn create(&self, slug: &str, model: SchemaCreateModel) -> Result<SchemaModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
     async fn update(&self, slug: &str, model: SchemaUpdateModel) -> Result<SchemaModel>;
     async fn update_fields(&self, slug: &str, model: SchemaFieldsModel) -> Result<SchemaModel>;
@@ -59,9 +59,10 @@ impl SchemaRepositoryTrait for SchemaService {
 
     async fn create(
         &self,
+        slug: &str,
         model: SchemaCreateModel,
     ) -> Result<SchemaModel> {
-        if !self.can_create(&model.slug).await? {
+        if !self.can_create(slug).await? {
             Err(ApiError::from(DbError::EntryAlreadyExists))?
         }
 
@@ -91,15 +92,15 @@ impl SchemaRepositoryTrait for SchemaService {
 
             COMMIT TRANSACTION;
             "#)
-            .bind(("slug", &model.slug))
+            .bind(("slug", slug))
             .bind(("title", &model.title))
             .bind(("is_collection", &model.is_collection))
-            .bind(("permission_read_id", format!("{}_read", &model.slug)))
-            .bind(("permission_read", format!("{}::read", &model.slug)))
-            .bind(("permission_write_id", format!("{}_write", &model.slug)))
-            .bind(("permission_write", format!("{}::write", &model.slug)))
-            .bind(("permission_delete_id", format!("{}_delete", &model.slug)))
-            .bind(("permission_delete", format!("{}::delete", &model.slug)))
+            .bind(("permission_read_id", format!("{}_read", slug)))
+            .bind(("permission_read", format!("{}::read", slug)))
+            .bind(("permission_write_id", format!("{}_write", slug)))
+            .bind(("permission_write", format!("{}::write", slug)))
+            .bind(("permission_delete_id", format!("{}_delete", slug)))
+            .bind(("permission_delete", format!("{}::delete", slug)))
             .await?
             .take(0)?;
 
@@ -111,20 +112,20 @@ impl SchemaRepositoryTrait for SchemaService {
 
                     DEFINE TABLE {0} SCHEMAFULL;
                     DEFINE FIELD slug ON TABLE {0} TYPE string;
-                    DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<array>;
+                    DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<object>;
                     DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
                     DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
                     DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
 
                     COMMIT TRANSACTION;
-                    "#, model.slug)).await?;
+                    "#, slug)).await?;
                 } else {
                     self.db.query(r#"
                     CREATE singles CONTENT {
 	                    slug: $slug,
                     };
                     "#)
-                        .bind(("slug", &model.slug))
+                        .bind(("slug", slug))
                         .await?;
                 }
                 self.db.query(format!(r#"
@@ -135,7 +136,7 @@ impl SchemaRepositoryTrait for SchemaService {
                     RELATE roles:administrator->role_permissions->permissions:{0}_delete;
 
                     COMMIT TRANSACTION;
-                    "#, model.slug)).await?;
+                    "#, slug)).await?;
                 Ok(value)
             }
             _ => Err(ApiError::from(DbError::EntryAlreadyExists))

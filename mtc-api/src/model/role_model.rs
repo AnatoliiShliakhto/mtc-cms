@@ -16,7 +16,6 @@ pub struct RoleModel {
 
 #[derive(Deserialize, Validate)]
 pub struct RoleCreateModel {
-    pub slug: String,
     pub title: String,
 }
 

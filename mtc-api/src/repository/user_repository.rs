@@ -16,7 +16,7 @@ repository_paginate!(UserService, UserModel, "users");
 #[async_trait]
 pub trait UserRepositoryTrait {
     async fn find_by_login(&self, login: &str) -> Result<UserModel>;
-    async fn create(&self, model: UserCreateModel) -> Result<UserModel>;
+    async fn create(&self, login: &str, model: UserCreateModel) -> Result<UserModel>;
     async fn update(&self, login: &str, model: UserUpdateModel) -> Result<UserModel>;
     async fn delete(&self, login: &str) -> Result<()>;
     async fn role_assign(&self, user_id: &str, role_id: &str) -> Result<()>;
@@ -46,6 +46,7 @@ impl UserRepositoryTrait for UserService {
 
     async fn create(
         &self,
+        login: &str,
         model: UserCreateModel,
     ) -> Result<UserModel> {
         let password = model.password.as_bytes();
@@ -67,13 +68,19 @@ impl UserRepositoryTrait for UserService {
 	            password: $password
             };
             "#)
-            .bind(("login", model.login))
+            .bind(("login", login))
             .bind(("password", password_hash))
             .await?
             .take(0)?;
 
         match result {
-            Some(value) => Ok(value),
+            Some(value) => {
+                self.db.query(format!(r#"
+                    RELATE users:{}->user_roles->roles:anonymous;
+                    "#, &value.id))
+                    .await?;
+                Ok(value)
+            }
             _ => Err(ApiError::from(DbError::EntryAlreadyExists))
         }
     }
@@ -86,7 +93,7 @@ impl UserRepositoryTrait for UserService {
         let result: Option<UserModel> = self.db.query(r#"
             UPDATE users MERGE {
 	            fields: $fields
-            } WHERE id;
+            } WHERE login=$login;
             "#)
             .bind(("login", login))
             .bind(("fields", model.fields))

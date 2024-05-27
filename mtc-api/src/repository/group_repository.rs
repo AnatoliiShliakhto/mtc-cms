@@ -14,7 +14,7 @@ repository_paginate!(GroupService, GroupModel, "groups");
 pub trait GroupRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<GroupModel>;
     async fn find_by_user(&self, login: &str) -> Result<GroupsModel>;
-    async fn create(&self, model: GroupCreateModel) -> Result<GroupModel>;
+    async fn create(&self, slug: &str, model: GroupCreateModel) -> Result<GroupModel>;
     async fn update(&self, slug: &str, model: GroupUpdateModel) -> Result<GroupModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
 }
@@ -54,6 +54,7 @@ impl GroupRepositoryTrait for GroupService {
 
     async fn create(
         &self,
+        slug: &str,
         model: GroupCreateModel,
     ) -> Result<GroupModel> {
         let result: Option<GroupModel> = self.db.query(r#"
@@ -62,7 +63,7 @@ impl GroupRepositoryTrait for GroupService {
 	            title: $title
             };
             "#)
-            .bind(("slug", model.slug))
+            .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
             .take(0)?;

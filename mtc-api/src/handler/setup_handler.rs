@@ -51,7 +51,7 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<ApiResponse<()
         DEFINE FIELD login ON TABLE users TYPE string;
         DEFINE FIELD password ON TABLE users TYPE string;
         DEFINE FIELD blocked ON TABLE users TYPE bool DEFAULT false;
-        DEFINE FIELD fields ON TABLE users FLEXIBLE TYPE option<array>;
+        DEFINE FIELD fields ON TABLE users FLEXIBLE TYPE option<object>;
         DEFINE FIELD created_at ON TABLE users TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE users TYPE datetime VALUE time::now();
         DEFINE INDEX idx_users_login ON TABLE users COLUMNS login UNIQUE;
@@ -228,7 +228,7 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<ApiResponse<()
         };
 
         DEFINE FIELD slug ON TABLE singles TYPE string;
-        DEFINE FIELD fields ON TABLE singles FLEXIBLE TYPE option<array>;
+        DEFINE FIELD fields ON TABLE singles FLEXIBLE TYPE option<object>;
         DEFINE FIELD created_at ON TABLE singles TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE singles TYPE datetime VALUE time::now();
         DEFINE INDEX idx_singles_slug ON TABLE singles COLUMNS slug UNIQUE;

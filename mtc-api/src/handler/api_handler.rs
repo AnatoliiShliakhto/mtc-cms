@@ -7,7 +7,7 @@ use crate::error::api_error::ApiError;
 use crate::error::generic_error::GenericError;
 use crate::error::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::api_model::{ApiCreateModel, ApiModel};
+use crate::model::api_model::{ApiModel, ApiPostModel};
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::ApiResponse;
 use crate::repository::api_repository::ApiRepositoryTrait;
@@ -26,14 +26,39 @@ pub async fn api_get_single_handler(
         .find_by_slug(&api)
         .await?;
 
-    //todo: collection response
+    //todo: collection response (perhaps)
     if schema_model.is_system || schema_model.is_collection {
-        Err(ApiError::from(GenericError::ConflictError("System api end-point".to_string())))?
+        Err(ApiError::from(GenericError::BadRequest("Isn't a single type api end-point".to_string())))?
     }
 
     let api_model = state
         .api_service
         .find_by_slug("singles", &api)
+        .await?;
+
+    Ok(ApiResponse::Data(api_model))
+}
+
+pub async fn api_update_single_item_handler(
+    Path(api): Path<String>,
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<ApiPostModel>,
+) -> Result<ApiResponse<ApiModel>> {
+    session.permission(&format!("{}::write", &api)).await?;
+
+    let schema_model = state
+        .schema_service
+        .find_by_slug(&api)
+        .await?;
+
+    if schema_model.is_system || schema_model.is_collection {
+        Err(ApiError::from(GenericError::BadRequest("Isn't a single type api end-point".to_string())))?
+    }
+
+    let api_model = state
+        .api_service
+        .update("singles", &schema_model.slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(api_model))
@@ -51,8 +76,8 @@ pub async fn api_get_collection_item_handler(
         .find_by_slug(&api)
         .await?;
 
-    if schema_model.is_system {
-        Err(ApiError::from(GenericError::ConflictError("System api end-point".to_string())))?
+    if schema_model.is_system || !schema_model.is_collection {
+        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
     }
 
     let api_model = state
@@ -63,11 +88,11 @@ pub async fn api_get_collection_item_handler(
     Ok(ApiResponse::Data(api_model))
 }
 
-pub async fn api_create_handler(
-    Path(api): Path<String>,
+pub async fn api_create_collection_item_handler(
+    Path((api, slug)): Path<(String, String)>,
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<ApiCreateModel>,
+    ValidatedPayload(payload): ValidatedPayload<ApiPostModel>,
 ) -> Result<ApiResponse<ApiModel>> {
     session.permission(&format!("{}::write", &api)).await?;
 
@@ -76,17 +101,38 @@ pub async fn api_create_handler(
         .find_by_slug(&api)
         .await?;
 
-    if schema_model.is_system {
-        Err(ApiError::from(GenericError::ConflictError("System api end-point".to_string())))?
-    }
-
-    if !schema_model.is_collection {
-        Err(ApiError::from(GenericError::ConflictError("Api end-point already exists".to_string())))?
+    if schema_model.is_system || !schema_model.is_collection {
+        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
     }
 
     let api_model = state
         .api_service
-        .create(&api, payload)
+        .create(&schema_model.slug, &slug, payload)
+        .await?;
+
+    Ok(ApiResponse::Data(api_model))
+}
+
+pub async fn api_update_collection_item_handler(
+    Path((api, slug)): Path<(String, String)>,
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<ApiPostModel>,
+) -> Result<ApiResponse<ApiModel>> {
+    session.permission(&format!("{}::write", &api)).await?;
+
+    let schema_model = state
+        .schema_service
+        .find_by_slug(&api)
+        .await?;
+
+    if schema_model.is_system || !schema_model.is_collection {
+        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
+    }
+
+    let api_model = state
+        .api_service
+        .update(&schema_model.slug, &slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(api_model))

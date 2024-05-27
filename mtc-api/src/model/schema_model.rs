@@ -21,8 +21,6 @@ pub struct SchemaModel {
 
 #[derive(Deserialize, Validate)]
 pub struct SchemaCreateModel {
-    #[validate(length(min = 4, message = "must be 4 characters at least"))]
-    pub slug: String,
     pub title: String,
     pub is_collection: bool,
 }

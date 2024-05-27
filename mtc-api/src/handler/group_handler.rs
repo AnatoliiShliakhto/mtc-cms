@@ -52,6 +52,7 @@ pub async fn group_get_handler(
 }
 
 pub async fn group_create_handler(
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<GroupCreateModel>,
@@ -60,7 +61,7 @@ pub async fn group_create_handler(
 
     let group_model = state
         .group_service
-        .create(payload)
+        .create(&slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(group_model))

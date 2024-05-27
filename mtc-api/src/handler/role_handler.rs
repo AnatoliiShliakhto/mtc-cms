@@ -55,6 +55,7 @@ pub async fn role_get_handler(
 }
 
 pub async fn role_create_handler(
+    Path(slug): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<RoleCreateModel>,
@@ -63,7 +64,7 @@ pub async fn role_create_handler(
 
     let role_model = state
         .role_service
-        .create(payload)
+        .create(&slug, payload)
         .await?;
 
     Ok(ApiResponse::Data(role_model))

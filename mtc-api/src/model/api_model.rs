@@ -16,7 +16,6 @@ pub struct ApiModel {
 }
 
 #[derive(Deserialize, Validate)]
-pub struct ApiCreateModel {
-    pub slug: String,
+pub struct ApiPostModel {
     pub fields: Option<Value>,
 }
