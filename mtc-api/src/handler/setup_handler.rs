@@ -4,12 +4,12 @@ use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::SaltString;
 use axum::extract::State;
 
-use crate::error::Result;
+use crate::handler::Result;
 use crate::model::response_model::ApiResponse;
 use crate::state::AppState;
 
 //todo: Make migration service from SQL files or etc
-pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<ApiResponse<()>> {
+pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
     let sql = r#"
         BEGIN TRANSACTION;
 

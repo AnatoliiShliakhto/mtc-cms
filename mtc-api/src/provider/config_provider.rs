@@ -21,7 +21,8 @@ pub struct Config {
 
     pub db_namespace: String,
     pub db_name: String,
-    pub session_expiration: usize,
+    pub session_expiration: i64,
+    pub session_secure_key: String,
 
     pub max_body_limit: usize,
     pub rows_per_page: usize,
@@ -49,7 +50,8 @@ impl Config {
             db_namespace: get_env("DB_NAMESPACE"),
             db_name: get_env("DB_NAME"),
             session_expiration: get_env("SESSION_EXPIRATION_IN_MINUTES")
-                .trim().parse::<usize>().unwrap_or(30),
+                .trim().parse::<i64>().unwrap_or(24 * 60),
+            session_secure_key: get_env("SESSION_SECURE_KEY"),
             front_end_url: get_env("FRONT_END_URL"),
             max_body_limit: get_env("MAX_BODY_LIMIT")
                 .trim().parse::<usize>().unwrap_or(104_857_600),

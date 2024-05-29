@@ -2,17 +2,18 @@ use std::sync::Arc;
 
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::extract::State;
-use tower_sessions::Session;
+use tower_sessions::{Expiry, Session};
+use tower_sessions::cookie::time::Duration;
 
 use crate::error::api_error::ApiError;
-use crate::error::Result;
 use crate::error::session_error::SessionError;
+use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::auth_model::{AuthModel, SignInModel};
 use crate::model::group_model::GroupsModel;
 use crate::model::permission_model::PermissionsModel;
 use crate::model::request_model::ValidatedPayload;
-use crate::model::response_model::ApiResponse;
+use crate::model::response_model::HandlerResult;
 use crate::model::role_model::RolesModel;
 use crate::repository::group_repository::GroupRepositoryTrait;
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
@@ -24,10 +25,11 @@ pub async fn sign_in_handler(
     state: State<Arc<AppState>>,
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<SignInModel>,
-) -> Result<ApiResponse<AuthModel>> {
+) -> Result<AuthModel> {
     let user_model = match state
         .user_service
-        .find_by_login(&payload.login).await {
+        .find_by_login(&payload.login)
+        .await {
         Ok(value) => value,
         _ => Err(ApiError::from(SessionError::InvalidCredentials))?,
     };
@@ -43,7 +45,7 @@ pub async fn sign_in_handler(
         _ => Err(ApiError::from(SessionError::PasswordHash))?,
     };
     if !argon2.verify_password(payload.password.as_bytes(), &parsed_hash).is_ok() {
-        return Err(ApiError::from(SessionError::InvalidCredentials));
+        Err(ApiError::from(SessionError::InvalidCredentials))?
     }
 
     let auth_model = AuthModel {
@@ -65,26 +67,33 @@ pub async fn sign_in_handler(
             .permissions,
     };
 
+    if &auth_model.id != "anonymous" {
+        session.set_expiry(Some(Expiry::OnInactivity(Duration::minutes(state.cfg.session_expiration))));
+    }
     session.sign_in(auth_model.clone()).await?;
 
-    Ok(ApiResponse::Data(auth_model))
+    auth_model.ok_model()
 }
 
 pub async fn sign_out_handler(
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<ApiResponse<AuthModel>> {
-    let auth_model = session.anonymous(&state).await?;
+) -> Result<AuthModel> {
+    session
+        .flush()
+        .await?;
 
-    session.sign_in(auth_model.clone()).await?;
-
-    Ok(ApiResponse::Data(auth_model))
+    session
+        .anonymous(&state)
+        .await?
+        .ok_model()
 }
 
 pub async fn get_credentials_handler(
     session: Session,
-) -> Result<ApiResponse<AuthModel>> {
-    let credentials = session.credentials().await?;
-
-    Ok(ApiResponse::Data(credentials))
+) -> Result<AuthModel> {
+    session
+        .credentials()
+        .await?
+        .ok_model()
 }

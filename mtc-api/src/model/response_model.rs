@@ -3,22 +3,24 @@ use axum::Json;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
+use crate::error::Result;
 use crate::model::pagination_model::PaginationModel;
 
 #[derive(Serialize)]
-struct ApiData<T: Serialize> {
+struct ApiData<T: Serialize + Sized> {
     data: T,
     #[serde(skip_serializing_if = "Option::is_none")]
     pagination: Option<PaginationModel>,
 }
 
-pub enum ApiResponse<T: Serialize> {
+pub enum ApiResponse<T: Serialize + Sized> {
     Ok,
     Data(T),
     DataPage(T, PaginationModel),
 }
 
-impl<T: Serialize> IntoResponse for ApiResponse<T> {
+impl<T> IntoResponse for ApiResponse<T>
+    where T: Serialize + Sized {
     fn into_response(self) -> Response {
         match self {
             Self::Ok => StatusCode::OK.into_response(),
@@ -26,6 +28,32 @@ impl<T: Serialize> IntoResponse for ApiResponse<T> {
             Self::DataPage(data, pagination) =>
                 Json(ApiData::<T> { data, pagination: Some(pagination) }).into_response(),
         }
+    }
+}
+
+impl<T: Serialize + Sized> From<T> for ApiResponse<T> {
+    fn from(data: T) -> Self {
+        ApiResponse::Data(data)
+    }
+}
+
+pub trait HandlerResult<T: Serialize + Sized> {
+    fn ok_ok(self) -> Result<ApiResponse<()>>;
+    fn ok_model(self) -> Result<ApiResponse<T>>;
+    fn ok_page(self, pagination: PaginationModel) -> Result<ApiResponse<T>>;
+}
+
+impl<T: Serialize + Sized> HandlerResult<T> for T {
+    fn ok_ok(self) -> Result<ApiResponse<()>> {
+        Ok(ApiResponse::Ok)
+    }
+
+    fn ok_model(self) -> Result<ApiResponse<T>> {
+        Ok(ApiResponse::Data(self))
+    }
+
+    fn ok_page(self, pagination: PaginationModel) -> Result<ApiResponse<T>> {
+        Ok(ApiResponse::DataPage(self, pagination))
     }
 }
 

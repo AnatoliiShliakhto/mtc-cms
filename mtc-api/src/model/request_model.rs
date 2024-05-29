@@ -3,6 +3,7 @@ use axum::extract::{FromRequest, Request};
 use axum::extract::rejection::{FormRejection, JsonRejection};
 use axum::http::header::CONTENT_TYPE;
 use serde::de::DeserializeOwned;
+use serde::Deserialize;
 use validator::Validate;
 
 use crate::error::api_error::ApiError;
@@ -43,3 +44,8 @@ impl<T, S> FromRequest<S> for ValidatedPayload<T>
     }
 }
 
+#[derive(Deserialize)]
+pub struct ApiPageRequest {
+    pub api: String,
+    pub page: Option<usize>,
+}

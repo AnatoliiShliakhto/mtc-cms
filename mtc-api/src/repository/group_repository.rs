@@ -1,6 +1,5 @@
 use axum::async_trait;
 
-use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::group_model::{GroupCreateModel, GroupModel, GroupsModel, GroupUpdateModel};
@@ -25,31 +24,23 @@ impl GroupRepositoryTrait for GroupService {
         &self,
         slug: &str,
     ) -> Result<GroupModel> {
-        let result: Option<GroupModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT * FROM groups WHERE slug=$slug;
             "#)
             .bind(("slug", slug))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<GroupModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn find_by_user(&self, login: &str) -> Result<GroupsModel> {
-        let result: Option<GroupsModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT array::sort(array::distinct(->user_groups->groups.slug)) as groups FROM users WHERE login=$login
             "#)
             .bind(("login", login))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<GroupsModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn create(
@@ -57,7 +48,7 @@ impl GroupRepositoryTrait for GroupService {
         slug: &str,
         model: GroupCreateModel,
     ) -> Result<GroupModel> {
-        let result: Option<GroupModel> = self.db.query(r#"
+        self.db.query(r#"
             CREATE groups CONTENT {
 	            slug: $slug,
 	            title: $title
@@ -66,12 +57,8 @@ impl GroupRepositoryTrait for GroupService {
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryAlreadyExists))
-        }
+            .take::<Option<GroupModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn update(
@@ -79,7 +66,7 @@ impl GroupRepositoryTrait for GroupService {
         slug: &str,
         model: GroupUpdateModel,
     ) -> Result<GroupModel> {
-        let result: Option<GroupModel> = self.db.query(r#"
+        self.db.query(r#"
             UPDATE groups MERGE {
 	            title: $title
             } WHERE slug=$slug;
@@ -87,26 +74,21 @@ impl GroupRepositoryTrait for GroupService {
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryUpdate))
-        }
+            .take::<Option<GroupModel>>(0)?
+            .ok_or(DbError::EntryUpdate.into())
     }
 
     async fn delete(
         &self,
         slug: &str,
     ) -> Result<()> {
-        match self.db.query(r#"
+        self.db.query(r#"
             DELETE FROM groups WHERE slug=$slug;
             "#)
             .bind(("slug", slug))
             .bind(("rel_table", "user_groups"))
-            .await {
-            Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
-        }
+            .await?;
+
+        Ok(())
     }
 }

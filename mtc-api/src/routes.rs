@@ -33,14 +33,14 @@ pub fn routes(
         .allow_methods([
             axum::http::Method::GET,
             axum::http::Method::POST,
-            axum::http::Method::PUT,
             axum::http::Method::PATCH,
             axum::http::Method::DELETE,
         ]);
 
     Router::new()
-        //todo: universal custom api handlers
         .route("/:api/:slug", get(api_get_collection_item_handler).post(api_create_collection_item_handler).patch(api_update_collection_item_handler))
+        .route("/:api/list/:page", get(api_collection_list_handler))
+        .route("/:api/list", get(api_collection_list_handler))
         .route("/:api", get(api_get_single_handler).patch(api_update_single_item_handler))
 
         .route("/schema/:slug/fields", get(schema_get_fields_handler).post(schema_update_fields_handler))

@@ -27,17 +27,13 @@ impl SchemaRepositoryTrait for SchemaService {
         &self,
         slug: &str,
     ) -> Result<SchemaModel> {
-        let result: Option<SchemaModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT * FROM schemas WHERE slug=$slug;
             "#)
             .bind(("slug", slug))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<SchemaModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn can_create(
@@ -53,7 +49,7 @@ impl SchemaRepositoryTrait for SchemaService {
 
         match result {
             Some(..) => Ok(false),
-            None => Ok(true)
+            None => Err(DbError::EntryAlreadyExists.into())
         }
     }
 
@@ -62,9 +58,7 @@ impl SchemaRepositoryTrait for SchemaService {
         slug: &str,
         model: SchemaCreateModel,
     ) -> Result<SchemaModel> {
-        if !self.can_create(slug).await? {
-            Err(ApiError::from(DbError::EntryAlreadyExists))?
-        }
+        self.can_create(slug).await?;
 
         let result: Option<SchemaModel> = self.db.query(r#"
             BEGIN TRANSACTION;
@@ -139,7 +133,7 @@ impl SchemaRepositoryTrait for SchemaService {
                     "#, slug)).await?;
                 Ok(value)
             }
-            _ => Err(ApiError::from(DbError::EntryAlreadyExists))
+            _ => Err(DbError::EntryAlreadyExists.into())
         }
     }
 
@@ -186,7 +180,7 @@ impl SchemaRepositoryTrait for SchemaService {
         slug: &str,
         model: SchemaUpdateModel,
     ) -> Result<SchemaModel> {
-        let result: Option<SchemaModel> = self.db.query(r#"
+        self.db.query(r#"
             UPDATE schemas MERGE {
                 title: $title
             } WHERE slug=$slug;
@@ -194,12 +188,8 @@ impl SchemaRepositoryTrait for SchemaService {
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryUpdate))
-        }
+            .take::<Option<SchemaModel>>(0)?
+            .ok_or(DbError::EntryUpdate.into())
     }
 
     async fn update_fields(
@@ -207,7 +197,7 @@ impl SchemaRepositoryTrait for SchemaService {
         slug: &str,
         model: SchemaFieldsModel,
     ) -> Result<SchemaModel> {
-        let result: Option<SchemaModel> = self.db.query(r#"
+        self.db.query(r#"
             UPDATE schemas MERGE {
                 fields: $fields
             } WHERE slug=$slug;
@@ -215,12 +205,8 @@ impl SchemaRepositoryTrait for SchemaService {
             .bind(("slug", slug))
             .bind(("fields", model.fields))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryUpdate))
-        }
+            .take::<Option<SchemaModel>>(0)?
+            .ok_or(DbError::EntryUpdate.into())
     }
 
     async fn get_fields(

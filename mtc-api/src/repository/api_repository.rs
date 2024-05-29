@@ -1,9 +1,9 @@
 use axum::async_trait;
 
-use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::api_model::{ApiModel, ApiPostModel};
+use crate::model::pagination_model::CountModel;
 use crate::service::api_service::ApiService;
 
 #[async_trait]
@@ -12,6 +12,8 @@ pub trait ApiRepositoryTrait {
     async fn find_by_slug(&self, table: &str, slug: &str) -> Result<ApiModel>;
     async fn create(&self, table: &str, slug: &str, model: ApiPostModel) -> Result<ApiModel>;
     async fn update(&self, table: &str, slug: &str, model: ApiPostModel) -> Result<ApiModel>;
+    async fn get_page(&self, table: &str, start: usize, limit: usize) -> Result<Vec<ApiModel>>;
+    async fn get_total(&self, table: &str) -> Result<usize>;
 }
 
 #[async_trait]
@@ -20,36 +22,28 @@ impl ApiRepositoryTrait for ApiService {
         &self,
         table: &str,
         id: &str) -> Result<ApiModel> {
-        let result: Option<ApiModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT * FROM type::thing($table, $id);
             "#)
             .bind(("table", table))
             .bind(("id", id))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<ApiModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn find_by_slug(
         &self,
         table: &str,
         slug: &str) -> Result<ApiModel> {
-        let result: Option<ApiModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT * FROM type::table($table) WHERE slug=$slug;
             "#)
             .bind(("table", table))
             .bind(("slug", slug))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<ApiModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn create(
@@ -57,7 +51,7 @@ impl ApiRepositoryTrait for ApiService {
         table: &str,
         slug: &str,
         model: ApiPostModel) -> Result<ApiModel> {
-        let result: Option<ApiModel> = self.db.query(r#"
+        self.db.query(r#"
             CREATE type::table($table) CONTENT {
 	            slug: $slug,
 	            fields: $fields
@@ -67,12 +61,8 @@ impl ApiRepositoryTrait for ApiService {
             .bind(("slug", slug))
             .bind(("fields", model.fields))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryAlreadyExists))
-        }
+            .take::<Option<ApiModel>>(0)?
+            .ok_or(DbError::EntryAlreadyExists.into())
     }
 
     async fn update(
@@ -81,7 +71,7 @@ impl ApiRepositoryTrait for ApiService {
         slug: &str,
         model: ApiPostModel,
     ) -> Result<ApiModel> {
-        let result: Option<ApiModel> = self.db.query(r#"
+        self.db.query(r#"
             UPDATE type::table($table) MERGE {
                 fields: $fields
             } WHERE slug=$slug;
@@ -90,11 +80,36 @@ impl ApiRepositoryTrait for ApiService {
             .bind(("slug", slug))
             .bind(("fields", model.fields))
             .await?
-            .take(0)?;
+            .take::<Option<ApiModel>>(0)?
+            .ok_or(DbError::EntryUpdate.into())
+    }
 
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryUpdate))
+    async fn get_page(
+        &self,
+        table: &str,
+        start: usize,
+        limit: usize,
+    ) -> Result<Vec<ApiModel>> {
+        Ok(self.db
+            .query(r#"SELECT * FROM type::table($table) LIMIT $limit START $start;"#)
+            .bind(("table", table))
+            .bind(("start", start - 1))
+            .bind(("limit", limit))
+            .await?
+            .take::<Vec<ApiModel>>(0)?)
+    }
+
+    async fn get_total(
+        &self,
+        table: &str,
+    ) -> Result<usize> {
+        match self.db
+            .query(r#"SELECT count() FROM type::table($table) GROUP ALL;"#)
+            .bind(("table", table))
+            .await?
+            .take::<Option<CountModel>>(0)? {
+            Some(value) => Ok(value.count),
+            _ => Ok(0usize)
         }
     }
 }

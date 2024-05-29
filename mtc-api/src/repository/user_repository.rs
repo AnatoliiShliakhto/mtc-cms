@@ -31,17 +31,13 @@ impl UserRepositoryTrait for UserService {
         &self,
         login: &str,
     ) -> Result<UserModel> {
-        let result: Option<UserModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT * FROM users WHERE login=$login;
             "#)
             .bind(("login", login.to_string()))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<UserModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn create(
@@ -81,7 +77,7 @@ impl UserRepositoryTrait for UserService {
                     .await?;
                 Ok(value)
             }
-            _ => Err(ApiError::from(DbError::EntryAlreadyExists))
+            _ => Err(DbError::EntryAlreadyExists.into())
         }
     }
 
@@ -90,19 +86,16 @@ impl UserRepositoryTrait for UserService {
         login: &str,
         model: UserUpdateModel,
     ) -> Result<UserModel> {
-        let result: Option<UserModel> = self.db.query(r#"
+        self.db.query(r#"
             UPDATE users MERGE {
 	            fields: $fields
             } WHERE login=$login;
             "#)
             .bind(("login", login))
             .bind(("fields", model.fields))
-            .await?.take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryUpdate))
-        }
+            .await?
+            .take::<Option<UserModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn delete(
@@ -115,7 +108,7 @@ impl UserRepositoryTrait for UserService {
             .bind(("login", login))
             .await {
             Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
+            Err(e) => Err(e.into())
         }
     }
     async fn role_assign(
@@ -128,7 +121,7 @@ impl UserRepositoryTrait for UserService {
             "#, user_id, role_id))
             .await {
             Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
+            Err(e) => Err(e.into())
         }
     }
 
@@ -142,7 +135,7 @@ impl UserRepositoryTrait for UserService {
             .bind(("user_id", user_id))
             .await {
             Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
+            Err(e) => Err(e.into())
         }
     }
 
@@ -156,7 +149,7 @@ impl UserRepositoryTrait for UserService {
             "#, user_id, group_id))
             .await {
             Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
+            Err(e) => Err(e.into())
         }
     }
 
@@ -170,7 +163,7 @@ impl UserRepositoryTrait for UserService {
             .bind(("user_id", user_id))
             .await {
             Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
+            Err(e) => Err(e.into())
         }
     }
 }

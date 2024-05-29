@@ -1,6 +1,5 @@
 use axum::async_trait;
 
-use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::model::role_model::{RoleCreateModel, RoleModel, RolesModel, RoleUpdateModel};
@@ -27,31 +26,23 @@ impl RoleRepositoryTrait for RoleService {
         &self,
         slug: &str,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT * FROM roles WHERE slug=$slug;
             "#)
             .bind(("slug", slug))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<RoleModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn find_by_user(&self, login: &str) -> Result<RolesModel> {
-        let result: Option<RolesModel> = self.db.query(r#"
+        self.db.query(r#"
             SELECT array::sort(array::distinct(->user_roles->roles.slug)) as roles FROM users WHERE login=$login
             "#)
             .bind(("login", login))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
-        }
+            .take::<Option<RolesModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 
     async fn create(
@@ -59,7 +50,7 @@ impl RoleRepositoryTrait for RoleService {
         slug: &str,
         model: RoleCreateModel,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = self.db.query(r#"
+        self.db.query(r#"
             CREATE roles CONTENT {
 	            slug: $slug,
 	            title: $title
@@ -68,12 +59,8 @@ impl RoleRepositoryTrait for RoleService {
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryAlreadyExists))
-        }
+            .take::<Option<RoleModel>>(0)?
+            .ok_or(DbError::EntryAlreadyExists.into())
     }
 
     async fn update(
@@ -81,7 +68,7 @@ impl RoleRepositoryTrait for RoleService {
         slug: &str,
         model: RoleUpdateModel,
     ) -> Result<RoleModel> {
-        let result: Option<RoleModel> = self.db.query(r#"
+        self.db.query(r#"
             UPDATE roles MERGE {
 	            title: $title
             } WHERE slug=$slug;
@@ -89,26 +76,21 @@ impl RoleRepositoryTrait for RoleService {
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
-            .take(0)?;
-
-        match result {
-            Some(value) => Ok(value),
-            _ => Err(ApiError::from(DbError::EntryUpdate))
-        }
+            .take::<Option<RoleModel>>(0)?
+            .ok_or(DbError::EntryUpdate.into())
     }
 
     async fn delete(
         &self,
         slug: &str,
     ) -> Result<()> {
-        match self.db.query(r#"
+        self.db.query(r#"
             DELETE FROM roles WHERE slug=$slug;
             "#)
             .bind(("slug", slug))
-            .await {
-            Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
-        }
+            .await?;
+
+        Ok(())
     }
 
     async fn permission_assign(
@@ -122,7 +104,7 @@ impl RoleRepositoryTrait for RoleService {
             "#, role_id, permission_id))
             .await {
             Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
+            Err(e) => Err(e.into())
         }
     }
 
@@ -130,13 +112,12 @@ impl RoleRepositoryTrait for RoleService {
         &self,
         role_id: &str,
     ) -> Result<()> {
-        match self.db.query(r#"
+        self.db.query(r#"
             DELETE type::thing('roles', $role_id)->role_permissions;
             "#)
             .bind(("role_id", role_id))
-            .await {
-            Ok(..) => Ok(()),
-            Err(e) => Err(ApiError::from(e))
-        }
+            .await?;
+
+        Ok(())
     }
 }
