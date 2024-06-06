@@ -3,8 +3,9 @@ use axum::Json;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 
+use mtc_model::pagination_model::PaginationModel;
+
 use crate::error::Result;
-use crate::model::pagination_model::PaginationModel;
 
 #[derive(Serialize)]
 struct ApiData<T: Serialize + Sized> {

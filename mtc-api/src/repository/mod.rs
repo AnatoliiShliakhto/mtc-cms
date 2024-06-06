@@ -34,7 +34,7 @@ macro_rules! repository_paginate {
                 .query(r#"SELECT count() FROM type::table($table) GROUP ALL;"#)
                 .bind(("table", $table))
                 .await?;
-                let result: Option<crate::model::pagination_model::CountModel> = result.take(0)?;
+                let result: Option<mtc_model::pagination_model::CountModel> = result.take(0)?;
                 match result {
                     Some(value) => Ok(value.count),
                     _ => Ok(0usize)

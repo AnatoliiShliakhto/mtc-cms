@@ -3,10 +3,11 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use tower_sessions::Session;
 
+use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
+use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
+
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
-use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::HandlerResult;
 use crate::repository::group_repository::GroupRepositoryTrait;

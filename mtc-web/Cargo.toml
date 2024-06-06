@@ -1,18 +1,25 @@
 [package]
 name = "mtc-web"
-description="Military training center CMS WebAssembly"
-version = "0.1.0"
-authors = ["Anatolii Shliakhto <a.shlyakhto@gmail.com>"]
+description = "Military training center CMS WebAssembly"
 edition = "2021"
-license = "MIT"
 resolver = "2"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+mtc-model = { path = "../mtc-model" }
 dioxus = { version = "0.5.1", features = ["web", "router"] }
-dioxus-free-icons = { version = "0.8.5", features = ["font-awesome-regular"] }
-
-# Debug
-tracing = "0.1.40"
-dioxus-logger = "0.5.1"
+dioxus-free-icons = { version = "0.8.6", features = ["font-awesome-regular"] }
+surrealdb = { version = "1.5.1", features = ["kv-indxdb"] }
+tracing = { version = "0.1.40" }
+reqwest = { version = "0.12.4", features = ["json"] }
+serde_json = { version = "1.0.117" }
+serde = { version = "1.0.203", features = ["derive"] }
+futures-util = { version = "0.3.30" }
+chrono = { version = "0.4.38", features = ["wasmbind"] }
+dioxus-logger = { version = "0.5.1" }
+dioxus-std = { version = "0.5.0", features = ["i18n"] }
+dioxus-use-window = "0.7.0"

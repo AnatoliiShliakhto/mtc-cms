@@ -2,11 +2,12 @@ use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::SaltString;
 use axum::async_trait;
 
+use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
+
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
-use crate::model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::user_service::UserService;

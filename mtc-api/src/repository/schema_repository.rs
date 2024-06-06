@@ -1,9 +1,10 @@
 use axum::async_trait;
 
+use mtc_model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
+
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::schema_service::SchemaService;

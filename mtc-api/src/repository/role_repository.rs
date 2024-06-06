@@ -1,8 +1,9 @@
 use axum::async_trait;
 
+use mtc_model::role_model::{RoleCreateModel, RoleModel, RolesModel, RoleUpdateModel};
+
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::role_model::{RoleCreateModel, RoleModel, RolesModel, RoleUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::role_service::RoleService;

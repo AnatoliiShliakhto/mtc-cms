@@ -10,12 +10,17 @@ pub struct AuthModel {
 }
 
 pub trait AuthModelTrait {
+    fn is_auth(&self) -> bool;
     fn is_role(&self, role: &str) -> bool;
     fn is_group(&self, group: &str) -> bool;
     fn is_permission(&self, permission: &str) -> bool;
 }
 
 impl AuthModelTrait for AuthModel {
+    fn is_auth(&self) -> bool {
+        !self.id.eq("anonymous")
+    }
+
     fn is_role(&self, role: &str) -> bool {
         self.roles.iter().any(|item| item == role)
     }
@@ -29,7 +34,7 @@ impl AuthModelTrait for AuthModel {
     }
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct SignInModel {
     #[validate(length(min = 5, max = 15, message = "incorrect"))]
     pub login: String,

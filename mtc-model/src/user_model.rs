@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use surrealdb::sql::Datetime;
+use surrealdb_sql::Datetime;
 use validator::Validate;
 
-use crate::model::from_thing;
+use crate::from_thing;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
 pub struct UserModel {

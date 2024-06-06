@@ -5,16 +5,17 @@ use axum::extract::State;
 use tower_sessions::{Expiry, Session};
 use tower_sessions::cookie::time::Duration;
 
+use mtc_model::auth_model::{AuthModel, SignInModel};
+use mtc_model::group_model::GroupsModel;
+use mtc_model::permission_model::PermissionsModel;
+use mtc_model::role_model::RolesModel;
+
 use crate::error::api_error::ApiError;
 use crate::error::session_error::SessionError;
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::auth_model::{AuthModel, SignInModel};
-use crate::model::group_model::GroupsModel;
-use crate::model::permission_model::PermissionsModel;
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::HandlerResult;
-use crate::model::role_model::RolesModel;
 use crate::repository::group_repository::GroupRepositoryTrait;
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::repository::role_repository::RoleRepositoryTrait;

@@ -1,8 +1,9 @@
 use axum::async_trait;
 
+use mtc_model::permission_model::{PermissionModel, PermissionsModel};
+
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::permission_model::{PermissionModel, PermissionsModel};
 use crate::service::permissions_service::PermissionsService;
 
 #[async_trait]

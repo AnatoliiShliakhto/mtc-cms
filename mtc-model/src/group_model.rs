@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
-use surrealdb::sql::Datetime;
+use surrealdb_sql::Datetime;
 use validator::Validate;
 
-use crate::model::from_thing;
+use crate::from_thing;
 
 #[derive(Serialize, Debug, Deserialize, Clone)]
-pub struct RoleModel {
+pub struct GroupModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,
     pub slug: String,
@@ -15,16 +15,16 @@ pub struct RoleModel {
 }
 
 #[derive(Deserialize, Validate)]
-pub struct RoleCreateModel {
+pub struct GroupCreateModel {
     pub title: String,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
-pub struct RoleUpdateModel {
+pub struct GroupUpdateModel {
     pub title: String,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
-pub struct RolesModel {
-    pub roles: Vec<String>,
+pub struct GroupsModel {
+    pub groups: Vec<String>,
 }

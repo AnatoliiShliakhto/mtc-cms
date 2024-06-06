@@ -1,8 +1,9 @@
 use axum::async_trait;
 
+use mtc_model::group_model::*;
+
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::group_model::{GroupCreateModel, GroupModel, GroupsModel, GroupUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository_paginate;
 use crate::service::group_service::GroupService;

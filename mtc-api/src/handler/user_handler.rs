@@ -4,15 +4,16 @@ use axum::extract::{Path, State};
 use tower_sessions::Session;
 use tracing::warn;
 
+use mtc_model::group_model::GroupsModel;
+use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
+use mtc_model::permission_model::PermissionsModel;
+use mtc_model::role_model::RolesModel;
+use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
+
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::group_model::GroupsModel;
-use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
-use crate::model::permission_model::PermissionsModel;
 use crate::model::request_model::ValidatedPayload;
-use crate::model::response_model::{ApiResponse, HandlerResult};
-use crate::model::role_model::RolesModel;
-use crate::model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
+use crate::model::response_model::HandlerResult;
 use crate::repository::group_repository::GroupRepositoryTrait;
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::repository::RepositoryPaginate;

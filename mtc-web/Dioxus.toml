@@ -43,5 +43,5 @@ script = []
 # serve: [dev-server] only
 script = []
 
-[[web.proxy]]
-backend = "http://localhost/api/"
+#[[web.proxy]]
+#backend = "https://localhost"

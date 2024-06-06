@@ -3,12 +3,12 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use tower_sessions::Session;
 
-use crate::error::api_error::ApiError;
-use crate::error::generic_error::GenericError;
+use mtc_model::api_model::{ApiModel, ApiPostModel};
+use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
+
+use crate::error::api_error::ToApiError;
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::api_model::{ApiModel, ApiPostModel};
-use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
 use crate::model::request_model::{ApiPageRequest, ValidatedPayload};
 use crate::model::response_model::HandlerResult;
 use crate::repository::api_repository::ApiRepositoryTrait;
@@ -31,7 +31,7 @@ pub async fn api_collection_list_handler(
         .await?;
 
     if schema_model.is_system || !schema_model.is_collection {
-        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
+        Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
 
     let pagination = PaginationModel::new(
@@ -61,7 +61,7 @@ pub async fn api_get_single_handler(
 
     //todo: collection response (perhaps)
     if schema_model.is_system || schema_model.is_collection {
-        Err(ApiError::from(GenericError::BadRequest("Isn't a single type api end-point".to_string())))?
+        Err("Isn't a single type api end-point".to_bad_request_error())?
     }
 
     state
@@ -85,7 +85,7 @@ pub async fn api_update_single_item_handler(
         .await?;
 
     if schema_model.is_system || schema_model.is_collection {
-        Err(ApiError::from(GenericError::BadRequest("Isn't a single type api end-point".to_string())))?
+        Err("Isn't a single type api end-point".to_bad_request_error())?
     }
 
     state
@@ -108,7 +108,7 @@ pub async fn api_get_collection_item_handler(
         .await?;
 
     if schema_model.is_system || !schema_model.is_collection {
-        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
+        Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
 
     state
@@ -132,7 +132,7 @@ pub async fn api_create_collection_item_handler(
         .await?;
 
     if schema_model.is_system || !schema_model.is_collection {
-        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
+        Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
 
     state
@@ -156,7 +156,7 @@ pub async fn api_update_collection_item_handler(
         .await?;
 
     if schema_model.is_system || !schema_model.is_collection {
-        Err(ApiError::from(GenericError::BadRequest("Isn't a collection type api end-point".to_string())))?
+        Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
 
     state

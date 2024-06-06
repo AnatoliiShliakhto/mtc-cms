@@ -72,3 +72,23 @@ impl From<&str> for ApiError {
         Self::from(GenericError::ConflictError(message.to_string()))
     }
 }
+
+pub trait ToApiError {
+    fn to_internal_error(self) -> ApiError;
+    fn to_bad_request_error(self) -> ApiError;
+    fn to_conflict_error(self) -> ApiError;
+}
+
+impl ToApiError for &str {
+    fn to_internal_error(self) -> ApiError {
+        ApiError::from(GenericError::InternalError(self.to_string()))
+    }
+
+    fn to_bad_request_error(self) -> ApiError {
+        ApiError::from(GenericError::BadRequest(self.to_string()))
+    }
+
+    fn to_conflict_error(self) -> ApiError {
+        ApiError::from(GenericError::ConflictError(self.to_string()))
+    }
+}

@@ -1,9 +1,10 @@
 use axum::async_trait;
 
+use mtc_model::api_model::{ApiModel, ApiPostModel};
+use mtc_model::pagination_model::CountModel;
+
 use crate::error::db_error::DbError;
 use crate::error::Result;
-use crate::model::api_model::{ApiModel, ApiPostModel};
-use crate::model::pagination_model::CountModel;
 use crate::service::api_service::ApiService;
 
 #[async_trait]

@@ -3,12 +3,13 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use tower_sessions::Session;
 
+use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
+use mtc_model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
+
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
-use crate::model::pagination_model::{PaginationBuilder, PaginationModel};
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::{ApiResponse, HandlerResult};
-use crate::model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
 use crate::repository::RepositoryPaginate;
 use crate::repository::schema_repository::SchemaRepositoryTrait;
 use crate::state::AppState;

@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use crate::error::Result;
 use crate::provider::config_provider::Config;
 use crate::provider::database_provider::Database;
 use crate::service::api_service::ApiService;
@@ -23,7 +22,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub async fn new(cfg: Config, db: Database) -> Result<AppState> {
+    pub fn new(cfg: Config, db: Database) -> AppState {
         let cfg = Arc::new(cfg);
         let db = Arc::new(db);
 
@@ -34,7 +33,7 @@ impl AppState {
         let user_service = UserService::new(&cfg, &db);
         let api_service = ApiService::new(&cfg, &db);
 
-        Ok(Self {
+        Self {
             cfg,
             db,
 
@@ -44,6 +43,6 @@ impl AppState {
             user_service,
             permissions_service,
             api_service,
-        })
+        }
     }
 }

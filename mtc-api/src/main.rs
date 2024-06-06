@@ -81,7 +81,7 @@ async fn app() -> Result<(), Box<dyn std::error::Error>> {
     tokio::task::spawn(session_store.clone().continuously_delete_expired(
         tokio::time::Duration::from_secs(60 * 10),
     ));
-    let state = Arc::new(AppState::new(config.clone(), db).await?);
+    let state = Arc::new(AppState::new(config.clone(), db));
 
     let session_service = ServiceBuilder::new().layer(
         SessionManagerLayer::new(session_store)

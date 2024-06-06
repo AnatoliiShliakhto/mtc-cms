@@ -6,11 +6,12 @@ use axum::middleware::Next;
 use axum::response::IntoResponse;
 use tower_sessions::Session;
 
+use mtc_model::auth_model::{AuthModel, AuthModelTrait};
+use mtc_model::permission_model::PermissionsModel;
+
 use crate::error::api_error::ApiError;
 use crate::error::Result;
 use crate::error::session_error::SessionError;
-use crate::model::auth_model::{AuthModel, AuthModelTrait};
-use crate::model::permission_model::PermissionsModel;
 use crate::provider::config_provider::SESSION_USER_KEY;
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::state::AppState;
@@ -41,6 +42,7 @@ pub trait UserSession {
     async fn role(&self, slug: &str) -> Result<()>;
     async fn group(&self, slug: &str) -> Result<()>;
     async fn permission(&self, slug: &str) -> Result<()>;
+    async fn auth_id(&self) -> Result<String>;
 }
 
 #[async_trait]
@@ -112,5 +114,13 @@ impl UserSession for Session {
             true => Ok(()),
             _ => Err(ApiError::from(SessionError::AccessForbidden))
         }
+    }
+
+    async fn auth_id(&self) -> Result<String> {
+        Ok(self
+            .get::<AuthModel>(SESSION_USER_KEY)
+            .await?
+            .ok_or(ApiError::from(SessionError::InvalidSession))?
+            .id)
     }
 }
