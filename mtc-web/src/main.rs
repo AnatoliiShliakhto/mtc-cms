@@ -9,12 +9,13 @@ use tracing::Level;
 use crate::action::health_action::HealthAction;
 use crate::i18n::en_US::EN_US;
 use crate::i18n::uk_UA::UK_UA;
+use crate::repository::storage::use_persistent;
 use crate::router::Route;
 use crate::service::auth_service::auth_service;
 use crate::service::health_service::health_service;
 
 mod model;
-mod widget;
+mod component;
 mod page;
 mod error;
 mod state;
@@ -22,9 +23,10 @@ mod action;
 mod service;
 mod handler;
 mod global_signal;
-mod component;
+mod element;
 mod router;
 mod i18n;
+mod repository;
 
 fn main() {
     dioxus_logger::init(Level::INFO).expect("failed to init logger");
@@ -40,8 +42,13 @@ fn App() -> Element {
     });
     let mut i18 = use_i18();
 
-    //todo: language_switcher routine
-    i18.set_language("uk-UA".parse().unwrap());
+    let user_i18n_en =
+        use_persistent("settings_i18n_en", || true);
+
+    match user_i18n_en.get().eq(&true) {
+        true => i18.set_language("en_US".parse().unwrap()),
+        false => i18.set_language("uk_UA".parse().unwrap()),
+    }
 
     use_coroutine(health_service);
     use_coroutine(auth_service);

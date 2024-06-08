@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 pub fn MessageBoxWarning(message: String) -> Element {
     rsx! {
-        div { role: "alert", class: "alert alert-warning",
+        div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-warning text-warning",
             svg {
                 "viewBox": "0 0 24 24",
                 "fill": "none",

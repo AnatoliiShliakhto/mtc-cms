@@ -4,7 +4,8 @@ use axum::async_trait;
 use axum::extract::{Request, State};
 use axum::middleware::Next;
 use axum::response::IntoResponse;
-use tower_sessions::Session;
+use tower_sessions::{Expiry, Session};
+use tower_sessions::cookie::time::Duration;
 
 use mtc_model::auth_model::{AuthModel, AuthModelTrait};
 use mtc_model::permission_model::PermissionsModel;
@@ -30,6 +31,8 @@ pub async fn middleware_auth_handler(
             _ => Err(ApiError::from(SessionError::InvalidSession))?
         };
     }
+
+    session.set_expiry(Some(Expiry::OnInactivity(Duration::minutes(state.cfg.session_expiration))));
 
     Ok(next.run(req).await)
 }

@@ -11,6 +11,7 @@ pub struct AuthModel {
 
 pub trait AuthModelTrait {
     fn is_auth(&self) -> bool;
+    fn is_admin(&self) -> bool;
     fn is_role(&self, role: &str) -> bool;
     fn is_group(&self, group: &str) -> bool;
     fn is_permission(&self, permission: &str) -> bool;
@@ -19,6 +20,10 @@ pub trait AuthModelTrait {
 impl AuthModelTrait for AuthModel {
     fn is_auth(&self) -> bool {
         !self.id.eq("anonymous")
+    }
+
+    fn is_admin(&self) -> bool {
+        self.is_permission("administrator")
     }
 
     fn is_role(&self, role: &str) -> bool {

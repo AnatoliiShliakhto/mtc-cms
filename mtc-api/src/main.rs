@@ -7,12 +7,14 @@ use std::process::ExitCode;
 use std::sync::Arc;
 
 use axum::extract::DefaultBodyLimit;
+use axum::handler::HandlerWithoutStateExt;
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use tower::ServiceBuilder;
 use tower_http::services::ServeDir;
-use tower_sessions::{ExpiredDeletion, SessionManagerLayer};
+use tower_sessions::{ExpiredDeletion, Expiry, SessionManagerLayer};
 use tower_sessions::cookie::Key;
+use tower_sessions::cookie::time::Duration;
 use tower_sessions_surrealdb_store::SurrealSessionStore;
 use tracing::error;
 use tracing::level_filters::LevelFilter;
@@ -86,6 +88,7 @@ async fn app() -> Result<(), Box<dyn std::error::Error>> {
     let session_service = ServiceBuilder::new().layer(
         SessionManagerLayer::new(session_store)
             .with_name("mtc-api.sid")
+            .with_expiry(Expiry::OnInactivity(Duration::minutes(config.session_expiration)))
             .with_private(Key::try_from(config.session_secure_key.as_bytes()).unwrap()));
 
     tokio::spawn(redirect_http_to_https((

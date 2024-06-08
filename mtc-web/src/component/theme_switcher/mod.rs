@@ -1,14 +1,23 @@
 use dioxus::prelude::*;
+use crate::repository::storage::use_persistent;
 
 #[component]
-pub fn ThemeSwitcherWidget() -> Element {
+pub fn ThemeSwitcherComponent() -> Element {
+    let mut user_dark_theme =
+        use_persistent("settings_dark_theme", || true);
+
     rsx! {
         div { class: "btn btn-ghost join-item",
+            prevent_default: "onclick",
+            onclick: move |_| {
+                user_dark_theme.set(!user_dark_theme.get());
+            },
             label { class: "swap swap-rotate",
                 input {
                     value: "light",
                     r#type: "checkbox",
-                    class: "theme-controller"
+                    class: "theme-controller",
+                    checked: user_dark_theme.get().eq(&false),
                 }
                 svg {
                     "xmlns": "http://www.w3.org/2000/svg",

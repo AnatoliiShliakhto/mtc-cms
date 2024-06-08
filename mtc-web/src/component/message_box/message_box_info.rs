@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 pub fn MessageBoxInfo(message: String) -> Element {
     rsx! {
-        div { role: "alert", class: "alert alert-info",
+        div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-info text-info",
             svg {
                 "fill": "none",
                 "xmlns": "http://www.w3.org/2000/svg",

@@ -3,6 +3,7 @@
     "daisyui": "^4.11.1"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.13",
     "node": "^18.20.3"
   }
 }

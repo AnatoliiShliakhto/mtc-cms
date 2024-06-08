@@ -104,6 +104,10 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         DEFINE INDEX idx_permissions_slug ON TABLE permissions COLUMNS slug UNIQUE;
 
         CREATE permissions CONTENT {
+            id: 'administrator',
+            slug: 'administrator'
+        };
+        CREATE permissions CONTENT {
             id: 'role_read',
             slug: 'role::read'
         };
@@ -164,6 +168,7 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         DEFINE FIELD created_at ON TABLE role_permissions TYPE datetime VALUE time::now();
         DEFINE INDEX idx_role_permissions ON TABLE role_permissions COLUMNS in, out UNIQUE;
 
+        RELATE roles:administrator->role_permissions->permissions:administrator;
         RELATE roles:administrator->role_permissions->permissions:role_read;
         RELATE roles:administrator->role_permissions->permissions:role_write;
         RELATE roles:administrator->role_permissions->permissions:role_delete;

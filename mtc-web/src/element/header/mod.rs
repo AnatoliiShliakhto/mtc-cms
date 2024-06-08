@@ -1,15 +1,17 @@
 use dioxus::prelude::*;
 
-use crate::component::header::logo::HeaderLogo;
+use crate::component::account_controller::AccountControllerComponent;
+use crate::component::language_switcher::LanguageSwitcherComponent;
+use crate::component::theme_switcher::ThemeSwitcherComponent;
+use crate::element::header::logo::HeaderLogo;
 use crate::router::Route::HomePage;
-use crate::widget::account_controller::AccountControllerWidget;
-use crate::widget::theme_switcher::ThemeSwitcherWidget;
 
 mod logo;
 
 pub fn Header() -> Element {
     rsx! {
-        div { class: "navbar bg-base-100 static shadow-lg px-2",
+        div { class: "min-h-12" }
+        div { class: "navbar absolute left-0 top-0 right-0 bg-base-100 shadow-md p-0 min-w-72 min-h-12 border-input-bordered",
             div { class: "navbar-start",
                 HeaderLogo {}
                 div { class: "dropdown",
@@ -43,6 +45,7 @@ pub fn Header() -> Element {
                     }
                 }
             }
+/*
             div { class: "navbar-center hidden md:flex [&>*]:text-lg hoover:[&>*]:rounded-sm",
                 ul { class: "menu menu-horizontal hover:[&>li>a]:text-indigo-500",
                     li { a { { "Головна" } } }
@@ -57,10 +60,13 @@ pub fn Header() -> Element {
                     }
                 }
             }
+
+ */
             div { class: "navbar-end",
-                div { class: "join border-sm",
-                    AccountControllerWidget {}
-                    ThemeSwitcherWidget {}
+                div { class: "join",
+                    LanguageSwitcherComponent {}
+                    ThemeSwitcherComponent {}
+                    AccountControllerComponent {}
                 }
             }
         }

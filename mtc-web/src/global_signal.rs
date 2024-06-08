@@ -1,4 +1,4 @@
-use dioxus::prelude::{GlobalSignal, Signal};
+use dioxus::prelude::*;
 
 use mtc_model::auth_model::AuthModel;
 

@@ -8,20 +8,19 @@ use mtc_model::auth_model::AuthModelTrait;
 
 use crate::action::auth_action::AuthAction;
 use crate::global_signal::APP_AUTH;
-use crate::router::Route::DashboardPage;
+use crate::router::Route::{AdministratorPage, DashboardPage};
 
 #[component]
-pub fn AccountControllerWidget() -> Element {
+pub fn AccountControllerComponent() -> Element {
     let i18 = use_i18();
-    let auth = APP_AUTH.read().is_auth();
 
-    let account_widget_color = match auth {
+    let account_widget_color = match APP_AUTH.read().is_auth() {
         true => "green".to_string(),
         false => "currentColor".to_string(),
     };
 
     rsx! {
-        if !auth {
+        if !APP_AUTH.read().is_auth().eq(&true) {
             Link { class: "btn btn-ghost join-item",
                 to: DashboardPage {},
                 Icon {
@@ -36,13 +35,15 @@ pub fn AccountControllerWidget() -> Element {
                 div { tabindex: "0", role: "button", class: "btn btn-ghost join-item",
                     Icon {
                         width: 20,
-                        height: 20,
                         fill: account_widget_color,
                         icon: FaUser
                     }
                 }
-                ul { tabindex: "0", class: "dropdown-content z-[1] menu p-2 shadow-md bg-base-100 rounded-md w-52 mt-2",
+                ul { tabindex: "0", class: "dropdown-content z-[1] menu p-2 shadow-md bg-base-100 w-52 border input-bordered rounded",
                     li { Link { to: DashboardPage {}, { translate!(i18, "messages.dashboard") } } }
+                    if APP_AUTH.read().is_admin() {
+                        li { Link { to: AdministratorPage {}, { translate!(i18, "messages.administrator") } } }
+                    }
                     div { class: "divider my-0" }
                     li {
                         a {

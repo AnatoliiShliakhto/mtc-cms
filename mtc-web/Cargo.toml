@@ -13,7 +13,6 @@ license.workspace = true
 mtc-model = { path = "../mtc-model" }
 dioxus = { version = "0.5.1", features = ["web", "router"] }
 dioxus-free-icons = { version = "0.8.6", features = ["font-awesome-regular"] }
-surrealdb = { version = "1.5.1", features = ["kv-indxdb"] }
 tracing = { version = "0.1.40" }
 reqwest = { version = "0.12.4", features = ["json"] }
 serde_json = { version = "1.0.117" }
@@ -23,3 +22,4 @@ chrono = { version = "0.4.38", features = ["wasmbind"] }
 dioxus-logger = { version = "0.5.1" }
 dioxus-std = { version = "0.5.0", features = ["i18n"] }
 dioxus-use-window = "0.7.0"
+gloo-storage = "0.3.0"
