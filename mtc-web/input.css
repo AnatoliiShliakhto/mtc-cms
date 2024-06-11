@@ -2,17 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-[data-theme='dark'] {
-    border-color: #000;
+html, body, #main {
+    height: 100%;
 }
-
-/*
-@layer base {
-    *,
-    ::before,
-    ::after {
-        @apply dark:border-slate-600;
-    }
-}
-
- */

@@ -21,7 +21,7 @@ pub fn SignIn() -> Element {
 
     rsx! {
         div { class: if !validate_login && !login.read().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
-            "data-tip": translate!(i18, "messages.login_validation_tooltip"),
+            "data-tip": translate!(i18, "errors.login_validation"),
             label { class: "input input-bordered flex items-center gap-2",
                 svg {
                     "fill": "currentColor",
@@ -42,7 +42,7 @@ pub fn SignIn() -> Element {
         }
 
         div { class: if !validate_password && !password.read().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
-            "data-tip": translate!(i18, "messages.password_validation_tooltip"),
+            "data-tip": translate!(i18, "errors.password_validation"),
             label { class: "input input-bordered flex items-center gap-2",
                 svg {
                     "fill": "currentColor",

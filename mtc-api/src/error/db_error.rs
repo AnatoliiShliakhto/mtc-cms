@@ -6,15 +6,15 @@ use crate::model::response_model::ApiErrorResponse;
 
 #[derive(Error, Debug)]
 pub enum DbError {
-    #[error("Something went wrong")]
+    #[error("errors.something_wrong")]
     SomethingWentWrong,
-    #[error("Entry already exists")]
+    #[error("errors.already_exists")]
     EntryAlreadyExists,
-    #[error("Entry not found")]
+    #[error("errors.not_found")]
     EntryNotFound,
-    #[error("Entry not updated")]
+    #[error("errors.not_updated")]
     EntryUpdate,
-    #[error("Entry not deleted")]
+    #[error("errors.not_deleted")]
     EntryDelete,
 }
 

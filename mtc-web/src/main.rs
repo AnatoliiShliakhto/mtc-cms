@@ -34,12 +34,13 @@ fn main() {
     launch(App);
 }
 
-fn App() -> Element {
+pub fn App() -> Element {
     use_init_i18n("en-US".parse().unwrap(), "uk-UA".parse().unwrap(), || {
         let en_us = Language::from_str(EN_US).unwrap();
         let uk_ua = Language::from_str(UK_UA).unwrap();
         vec![en_us, uk_ua]
     });
+
     let mut i18 = use_i18();
 
     let user_i18n_en =

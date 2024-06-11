@@ -6,15 +6,15 @@ use crate::model::response_model::ApiErrorResponse;
 
 #[derive(Error, Debug)]
 pub enum SessionError {
-    #[error("Invalid session")]
+    #[error("errors.invalid_session")]
     InvalidSession,
-    #[error("Access forbidden")]
+    #[error("errors.access_forbidden")]
     AccessForbidden,
-    #[error("Invalid credentials")]
+    #[error("errors.invalid_credentials")]
     InvalidCredentials,
-    #[error("User blocked")]
+    #[error("errors.user_blocked")]
     UserBlocked,
-    #[error("Generate password hash error")]
+    #[error("errors.password_hash")]
     PasswordHash,
 }
 

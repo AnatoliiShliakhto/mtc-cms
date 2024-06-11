@@ -23,7 +23,7 @@ impl HealthHandler for AppState {
                     StatusCode::OK => {
                         Ok(response.json::<ApiResponse<HealthModel>>().await?.data.id)
                     }
-                    _ => Err(ApiError::ResponseError(format!("Health service error: {}", response.status())))
+                    _ => Err(ApiError::ResponseError("errors.health".to_string()))
                 }
             }
             Err(e) => Err(ApiError::from(e))

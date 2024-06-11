@@ -31,7 +31,7 @@ pub fn AccountControllerComponent() -> Element {
                 }
             }
         } else {
-            div { class: "dropdown dropdown-end join-item",
+            div { class: "dropdown dropdown-end dropdown-hover join-item",
                 div { tabindex: "0", role: "button", class: "btn btn-ghost join-item",
                     Icon {
                         width: 20,

@@ -2,12 +2,16 @@
 
 use dioxus::prelude::*;
 
-use crate::page::administrator::administrator_page::AdministratorPage;
-use crate::page::dashboard::dashboard_page::DashboardPage;
-use crate::page::home::home_page::HomePage;
+use crate::element::footer::Footer;
+use crate::element::header::Header;
+use crate::page::administrator::AdministratorPage;
+use crate::page::dashboard::DashboardPage;
+use crate::page::home::HomePage;
 
-#[derive(Routable, PartialEq, Clone)]
+#[derive(Routable, Clone, Debug, PartialEq)]
+#[rustfmt::skip]
 pub enum Route {
+    #[layout(RootLayout)]
     #[route("/")]
     #[redirect("/:..segments", | segments: Vec < String > | Route::HomePage {})]
     HomePage {},
@@ -15,4 +19,15 @@ pub enum Route {
     AdministratorPage {},
     #[route("/dashboard")]
     DashboardPage {},
+}
+
+#[component]
+fn RootLayout() -> Element {
+    rsx! {
+        Header {}
+        div { class: "flex flex-col w-full", style: "height: calc(100% - 6.5rem)",
+            Outlet::<Route> {}
+        }
+        Footer {}
+    }
 }

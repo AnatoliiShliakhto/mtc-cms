@@ -30,7 +30,7 @@ impl AuthHandler for AppState {
                     Ok(response.json::<ApiResponse<AuthModel>>().await?.data)
                 } else {
                     Err(ApiError::ResponseError(response.json::<ApiErrorResponse>().await?.message
-                        .unwrap_or("SignIn error".to_string())))
+                        .unwrap_or("errors.auth".to_string())))
                 }
             }
             Err(e) => Err(ApiError::from(e))
@@ -51,7 +51,7 @@ impl AuthHandler for AppState {
                     Ok(response.json::<ApiResponse<AuthModel>>().await?.data)
                 } else {
                     Err(ApiError::ResponseError(response.json::<ApiErrorResponse>().await?.message
-                        .unwrap_or("SignOut error".to_string())))
+                        .unwrap_or("errors.auth".to_string())))
                 }
             }
             Err(e) => Err(ApiError::from(e))
@@ -72,7 +72,7 @@ impl AuthHandler for AppState {
                     Ok(response.json::<ApiResponse<AuthModel>>().await?.data)
                 } else {
                     Err(ApiError::ResponseError(response.json::<ApiErrorResponse>().await?.message
-                        .unwrap_or("Get credentials error".to_string())))
+                        .unwrap_or("errors.auth".to_string())))
                 }
             }
             Err(e) => Err(ApiError::from(e))

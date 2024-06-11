@@ -7,11 +7,10 @@ use std::process::ExitCode;
 use std::sync::Arc;
 
 use axum::extract::DefaultBodyLimit;
-use axum::handler::HandlerWithoutStateExt;
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use tower::ServiceBuilder;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 use tower_sessions::{ExpiredDeletion, Expiry, SessionManagerLayer};
 use tower_sessions::cookie::Key;
 use tower_sessions::cookie::time::Duration;
@@ -105,9 +104,14 @@ async fn app() -> Result<(), Box<dyn std::error::Error>> {
     )
         .await?;
 
+    let fallback_service =
+        ServeDir::new(&config.public_path)
+            .not_found_service(ServeFile::new(format!("{}/index.html", &config.public_path)));
+
+
     let app = Router::new()
         .nest("/api", routes(state))
-        .nest_service("/", ServeDir::new(&config.public_path))
+        .fallback_service(fallback_service)
         .layer(session_service)
         .layer(DefaultBodyLimit::max(config.max_body_limit));
 
