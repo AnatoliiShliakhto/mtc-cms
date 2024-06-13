@@ -9,12 +9,12 @@ pub enum ApiError {
 }
 
 impl ApiError {
-    pub fn message(self) -> String {
+    pub fn message(&self) -> String {
         let i18 = use_i18();
 
         match self {
-            ApiError::NetworkError(message) => translate!(i18, &message),
-            ApiError::ResponseError(message) => translate!(i18, &message),
+            ApiError::NetworkError(message) => translate!(i18, message),
+            ApiError::ResponseError(message) => translate!(i18, message),
         }
     }
 }

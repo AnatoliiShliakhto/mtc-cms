@@ -21,5 +21,4 @@ futures-util = { version = "0.3.30" }
 chrono = { version = "0.4.38", features = ["wasmbind"] }
 dioxus-logger = { version = "0.5.1" }
 dioxus-std = { version = "0.5.0", features = ["i18n"] }
-dioxus-use-window = "0.7.0"
-gloo-storage = "0.3.0"
+gloo-storage = { version = "0.3.0" }

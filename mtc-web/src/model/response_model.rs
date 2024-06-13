@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use mtc_model::pagination_model::PaginationModel;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct ApiResponse<T> {
     pub data: T,
     #[serde(skip_serializing_if = "Option::is_none")]

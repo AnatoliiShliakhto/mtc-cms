@@ -6,6 +6,7 @@ use crate::global_signal::APP_ERROR;
 
 pub mod health_service;
 pub mod auth_service;
+pub mod group_service;
 
 pub fn assign_error(error: ApiError) {
     match &error {

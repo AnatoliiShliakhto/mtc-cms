@@ -6,9 +6,10 @@ use dioxus::prelude::*;
 use dioxus_std::i18n::{Language, use_i18, use_init_i18n};
 use tracing::Level;
 
+use mtc_model::i18n::en_US::EN_US;
+use mtc_model::i18n::uk_UA::UK_UA;
+
 use crate::action::health_action::HealthAction;
-use crate::i18n::en_US::EN_US;
-use crate::i18n::uk_UA::UK_UA;
 use crate::repository::storage::use_persistent;
 use crate::router::Route;
 use crate::service::auth_service::auth_service;
@@ -25,7 +26,6 @@ mod handler;
 mod global_signal;
 mod element;
 mod router;
-mod i18n;
 mod repository;
 
 fn main() {

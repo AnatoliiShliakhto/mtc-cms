@@ -1,2 +1,44 @@
+use reqwest::{Error, Response, StatusCode};
+use serde::de::DeserializeOwned;
+
+use crate::error::api_error::ApiError;
+use crate::model::response_model::{ApiErrorResponse, ApiResponse};
+
 pub mod health_handler;
 pub mod auth_handler;
+pub mod group_handler;
+
+pub trait HandlerResponse<T: DeserializeOwned> {
+    async fn consume_data(self) -> Result<T, ApiError>;
+    async fn consume_page(self) -> Result<ApiResponse<T>, ApiError>;
+}
+
+impl<T: DeserializeOwned> HandlerResponse<T> for Result<Response, Error> {
+    async fn consume_data(self) -> Result<T, ApiError> {
+        match self {
+            Ok(response) => {
+                if response.status() == StatusCode::OK {
+                    Ok(response.json::<ApiResponse<T>>().await?.data)
+                } else {
+                    Err(ApiError::ResponseError(response.json::<ApiErrorResponse>().await?.message
+                        .unwrap_or("errors.bad_response".to_string())))
+                }
+            }
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+
+    async fn consume_page(self) -> Result<ApiResponse<T>, ApiError> {
+        match self {
+            Ok(response) => {
+                if response.status() == StatusCode::OK {
+                    Ok(response.json::<ApiResponse<T>>().await?)
+                } else {
+                    Err(ApiError::ResponseError(response.json::<ApiErrorResponse>().await?.message
+                        .unwrap_or("errors.bad_response".to_string())))
+                }
+            }
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+}

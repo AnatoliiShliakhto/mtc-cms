@@ -14,8 +14,8 @@ pub async fn health_service(mut rx: UnboundedReceiver<HealthAction>) {
         match msg {
             HealthAction::Check => {
                 match app_state.health_check().await {
-                    Ok(id) => {
-                        if &*APP_AUTH.read_unchecked().id != id {
+                    Ok(health_model) => {
+                        if &*APP_AUTH.read_unchecked().id != health_model.id {
                             match app_state.credentials().await {
                                 Ok(model) => *APP_AUTH.write_unchecked() = model,
                                 Err(e) => assign_error(e)

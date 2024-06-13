@@ -14,19 +14,14 @@ use crate::router::Route::{AdministratorPage, DashboardPage};
 pub fn AccountControllerComponent() -> Element {
     let i18 = use_i18();
 
-    let account_widget_color = match APP_AUTH.read().is_auth() {
-        true => "green".to_string(),
-        false => "currentColor".to_string(),
-    };
-
     rsx! {
-        if !APP_AUTH.read().is_auth().eq(&true) {
+        if !APP_AUTH().is_auth() {
             Link { class: "btn btn-ghost join-item",
                 to: DashboardPage {},
                 Icon {
                     width: 20,
                     height: 20,
-                    fill: account_widget_color,
+                    fill: "currentColor",
                     icon: FaUser
                 }
             }
@@ -35,13 +30,14 @@ pub fn AccountControllerComponent() -> Element {
                 div { tabindex: "0", role: "button", class: "btn btn-ghost join-item",
                     Icon {
                         width: 20,
-                        fill: account_widget_color,
+                        fill: "green",
                         icon: FaUser
                     }
                 }
-                ul { tabindex: "0", class: "dropdown-content z-[1] menu p-2 shadow-md bg-base-100 w-52 border input-bordered rounded",
+                ul { tabindex: "0", class: "dropdown-content z-[2] menu p-2 shadow-md bg-base-100 w-52 border input-bordered rounded",
+                    "onclick": "document.activeElement.blur()",
                     li { Link { to: DashboardPage {}, { translate!(i18, "messages.dashboard") } } }
-                    if APP_AUTH.read().is_admin() {
+                    if APP_AUTH().is_admin() {
                         li { Link { to: AdministratorPage {}, { translate!(i18, "messages.administrator") } } }
                     }
                     div { class: "divider my-0" }

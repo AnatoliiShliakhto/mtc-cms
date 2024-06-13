@@ -10,6 +10,7 @@ pub mod permission_model;
 pub mod role_model;
 pub mod schema_model;
 pub mod user_model;
+pub mod i18n;
 
 pub fn from_thing<'de, D>(deserializer: D) -> Result<String, D::Error>
     where

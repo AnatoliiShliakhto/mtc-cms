@@ -14,13 +14,13 @@ pub fn SignIn() -> Element {
     let mut password = use_signal(|| String::new());
     let mut in_progress = use_signal(|| false);
 
-    let validate_login = login.read().len().ge(&4);
-    let validate_password = password.read().len().ge(&6);
+    let validate_login = login().len().ge(&5);
+    let validate_password = password().len().ge(&6);
 
     let mut error = APP_ERROR.signal();
 
     rsx! {
-        div { class: if !validate_login && !login.read().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
+        div { class: if !validate_login && !login().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
             "data-tip": translate!(i18, "errors.login_validation"),
             label { class: "input input-bordered flex items-center gap-2",
                 svg {
@@ -41,7 +41,7 @@ pub fn SignIn() -> Element {
             }
         }
 
-        div { class: if !validate_password && !password.read().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
+        div { class: if !validate_password && !password().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
             "data-tip": translate!(i18, "errors.password_validation"),
             label { class: "input input-bordered flex items-center gap-2",
                 svg {
@@ -65,7 +65,7 @@ pub fn SignIn() -> Element {
                 }
             }
         }
-        if validate_login && validate_password && error.read().is_empty() && !in_progress.read().eq(&true) {
+        if validate_login && validate_password && error().is_empty() && !in_progress() {
             button { class: "btn btn-neutral btn-outline w-fit self-center mt-2",
                 onclick: move |_| {
                     spawn(async move {
@@ -75,7 +75,7 @@ pub fn SignIn() -> Element {
                 },
                 { translate!(i18, "messages.sign_in") }
             }
-        } else if !error.read().is_empty() {
+        } else if !error().is_empty() {
             div {
                 onclick: move |_| {
                     spawn(async move {
@@ -85,11 +85,11 @@ pub fn SignIn() -> Element {
                 },
                 MessageBoxComponent { kind: MessageBoxComponentKind::Error, message: error.read().clone() }
             }
-        } else if in_progress.read().eq(&true) {
+        } else if in_progress() {
             div { class: "flex flex-row gap-4 w-fit self-center",
                 span { class: "loading loading-spinner loading-md" }
                 span { { translate!(i18, "messages.sign_in") } "..." }
-                }
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+
 use crate::repository::storage::use_persistent;
 
 #[component]
@@ -17,7 +18,7 @@ pub fn ThemeSwitcherComponent() -> Element {
                     value: "light",
                     r#type: "checkbox",
                     class: "theme-controller",
-                    checked: user_dark_theme.get().eq(&false),
+                    checked: !user_dark_theme.get(),
                 }
                 svg {
                     "xmlns": "http://www.w3.org/2000/svg",

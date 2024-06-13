@@ -15,6 +15,7 @@ pub fn Footer() -> Element {
                     }
                     a { class: "link link-hover",
                         href: "https://github.com/AnatoliiShliakhto/mtc-cms",
+                        target: "_blank",
                         "(GitHub)"
                     }
                 }
