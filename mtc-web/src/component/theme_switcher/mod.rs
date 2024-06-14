@@ -7,12 +7,14 @@ pub fn ThemeSwitcherComponent() -> Element {
     let mut user_dark_theme =
         use_persistent("settings_dark_theme", || true);
 
+    let switch_theme = move |_| {
+        user_dark_theme.set(!user_dark_theme.get())
+    };
+
     rsx! {
         div { class: "btn btn-ghost join-item",
             prevent_default: "onclick",
-            onclick: move |_| {
-                user_dark_theme.set(!user_dark_theme.get());
-            },
+            onclick: switch_theme,
             label { class: "swap swap-rotate",
                 input {
                     value: "light",

@@ -2,25 +2,38 @@ use dioxus::prelude::*;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use crate::action::auth_action::AuthAction;
-use crate::component::message_box::{MessageBoxComponent, MessageBoxComponentKind};
-use crate::global_signal::APP_ERROR;
+use crate::APP_STATE;
+use crate::component::message_box::*;
+use crate::service::auth_service::AuthService;
 
 #[component]
 pub fn SignIn() -> Element {
+    let app_state = APP_STATE.peek();
     let i18 = use_i18();
 
-    let mut login = use_signal(|| String::new());
-    let mut password = use_signal(|| String::new());
+    let login = use_signal(|| String::new());
+    let validate_login = use_memo(move || login().len().ge(&5));
+
+    let password = use_signal(|| String::new());
+    let validate_password = use_memo(move || password().len().ge(&6));
+
     let mut in_progress = use_signal(|| false);
 
-    let validate_login = login().len().ge(&5);
-    let validate_password = password().len().ge(&6);
+    let mut error = use_signal(|| String::new());
 
-    let mut error = APP_ERROR.signal();
+    let mut input_update = move |event: Event<FormData>, mut field: Signal<String>| {
+        field.set(event.value());
+        error.set("".to_string());
+        in_progress.set(false);
+    };
+
+    let drop_error = move |_| {
+        error.set(String::new());
+        in_progress.set(false);
+    };
 
     rsx! {
-        div { class: if !validate_login && !login().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
+        div { class: if !validate_login() && !login().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
             "data-tip": translate!(i18, "errors.login_validation"),
             label { class: "input input-bordered flex items-center gap-2",
                 svg {
@@ -32,16 +45,12 @@ pub fn SignIn() -> Element {
                 }
                 input { r#type: "text", name: "login", value: login, class: "grow",
                     placeholder: translate!(i18, "messages.login"),
-                    oninput: move |login_field_event| {
-                        login.set(login_field_event.value());
-                        error.set("".to_string());
-                        in_progress.set(false);
-                    }
+                    oninput: move |event| input_update(event, login)
                 }
             }
         }
 
-        div { class: if !validate_password && !password().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
+        div { class: if !validate_password() && !password().is_empty() { "tooltip tooltip-open tooltip-top pt-1 mt-8" },
             "data-tip": translate!(i18, "errors.password_validation"),
             label { class: "input input-bordered flex items-center gap-2",
                 svg {
@@ -57,32 +66,23 @@ pub fn SignIn() -> Element {
                 }
                 input { r#type: "password", name: "password", value: password, class: "grow",
                     placeholder: translate!(i18, "messages.password"),
-                    oninput: move |password_field_event| {
-                        password.set(password_field_event.value());
-                        error.set("".to_string());
-                    in_progress.set(false);
-                    }
+                    oninput: move |event| input_update(event, password)
                 }
             }
         }
-        if validate_login && validate_password && error().is_empty() && !in_progress() {
+        if validate_login() && validate_password() && error().is_empty() && !in_progress() {
             button { class: "btn btn-neutral btn-outline w-fit self-center mt-2",
+                prevent_default: "onclick",
                 onclick: move |_| {
-                    spawn(async move {
-                        in_progress.set(true);
-                        use_coroutine_handle::<AuthAction>().send(AuthAction::SignIn(login.to_string(), password.to_string()));
-                     });
+                    in_progress.set(true);
+                    app_state.service.sign_in(login, password, Some(error))
                 },
                 { translate!(i18, "messages.sign_in") }
             }
         } else if !error().is_empty() {
             div {
-                onclick: move |_| {
-                    spawn(async move {
-                        error.set("".to_string());
-                        in_progress.set(false);
-                    });
-                },
+                prevent_default: "onclick",
+                onclick: drop_error,
                 MessageBoxComponent { kind: MessageBoxComponentKind::Error, message: error.read().clone() }
             }
         } else if in_progress() {

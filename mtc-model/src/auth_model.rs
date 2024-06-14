@@ -9,6 +9,17 @@ pub struct AuthModel {
     pub permissions: Vec<String>,
 }
 
+impl Default for AuthModel {
+    fn default() -> Self {
+        Self {
+            id: "anonymous".to_string(),
+            roles: vec![],
+            groups: vec![],
+            permissions: vec![],
+        }
+    }
+}
+
 pub trait AuthModelTrait {
     fn is_auth(&self) -> bool;
     fn is_admin(&self) -> bool;

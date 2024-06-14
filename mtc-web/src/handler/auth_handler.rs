@@ -1,16 +1,15 @@
 use mtc_model::auth_model::{AuthModel, SignInModel};
 
 use crate::error::api_error::ApiError;
-use crate::handler::HandlerResponse;
-use crate::state::AppState;
+use crate::handler::{ApiHandler, HandlerResponse};
 
 pub trait AuthHandler {
     async fn sign_in(&self, login: String, password: String) -> Result<AuthModel, ApiError>;
     async fn sign_out(&self) -> Result<AuthModel, ApiError>;
-    async fn credentials(&self) -> Result<AuthModel, ApiError>;
+    async fn get_credentials(&self) -> Result<AuthModel, ApiError>;
 }
 
-impl AuthHandler for AppState {
+impl AuthHandler for ApiHandler {
     async fn sign_in(
         &self,
         login: String,
@@ -38,7 +37,7 @@ impl AuthHandler for AppState {
             .await
     }
 
-    async fn credentials(
+    async fn get_credentials(
         &self,
     ) -> Result<AuthModel, ApiError> {
         self

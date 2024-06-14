@@ -1,46 +1,57 @@
-use dioxus::hooks::UnboundedReceiver;
-use dioxus::prelude::{Readable, Writable};
-use futures_util::StreamExt;
+use dioxus::prelude::*;
+use tracing::error;
 
-use mtc_model::auth_model::AuthModel;
-
-use crate::action::auth_action::AuthAction;
-use crate::global_signal::{APP, APP_AUTH};
+use crate::APP_STATE;
 use crate::handler::auth_handler::AuthHandler;
-use crate::service::assign_error;
+use crate::service::AppService;
 
-pub async fn auth_service(mut rx: UnboundedReceiver<AuthAction>) {
-    let assign_auth_model = |model: AuthModel| {
-        if &*APP_AUTH.read_unchecked().id != model.id {
-            *APP_AUTH.write_unchecked() = model
-        }
-    };
+pub trait AuthService {
+    fn sign_in(&self, login: Signal<String>, password: Signal<String>, error: Option<Signal<String>>);
+    fn sign_out(&self);
+    fn get_credentials(&self);
+}
 
-    let app_state = &*APP.read_unchecked();
+impl AuthService for AppService {
+    fn sign_in(
+        &self,
+        login: Signal<String>,
+        password: Signal<String>,
+        error: Option<Signal<String>>,
+    ) {
+        spawn(async move {
+            let app_state = APP_STATE.read();
 
-    while let Some(msg) = rx.next().await {
-        match msg {
-            AuthAction::SignIn(login, password) => {
-                app_state.sign_in(login, password)
-                    .await
-                    .map_err(|e| assign_error(e))
-                    .map(|res| assign_auth_model(res))
-                    .unwrap_or(())
+            match app_state.api.sign_in(login(), password()).await {
+                Ok(auth_model) => app_state.auth.signal().set(auth_model),
+                Err(e) => {
+                    match error {
+                        Some(mut error) => error.set(e.message()),
+                        None => error!("SignIn: {}", e.message()),
+                    }
+                }
             }
-            AuthAction::Credentials => {
-                app_state.credentials()
-                    .await
-                    .map_err(|e| assign_error(e))
-                    .map(|res| assign_auth_model(res))
-                    .unwrap_or(())
+        });
+    }
+
+    fn sign_out(&self) {
+        spawn(async move {
+            let app_state = APP_STATE.read();
+
+            match app_state.api.sign_out().await {
+                Ok(auth_model) => app_state.auth.signal().set(auth_model),
+                Err(e) => error!("SignOut: {}", e.message())
             }
-            AuthAction::SignOut => {
-                app_state.sign_out()
-                    .await
-                    .map_err(|e| assign_error(e))
-                    .map(|res| assign_auth_model(res))
-                    .unwrap_or(())
+        });
+    }
+
+    fn get_credentials(&self) {
+        spawn(async move {
+            let app_state = APP_STATE.read();
+
+            match app_state.api.get_credentials().await {
+                Ok(auth_model) => app_state.auth.signal().set(auth_model),
+                Err(e) => error!("Get credentials: {}", e.message()),
             }
-        }
+        });
     }
 }

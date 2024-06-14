@@ -1,17 +1,22 @@
-static API_URL: &str = "https://localhost/api";
+use dioxus::prelude::*;
+
+use mtc_model::auth_model::AuthModel;
+
+use crate::handler::ApiHandler;
+use crate::service::AppService;
 
 pub struct AppState {
-    pub api_url: String,
-    pub api_client: reqwest::Client,
+    pub api: ApiHandler,
+    pub service: AppService,
+    pub auth: GlobalSignal<AuthModel>,
 }
 
 impl AppState {
     pub fn new() -> Self {
-        let api_client = reqwest::Client::builder().build().unwrap();
-
         Self {
-            api_url: API_URL.to_string(),
-            api_client,
+            api: ApiHandler::new(),
+            service: AppService,
+            auth: Signal::global(|| AuthModel::default()),
         }
     }
 }

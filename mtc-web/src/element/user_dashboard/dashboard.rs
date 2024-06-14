@@ -1,13 +1,13 @@
-#![allow(non_snake_case)]
-
 use dioxus::prelude::*;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use crate::action::auth_action::AuthAction;
+use crate::APP_STATE;
+use crate::service::auth_service::AuthService;
 
 #[component]
 pub fn Dashboard() -> Element {
+    let app_state = APP_STATE.peek();
     let i18 = use_i18();
 
     rsx! {
@@ -18,11 +18,7 @@ pub fn Dashboard() -> Element {
             { translate!(i18, "messages.logged_in") }
         }
         button { class: "btn btn-error btn-outline w-fit self-center",
-            onclick: move |_| {
-                spawn(async move {
-                    use_coroutine_handle::<AuthAction>().send(AuthAction::SignOut);
-                });
-            },
+            onclick: move |_| app_state.service.sign_out(),
             { translate!(i18, "messages.sign_out") }
         }
     }

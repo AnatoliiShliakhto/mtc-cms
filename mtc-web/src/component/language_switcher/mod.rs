@@ -3,6 +3,7 @@ use dioxus_std::i18n::use_i18;
 
 use crate::repository::storage::use_persistent;
 
+//todo: multilanguage support
 #[component]
 pub fn LanguageSwitcherComponent() -> Element {
     let mut i18 = use_i18();

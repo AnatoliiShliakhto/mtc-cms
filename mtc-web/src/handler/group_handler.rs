@@ -1,14 +1,13 @@
 use mtc_model::group_model::GroupModel;
 use crate::error::api_error::ApiError;
-use crate::handler::HandlerResponse;
+use crate::handler::{ApiHandler, HandlerResponse};
 use crate::model::response_model::ApiResponse;
-use crate::state::AppState;
 
 pub trait GroupHandler {
     async fn get_group_list(&self, page: usize) -> Result<ApiResponse<Vec<GroupModel>>, ApiError>;
 }
 
-impl GroupHandler for AppState {
+impl GroupHandler for ApiHandler {
     async fn get_group_list(&self, page: usize) -> Result<ApiResponse<Vec<GroupModel>>, ApiError> {
         self
             .api_client

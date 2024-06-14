@@ -1,16 +1,12 @@
-use dioxus::dioxus_core::Element;
-use dioxus::hooks::Resource;
 use dioxus::prelude::*;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
-
-use crate::component::message_box::{MessageBoxComponent, MessageBoxComponentKind, MessageBoxComponentProps};
 
 #[derive(Props)]
 pub struct ReloadingBoxComponentProps<T: 'static>
 {
     pub message: String,
-    future: Resource<T>,
+    resource: Resource<T>,
 }
 
 impl<T: 'static> PartialEq for ReloadingBoxComponentProps<T> {
@@ -23,7 +19,7 @@ impl<T> Clone for ReloadingBoxComponentProps<T> {
     fn clone(&self) -> Self {
         Self {
             message: self.message.clone(),
-            future: self.future,
+            resource: self.resource,
         }
     }
 }
@@ -34,7 +30,7 @@ pub fn ReloadingBoxComponent<T: 'static>(
     let i18 = use_i18();
 
     rsx! {
-        div { class: "flex h-full w-full items-center justify-center",
+        div { class: "flex items-center justify-center grow",
             div { class: "flex flex-col gap-3 w-fit",
                 div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-error text-error",
                     svg {
@@ -52,7 +48,7 @@ pub fn ReloadingBoxComponent<T: 'static>(
                     span { { props.message } }
                 }
                 button { class: "link link-hover self-center",
-                        onclick: move |_| props.future.restart(), { translate!(i18, "messages.reload") }
+                    onclick: move |_| props.resource.restart(), { translate!(i18, "messages.reload") }
                 }
             }
         }

@@ -6,9 +6,9 @@ pub fn Footer() -> Element {
     let i18 = use_i18();
 
     rsx! {
-        footer { class: "footer footer-center absolute bottom-0 left-0 right-0 h-14 p-4 min-w-72 bg-base-200 text-base-content rounded",
+        footer { class: "footer footer-center h-14 p-4 bg-base-200 text-base-content rounded",
             aside {
-                p { class: "flex flex-wrap gap-1",
+                p { class: "flex flex-nowrap gap-1",
                     a { class: "link link-hover",
                         href: "mailto:a.shlyakhto@gmail.com",
                         { translate!(i18, "messages.copyright") }

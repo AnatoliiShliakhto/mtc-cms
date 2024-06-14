@@ -1,14 +1,13 @@
 use mtc_model::HealthModel;
 
 use crate::error::api_error::ApiError;
-use crate::handler::HandlerResponse;
-use crate::state::AppState;
+use crate::handler::{ApiHandler, HandlerResponse};
 
 pub trait HealthHandler {
     async fn health_check(&self) -> Result<HealthModel, ApiError>;
 }
 
-impl HealthHandler for AppState {
+impl HealthHandler for ApiHandler {
     async fn health_check(&self) -> Result<HealthModel, ApiError> {
         self
             .api_client

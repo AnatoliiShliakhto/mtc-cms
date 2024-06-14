@@ -1,12 +1,29 @@
 use reqwest::{Error, Response, StatusCode};
 use serde::de::DeserializeOwned;
 
+use crate::API_URL;
 use crate::error::api_error::ApiError;
 use crate::model::response_model::{ApiErrorResponse, ApiResponse};
 
 pub mod health_handler;
 pub mod auth_handler;
 pub mod group_handler;
+
+pub struct ApiHandler {
+    pub api_url: String,
+    pub api_client: reqwest::Client,
+}
+
+impl ApiHandler {
+    pub fn new() -> Self {
+        let api_client = reqwest::Client::builder().build().unwrap();
+
+        Self {
+            api_url: API_URL.to_string(),
+            api_client,
+        }
+    }
+}
 
 pub trait HandlerResponse<T: DeserializeOwned> {
     async fn consume_data(self) -> Result<T, ApiError>;

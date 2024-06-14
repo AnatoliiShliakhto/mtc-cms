@@ -2,33 +2,39 @@ use dioxus::prelude::*;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
+use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
-use crate::global_signal::APP;
 use crate::handler::group_handler::GroupHandler;
 
 #[component]
 pub fn Groups() -> Element {
+    let app_state = APP_STATE.signal();
     let i18 = use_i18();
 
-    let mut page = use_signal(|| 1usize);
+    let page = use_signal(|| 1usize);
 
-    let mut future = use_resource(move || async move { APP.read().get_group_list(page()).await });
+    let future = use_resource(move || async move { app_state.peek().api.get_group_list(page()).await });
 
     match &*future.read_unchecked() {
         Some(Ok(response)) => {
             let data = response.data.clone();
-            let pagination = response.pagination.clone().unwrap();
+            let pagination_compact = response.pagination.clone().unwrap();
+            let pagination_full = response.pagination.clone().unwrap();
 
             rsx! {
-                div { class: "flex flex-col gap-3 overflow-x-auto",
+                div { class: "flex flex-col gap-3 overflow-auto grow",
+                    div { class: "flex flex-wrap",
+                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page: page, pagination: pagination_compact }
+                    }
                     table { class: "table",
                         thead {
                             tr {
-                                th { "slug" }
-                                th { "title" }
-                                th { "created at" }
-                                th { "updated at" }
+                                th { { translate!(i18, "messages.slug") } }
+                                th { { translate!(i18, "messages.title") } }
+                                th { { translate!(i18, "messages.created_at") } }
+                                th { { translate!(i18, "messages.updated_at") } }
                             }
                         }
                         tbody {
@@ -42,27 +48,11 @@ pub fn Groups() -> Element {
                             }
                         }
                     }
-                    div { class: "join self-center",
-                        button { prevent_default: "onclick",
-                            class: "join-item btn",
-                            onclick: move |_| { page.set(pagination.previous_page_number) },
-                            "«"
-                        }
-                        button { prevent_default: "onclick",
-                            class: "join-item btn",
-                            onclick: move |_| { future.restart() },
-                            span { "page " { pagination.current_page.to_string() } }
-                        }
-                        button { prevent_default: "onclick",
-                            class: "join-item btn",
-                            onclick: move |_| { page.set(pagination.next_page_number) },
-                            "»"
-                        }
-                    }
+                    PaginatorComponent { mode: PaginatorComponentMode::Full, page: page, pagination: pagination_full }
                 }
             }
         }
-        Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), future: future } },
+        Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), resource: future } },
         None => rsx! { LoadingBoxComponent {} },
     }
 }

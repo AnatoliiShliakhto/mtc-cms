@@ -1,31 +1,29 @@
-use dioxus::prelude::{Readable, UnboundedReceiver, Writable};
-use futures_util::StreamExt;
+use dioxus::prelude::*;
+use tracing::error;
 
-use crate::action::health_action::HealthAction;
-use crate::global_signal::{APP, APP_AUTH};
-use crate::handler::auth_handler::AuthHandler;
+use crate::APP_STATE;
 use crate::handler::health_handler::HealthHandler;
-use crate::service::assign_error;
+use crate::service::AppService;
+use crate::service::auth_service::AuthService;
 
-pub async fn health_service(mut rx: UnboundedReceiver<HealthAction>) {
-    let app_state = &*APP.read_unchecked();
-
-    while let Some(msg) = rx.next().await {
-        match msg {
-            HealthAction::Check => {
-                match app_state.health_check().await {
-                    Ok(health_model) => {
-                        if &*APP_AUTH.read_unchecked().id != health_model.id {
-                            match app_state.credentials().await {
-                                Ok(model) => *APP_AUTH.write_unchecked() = model,
-                                Err(e) => assign_error(e)
-                            }
-                        }
-                    }
-                    Err(e) => assign_error(e)
-                }
-            }
-        }
-    }
+pub trait HealthService {
+    fn health_check(&self);
 }
 
+impl HealthService for AppService {
+    fn health_check(&self) {
+        spawn(async move {
+            let app_state = APP_STATE.read();
+            let auth_state = app_state.auth.read();
+
+            match app_state.api.health_check().await {
+                Ok(health_model) => {
+                    if auth_state.id.ne(&health_model.id) {
+                        app_state.service.get_credentials()
+                    }
+                }
+                Err(e) => error!("API health: {}", e.message())
+            }
+        });
+    }
+}

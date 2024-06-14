@@ -86,7 +86,7 @@ docker compose up --build
 - [x] HTTP/HTTPS server
 - [x] Authentication middleware
 - [x] Core REST API end-points
-- [ ] Custom API service
+- [x] Custom API service
 - [ ] File manager API
 - [ ] Protected file store
 - [ ] SQL Migrations API 

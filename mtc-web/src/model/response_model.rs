@@ -12,5 +12,5 @@ pub struct ApiResponse<T> {
 #[derive(Deserialize)]
 pub struct ApiErrorResponse {
     pub message: Option<String>,
-    pub code: u16,
+//    pub code: u16,
 }

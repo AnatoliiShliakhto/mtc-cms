@@ -9,24 +9,25 @@ use tracing::Level;
 use mtc_model::i18n::en_US::EN_US;
 use mtc_model::i18n::uk_UA::UK_UA;
 
-use crate::action::health_action::HealthAction;
 use crate::repository::storage::use_persistent;
 use crate::router::Route;
-use crate::service::auth_service::auth_service;
-use crate::service::health_service::health_service;
+use crate::service::health_service::HealthService;
+use crate::state::AppState;
+
+static API_URL: &str = "https://localhost/api";
 
 mod model;
 mod component;
 mod page;
 mod error;
 mod state;
-mod action;
-mod service;
 mod handler;
-mod global_signal;
 mod element;
 mod router;
 mod repository;
+mod service;
+
+pub static APP_STATE: GlobalSignal<AppState> = Signal::global(|| AppState::new());
 
 fn main() {
     dioxus_logger::init(Level::INFO).expect("failed to init logger");
@@ -35,6 +36,8 @@ fn main() {
 }
 
 pub fn App() -> Element {
+    let app_state = APP_STATE.peek();
+
     use_init_i18n("en-US".parse().unwrap(), "uk-UA".parse().unwrap(), || {
         let en_us = Language::from_str(EN_US).unwrap();
         let uk_ua = Language::from_str(UK_UA).unwrap();
@@ -51,10 +54,7 @@ pub fn App() -> Element {
         false => i18.set_language("uk_UA".parse().unwrap()),
     }
 
-    use_coroutine(health_service);
-    use_coroutine(auth_service);
-
-    use_coroutine_handle::<HealthAction>().send(HealthAction::Check);
+    app_state.service.health_check();
 
     rsx! {
         Router::<Route> {}

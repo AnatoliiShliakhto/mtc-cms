@@ -4,7 +4,7 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 
-use crate::global_signal::APP_AUTH;
+use crate::APP_STATE;
 use crate::page::administrator::dashboard::Dashboard;
 use crate::page::administrator::groups::Groups;
 use crate::page::not_found::NotFoundPage;
@@ -22,18 +22,20 @@ pub enum AdministratorRouteModel {
 
 #[component]
 pub fn AdministratorPage() -> Element {
-    if !APP_AUTH.read().is_permission("administrator") {
+    let app_state = APP_STATE.peek();
+    let auth_state = app_state.auth.read();
+    let i18 = use_i18();
+
+    if !auth_state.is_permission("administrator") {
         return rsx! { NotFoundPage {} };
     }
-
-    let i18 = use_i18();
 
     let mut administrator_route =
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
     rsx! {
-        div { class: "flex flex-row w-full h-full divide-x divide-slate-400/25",
-            aside { class: "bg-base-100 w-60",
+        div { class: "flex flex-row divide-x divide-slate-400/25 grow",
+            aside { class: "bg-base-100 min-w-60",
                 style: "scroll-behavior: smooth; scroll-padding-top: 5rem; overflow-y: auto",
                 ul { class: "menu rounded",
                     li {
@@ -47,7 +49,7 @@ pub fn AdministratorPage() -> Element {
                             li {
                                 a {
                                     prevent_default: "onclick",
-                                    class: if administrator_route.read().eq(&AdministratorRouteModel::Groups) { "active" },
+                                    class: if administrator_route().eq(&AdministratorRouteModel::Groups) { "active" },
                                     onclick: move |_| { administrator_route.set(AdministratorRouteModel::Groups) },
                                     { translate!(i18, "messages.groups") }
                                 }
@@ -66,8 +68,8 @@ pub fn AdministratorPage() -> Element {
                     }
                 }
             }
-                div { class: "flex flex-col w-full p-2",
-                match *administrator_route.read() {
+                div { class: "flex flex-col p-2 grow",
+                match administrator_route() {
                     AdministratorRouteModel::Dashboard => rsx! { Dashboard {} },
                     AdministratorRouteModel::Groups => rsx! { Groups {} },
                     _ => rsx! { Dashboard {} },
