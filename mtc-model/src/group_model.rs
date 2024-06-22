@@ -14,7 +14,19 @@ pub struct GroupModel {
     pub updated_at: Datetime,
 }
 
-#[derive(Deserialize, Validate)]
+impl Default for GroupModel {
+    fn default() -> Self {
+        Self {
+            id: "".to_string(),
+            slug: "".to_string(),
+            title: "".to_string(),
+            created_at: Default::default(),
+            updated_at: Default::default(),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Validate)]
 pub struct GroupCreateModel {
     pub title: String,
 }

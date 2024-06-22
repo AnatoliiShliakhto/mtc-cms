@@ -2,6 +2,7 @@
 
 use dioxus::prelude::*;
 
+use crate::component::modal_box::ModalBoxComponent;
 use crate::element::footer::Footer;
 use crate::element::header::Header;
 use crate::page::administrator::AdministratorPage;
@@ -25,9 +26,10 @@ pub enum Route {
 fn RootLayout() -> Element {
     rsx! {
         Header {}
-        div { class: "flex flex-col grow",
+        div { class: "flex flex-col grow overflow",
             Outlet::<Route> {}
         }
         Footer {}
+        ModalBoxComponent {}
     }
 }

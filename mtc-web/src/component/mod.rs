@@ -5,3 +5,4 @@ pub mod language_switcher;
 pub mod loading_box;
 pub mod reloading_box;
 pub mod paginator;
+ pub mod modal_box;

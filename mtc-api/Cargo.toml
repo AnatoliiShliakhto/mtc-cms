@@ -21,7 +21,7 @@ axum-extra = { version = "0.9.3", features = ["cookie", "cookie-signed"] }
 tower = { version = "0.4.13" }
 argon2 = { version = "0.6.0-pre.0" }
 serde_json = { version = "1.0.117" }
-surrealdb = { version = "1.5.2", features = ["sql2", "kv-speedb"] }
+surrealdb = { version = "1.5.3", features = ["sql2", "kv-speedb"] }
 chrono = { version = "0.4.38" }
 tower-sessions = { version = "0.12.2", features = ["signed", "private"] }
 tower-sessions-surrealdb-store = { version = "0.4.0" }

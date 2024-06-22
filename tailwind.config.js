@@ -30,6 +30,7 @@ module.exports = {
                     "--border-btn": "1px",            // border width of buttons
                     "--tab-border": "1px",            // border width of tabs
                     "--tab-radius": "0.5rem",         // border radius of tabs
+                    "--n": "50.1785% 0.02476 255.701624",
                 },
                 dark: {
                     ...require("daisyui/src/theming/themes")["dark"],

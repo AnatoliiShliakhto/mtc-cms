@@ -13,7 +13,7 @@ impl Default for AuthModel {
     fn default() -> Self {
         Self {
             id: "anonymous".to_string(),
-            roles: vec![],
+            roles: vec!["anonymous".to_string()],
             groups: vec![],
             permissions: vec![],
         }

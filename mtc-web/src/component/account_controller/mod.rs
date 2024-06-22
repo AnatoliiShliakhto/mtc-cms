@@ -3,18 +3,30 @@ use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::fa_regular_icons::FaUser;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
+use tracing::error;
 
 use mtc_model::auth_model::AuthModelTrait;
 
 use crate::APP_STATE;
+use crate::handler::auth_handler::AuthHandler;
 use crate::router::Route::{AdministratorPage, DashboardPage};
-use crate::service::auth_service::AuthService;
 
 #[component]
 pub fn AccountControllerComponent() -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read().clone();
     let i18 = use_i18();
+
+    let sign_out = move |_| {
+        spawn(async move {
+            let app_state = APP_STATE.read();
+
+            match app_state.api.sign_out().await {
+                Ok(auth_model) => { app_state.auth.signal().set(auth_model) }
+                Err(e) => error!("SignOut: {}", e.message())
+            }
+        });
+    };
 
     rsx! {
         if !auth_state.is_auth() {
@@ -45,7 +57,7 @@ pub fn AccountControllerComponent() -> Element {
                     div { class: "divider my-0" }
                     li {
                         a {
-                            onclick: move |_| app_state.service.sign_out(),
+                            onclick: sign_out,
                             { translate!(i18, "messages.sign_out") }
                         }
                     }

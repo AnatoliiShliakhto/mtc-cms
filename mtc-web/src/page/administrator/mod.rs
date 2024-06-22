@@ -35,42 +35,33 @@ pub fn AdministratorPage() -> Element {
 
     rsx! {
         div { class: "flex flex-row divide-x divide-slate-400/25 grow",
-            aside { class: "bg-base-100 min-w-60",
-                style: "scroll-behavior: smooth; scroll-padding-top: 5rem; overflow-y: auto",
+            aside { class: "bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
-                    li {
+                    li { 
                         a {
                             prevent_default: "onclick",
                             class: if administrator_route.read().eq(&AdministratorRouteModel::Dashboard) { "active" },
-                            onclick: move |_| { administrator_route.set(AdministratorRouteModel::Dashboard) },
+                            onclick: move |_| administrator_route.set(AdministratorRouteModel::Dashboard),
                             { translate!(i18, "messages.administrator") }
                         }
                         ul {
-                            li {
+                            li { 
                                 a {
                                     prevent_default: "onclick",
-                                    class: if administrator_route().eq(&AdministratorRouteModel::Groups) { "active" },
-                                    onclick: move |_| { administrator_route.set(AdministratorRouteModel::Groups) },
+                                    class: match administrator_route() { 
+                                        AdministratorRouteModel::Groups => { "active" }, 
+                                        _ => {""} 
+                                    },
+                                    onclick: move |_| administrator_route.set(AdministratorRouteModel::Groups),
                                     { translate!(i18, "messages.groups") }
                                 }
                             }
                         }
                     }
-                    li { h5 { class: "menu-title", "Users" }
-                        ul {
-                            li {
-                                a { "user list" }
-                            }
-                            li {
-                                a { "add user" }
-                            }
-                        }
-                    }
                 }
             }
-                div { class: "flex flex-col p-2 grow",
+            div { class: "flex flex-col p-2 grow body-scroll",
                 match administrator_route() {
-                    AdministratorRouteModel::Dashboard => rsx! { Dashboard {} },
                     AdministratorRouteModel::Groups => rsx! { Groups {} },
                     _ => rsx! { Dashboard {} },
                 }

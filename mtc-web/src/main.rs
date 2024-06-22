@@ -27,7 +27,7 @@ mod router;
 mod repository;
 mod service;
 
-pub static APP_STATE: GlobalSignal<AppState> = Signal::global(|| AppState::new());
+pub static APP_STATE: GlobalSignal<AppState> = Signal::global(AppState::default);
 
 fn main() {
     dioxus_logger::init(Level::INFO).expect("failed to init logger");

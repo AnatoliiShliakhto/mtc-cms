@@ -6,7 +6,7 @@ use mtc_model::pagination_model::PaginationModel;
 
 pub fn PaginatorCompact(
     mut page: Signal<usize>,
-    pagination: PaginationModel,
+    pagination: Signal<PaginationModel>,
 ) -> Element {
     let i18 = use_i18();
 
@@ -14,21 +14,21 @@ pub fn PaginatorCompact(
         div { class: "join",
             button { class: "join-item btn",
                 prevent_default: "onclick",
-                onclick: move |_| { page.set(pagination.previous_page_number) },
+                onclick: move |_| { page.set(pagination().previous_page_number) },
                 "«"
             }
             button { class: "join-item btn",
                 prevent_default: "onclick",
-                onclick: move |_| { page.set(pagination.current_page) },
+                onclick: move |_| { page.set(pagination().current_page) },
                 span {
                     { translate!(i18, "messages.page") }
                     " "
-                    { pagination.current_page.to_string() }
+                    { pagination().current_page.to_string() }
                 }
             }
             button { class: "join-item btn",
                 prevent_default: "onclick",
-                onclick: move |_| { page.set(pagination.next_page_number) },
+                onclick: move |_| { page.set(pagination().next_page_number) },
                 "»"
             }
         }
