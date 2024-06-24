@@ -14,8 +14,8 @@ pub struct ApiHandler {
     pub api_client: reqwest::Client,
 }
 
-impl ApiHandler {
-    pub fn new() -> Self {
+impl Default for ApiHandler {
+    fn default() -> Self {
         let api_client = reqwest::Client::builder().build().unwrap();
 
         Self {

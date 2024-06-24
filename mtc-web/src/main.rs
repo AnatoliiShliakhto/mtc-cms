@@ -1,4 +1,4 @@
-#![allow(non_snake_case)]
+#![allow(non_snake_case, unused_variables)]
 
 use std::str::FromStr;
 
@@ -45,7 +45,7 @@ pub fn App() -> Element {
     });
 
     let mut i18 = use_i18();
-
+    
     let user_i18n_en =
         use_persistent("settings_i18n_en", || true);
 

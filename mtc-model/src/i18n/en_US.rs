@@ -18,6 +18,7 @@ pub static EN_US: &str = r#"{
             "delete": "Delete",
             "home": "Home",
             "groups": "Groups",
+            "in_progress": "In progress...",
             "loading": "Loading...",
             "login": "login",
             "logged_in": "You are logged in.",

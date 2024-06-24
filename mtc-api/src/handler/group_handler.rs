@@ -2,14 +2,15 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use tower_sessions::Session;
+use tracing::error;
 
-use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
+use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupsModel, GroupUpdateModel};
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::request_model::ValidatedPayload;
-use crate::model::response_model::HandlerResult;
+use crate::model::response_model::{ApiResponse, HandlerResult};
 use crate::repository::group_repository::GroupRepositoryTrait;
 use crate::repository::RepositoryPaginate;
 use crate::state::AppState;
@@ -95,4 +96,23 @@ pub async fn group_delete_handler(
         .delete(&slug)
         .await?
         .ok_ok()
+}
+
+pub async fn group_list_delete_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<GroupsModel>,
+) -> Result<()> {
+    session.permission("group::delete").await?;
+
+    for item in payload.groups {
+        match state
+            .group_service
+            .delete(&item)
+            .await {
+            Ok(_) => (),
+            Err(e) => error!("Group delete: {}", e.to_string()),
+        }
+    }
+    Ok(ApiResponse::Ok)
 }

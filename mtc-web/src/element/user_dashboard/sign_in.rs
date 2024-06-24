@@ -36,10 +36,12 @@ pub fn SignIn() -> Element {
         form { class: "flex flex-col gap-3 grow items-center px-3",
             id: "credentials-form",
             prevent_default: "oninput onsubmit",
+            autocomplete: "off",
             oninput: move |event| credentials_submit.set(event.values()),
             label { class: "form-control w-full gap-2",
                 input { r#type: "text", name: "login", class: "input input-bordered",
                     placeholder: translate!(i18, "messages.login"),
+                    autofocus: true,
                 }
                 if !credentials_submit.is_field_empty("login") && !credentials_submit.is_string_valid("login", 5) {
                     div { class: "label",

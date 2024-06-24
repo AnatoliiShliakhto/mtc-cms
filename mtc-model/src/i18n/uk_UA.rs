@@ -18,6 +18,7 @@ pub static UK_UA: &str = r#"{
             "delete": "Видалити",
             "home": "Головна",
             "groups": "Групи",
+            "in_progress": "Обробка...",
             "loading": "Завантаження...",
             "login": "логін",
             "logged_in": "Ви успішно авторизовані.",

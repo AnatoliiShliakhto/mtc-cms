@@ -9,26 +9,28 @@ pub fn PaginatorCompact(
     pagination: Signal<PaginationModel>,
 ) -> Element {
     let i18 = use_i18();
+    
+    if pagination().total <= pagination().per_page { return rsx! {} }
 
     rsx! {
         div { class: "join",
-            button { class: "join-item btn",
+            button { class: if pagination().has_previous_page { "join-item btn" } else { "join-item btn btn-disabled" },
                 prevent_default: "onclick",
-                onclick: move |_| { page.set(pagination().previous_page_number) },
+                onclick: move |_| page.set(pagination().previous_page_number),
                 "«"
             }
             button { class: "join-item btn",
                 prevent_default: "onclick",
-                onclick: move |_| { page.set(pagination().current_page) },
+                onclick: move |_| page.set(pagination().current_page),
                 span {
                     { translate!(i18, "messages.page") }
                     " "
                     { pagination().current_page.to_string() }
                 }
             }
-            button { class: "join-item btn",
+            button { class: if pagination().has_next_page { "join-item btn" } else { "join-item btn btn-disabled" },
                 prevent_default: "onclick",
-                onclick: move |_| { page.set(pagination().next_page_number) },
+                onclick: move |_| page.set(pagination().next_page_number),
                 "»"
             }
         }

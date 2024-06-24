@@ -16,7 +16,7 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         Self {
-            api: ApiHandler::new(),
+            api: ApiHandler::default(),
             service: AppService,
             auth: Signal::global(AuthModel::default),
             modal: Signal::global(|| ModalModel::None),

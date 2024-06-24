@@ -12,7 +12,7 @@ pub fn NotFoundPage() -> Element {
     rsx! {
         div { class: "flex justify-center items-center grow",
             div { class: "m-fit py-10 self-center",
-                MessageBoxComponent { kind: MessageBoxComponentKind::Error, message: translate!(i18, "messages.not_found") }
+                MessageBoxComponent { kind: MessageBoxComponentKind::Error(translate!(i18, "messages.not_found"))  }
                 div { class: "flex mt-4 gap-4 justify-center",
                     Link { class: "link", to: HomePage {}, { translate!(i18, "messages.home") } }
                     Link { class: "link", to: DashboardPage {}, { translate!(i18, "messages.sign_in") } }

@@ -26,9 +26,9 @@ impl From<reqwest::Error> for ApiError {
     }
 }
 
-impl Into<String> for ApiError {
-    fn into(self) -> String {
-        match self {
+impl From<ApiError> for String {
+    fn from(value: ApiError) -> Self {
+        match value {
             ApiError::NetworkError(message) => message,
             ApiError::ResponseError(message) => message,
         }

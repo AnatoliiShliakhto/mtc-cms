@@ -83,38 +83,42 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                 PaginatorComponent { mode: PaginatorComponentMode::Full, page: props.page, pagination }
             }
             div { class: "flex flex-col gap-3 min-w-36",
-                div { class: "flex flex-wrap gap-3",
-                    PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
-                }
-                if auth_state.is_permission("group::write") && !is_busy() {
-                    button { class: "w-full btn btn-outline btn-accent gap-3 justify-start",
-                        prevent_default: "onclick",
-                        onclick: move |_| props.selected.set(0),
-                        Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
-                        }
-                        { translate!(i18, "messages.add") }
-                    }
-                }
-                if auth_state.is_permission("group::delete") && !is_busy() {
-                    button { class: "w-full btn btn-outline btn-error gap-3 justify-start",
-                        r#type: "submit",
-                        prevent_default: "onsubmit onclick",
-                        form: "groups-form",
-                        Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
-                        }
-                        { translate!(i18, "messages.delete") }
-                    }
-                }
                 if is_busy() {
-                    span { class: "loading loading-bars loading-lg p-3 self-center" }
+                    div { class: "flex flex-col pt-4 gap-3 items-center",
+                        span { class: "loading loading-bars loading-lg" }
+                        span { { translate!(i18, "messages.in_progress") } }
+                    }
+                } else {
+                    div { class: "flex flex-wrap gap-3",
+                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
+                    }
+                    if auth_state.is_permission("group::write") {
+                        button { class: "w-full btn btn-outline btn-accent gap-3 justify-start",
+                            prevent_default: "onclick",
+                            onclick: move |_| props.selected.set(0),
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
+                            }
+                            { translate!(i18, "messages.add") }
+                        }
+                    }
+                    if auth_state.is_permission("group::delete") {
+                        button { class: "w-full btn btn-outline btn-error gap-3 justify-start",
+                            r#type: "submit",
+                            prevent_default: "onsubmit onclick",
+                            form: "groups-form",
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
+                            }
+                            { translate!(i18, "messages.delete") }
+                        }
+                    }
                 }
             }
         }

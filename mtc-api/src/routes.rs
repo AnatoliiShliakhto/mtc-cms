@@ -58,7 +58,7 @@ pub fn routes(
 
         .route("/group/:slug", get(group_get_handler).post(group_create_handler).patch(group_update_handler).delete(group_delete_handler))
         .route("/group/list/:page", get(group_list_handler))
-        .route("/group/list", get(group_list_handler))
+        .route("/group/list", get(group_list_handler).delete(group_list_delete_handler))
 
         .route("/role/:slug/permissions", get(role_get_permissions).post(role_set_permissions))
         .route("/role/:slug", get(role_get_handler).post(role_create_handler).patch(role_update_handler).delete(role_delete_handler))

@@ -1,9 +1,6 @@
-#![allow(unused_variables)]
-
 use dioxus::prelude::*;
 
 use crate::component::modal_box::ModalBoxComponent;
-use crate::element::footer::Footer;
 use crate::element::header::Header;
 use crate::page::administrator::AdministratorPage;
 use crate::page::dashboard::DashboardPage;
@@ -11,6 +8,7 @@ use crate::page::home::HomePage;
 
 #[derive(Routable, Clone, Debug, PartialEq)]
 #[rustfmt::skip]
+#[allow(clippy::enum_variant_names)]
 pub enum Route {
     #[layout(RootLayout)]
     #[route("/")]
@@ -29,7 +27,7 @@ fn RootLayout() -> Element {
         div { class: "flex flex-col grow overflow",
             Outlet::<Route> {}
         }
-        Footer {}
+//        Footer {}
         ModalBoxComponent {}
     }
 }

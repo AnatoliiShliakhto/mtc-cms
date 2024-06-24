@@ -15,7 +15,7 @@ html, body, #main {
 }
 
 .body-scroll {
-    height: calc(100vh - 6.5rem);
+    height: calc(100vh - 3rem); /*6.5*/
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
     overflow: auto;
