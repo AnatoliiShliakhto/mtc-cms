@@ -14,8 +14,8 @@ repository_paginate!(RoleService, RoleModel, "roles");
 pub trait RoleRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<RoleModel>;
     async fn find_by_user(&self, login: &str) -> Result<RolesModel>;
-    async fn create(&self, slug: &str, model: RoleCreateModel) -> Result<RoleModel>;
-    async fn update(&self, slug: &str, model: RoleUpdateModel) -> Result<RoleModel>;
+    async fn create(&self, slug: &str, model: &RoleCreateModel) -> Result<RoleModel>;
+    async fn update(&self, slug: &str, model: &RoleUpdateModel) -> Result<RoleModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
     async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()>;
     async fn permissions_drop(&self, role_id: &str) -> Result<()>;
@@ -49,16 +49,16 @@ impl RoleRepositoryTrait for RoleService {
     async fn create(
         &self,
         slug: &str,
-        model: RoleCreateModel,
+        model: &RoleCreateModel,
     ) -> Result<RoleModel> {
         self.db.query(r#"
             CREATE roles CONTENT {
 	            slug: $slug,
-	            title: $title
+	            title: $title,
             };
             "#)
             .bind(("slug", slug))
-            .bind(("title", model.title))
+            .bind(("title", model.title.clone()))
             .await?
             .take::<Option<RoleModel>>(0)?
             .ok_or(DbError::EntryAlreadyExists.into())
@@ -67,7 +67,7 @@ impl RoleRepositoryTrait for RoleService {
     async fn update(
         &self,
         slug: &str,
-        model: RoleUpdateModel,
+        model: &RoleUpdateModel,
     ) -> Result<RoleModel> {
         self.db.query(r#"
             UPDATE roles MERGE {
@@ -75,7 +75,7 @@ impl RoleRepositoryTrait for RoleService {
             } WHERE slug=$slug;
             "#)
             .bind(("slug", slug))
-            .bind(("title", model.title))
+            .bind(("title", model.title.clone()))
             .await?
             .take::<Option<RoleModel>>(0)?
             .ok_or(DbError::EntryUpdate.into())

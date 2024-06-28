@@ -2,16 +2,16 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use tower_sessions::Session;
-use tracing::warn;
+use tracing::{error, warn};
 
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 use mtc_model::permission_model::PermissionsModel;
-use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
+use mtc_model::role_model::{RoleCreateModel, RoleModel, RolesModel, RoleUpdateModel};
 
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::request_model::ValidatedPayload;
-use crate::model::response_model::HandlerResult;
+use crate::model::response_model::{ApiResponse, HandlerResult};
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::repository::RepositoryPaginate;
 use crate::repository::role_repository::RoleRepositoryTrait;
@@ -49,11 +49,21 @@ pub async fn role_get_handler(
 ) -> Result<RoleModel> {
     session.permission("role::read").await?;
 
-    state
+    let mut role_model = state
         .role_service
         .find_by_slug(&slug)
-        .await?
-        .ok_model()
+        .await?;
+
+    let role_permissions = state
+        .permissions_service
+        .find_by_role(&slug)
+        .await?;
+
+    if !role_permissions.permissions.is_empty() {
+        role_model.permissions = Some(role_permissions.permissions);
+    }
+
+    role_model.ok_model()
 }
 
 pub async fn role_create_handler(
@@ -64,11 +74,29 @@ pub async fn role_create_handler(
 ) -> Result<RoleModel> {
     session.permission("role::write").await?;
 
-    state
+    let role_model = state
         .role_service
-        .create(&slug, payload)
-        .await?
-        .ok_model()
+        .create(&slug, &payload)
+        .await?;
+
+    if let Some(permissions) = payload.permissions {
+        for permission in permissions {
+            match state
+                .permissions_service
+                .find_by_slug(&permission)
+                .await {
+                Ok(value) => {
+                    state
+                        .role_service
+                        .permission_assign(&role_model.id, &value.id)
+                        .await?
+                }
+                _ => warn!("can't find permission -> {permission}")
+            }
+        }
+    }
+
+    role_model.ok_model()
 }
 
 pub async fn role_update_handler(
@@ -79,11 +107,34 @@ pub async fn role_update_handler(
 ) -> Result<RoleModel> {
     session.permission("role::write").await?;
 
+    let role_model = state
+        .role_service
+        .update(&slug, &payload)
+        .await?;
+
     state
         .role_service
-        .update(&slug, payload)
-        .await?
-        .ok_model()
+        .permissions_drop(&role_model.id)
+        .await?;
+
+    if let Some(permissions) = payload.permissions {
+        for permission in permissions {
+            match state
+                .permissions_service
+                .find_by_slug(&permission)
+                .await {
+                Ok(value) => {
+                    state
+                        .role_service
+                        .permission_assign(&role_model.id, &value.id)
+                        .await?
+                }
+                _ => warn!("can't find permission -> {permission}")
+            }
+        }
+    }
+
+    role_model.ok_model()
 }
 
 pub async fn role_delete_handler(
@@ -98,6 +149,25 @@ pub async fn role_delete_handler(
         .delete(&slug)
         .await?
         .ok_ok()
+}
+
+pub async fn role_list_delete_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<RolesModel>,
+) -> Result<()> {
+    session.permission("role::delete").await?;
+
+    for item in payload.roles {
+        match state
+            .role_service
+            .delete(&item)
+            .await {
+            Ok(_) => (),
+            Err(e) => error!("Role delete: {}", e.to_string()),
+        }
+    }
+    Ok(ApiResponse::Ok)
 }
 
 pub async fn role_get_permissions(

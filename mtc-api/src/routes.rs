@@ -63,7 +63,7 @@ pub fn routes(
         .route("/role/:slug/permissions", get(role_get_permissions).post(role_set_permissions))
         .route("/role/:slug", get(role_get_handler).post(role_create_handler).patch(role_update_handler).delete(role_delete_handler))
         .route("/role/list/:page", get(role_list_handler))
-        .route("/role/list", get(role_list_handler))
+        .route("/role/list", get(role_list_handler).delete(role_list_delete_handler))
 
         .route("/permissions", get(permissions_list_handler))
 

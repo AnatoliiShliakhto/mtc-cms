@@ -7,16 +7,19 @@ use mtc_model::auth_model::AuthModelTrait;
 use crate::APP_STATE;
 use crate::page::administrator::dashboard::Dashboard;
 use crate::page::administrator::groups::Groups;
+use crate::page::administrator::roles::Roles;
 use crate::page::not_found::NotFoundPage;
 
 mod dashboard;
 mod groups;
+mod roles;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum AdministratorRouteModel {
     Dashboard,
     Groups,
+    Roles,
     Users,
 }
 
@@ -56,15 +59,25 @@ pub fn AdministratorPage() -> Element {
                                     { translate!(i18, "messages.groups") }
                                 }
                             }
+                            li { 
+                                a {
+                                    prevent_default: "onclick",
+                                    class: match administrator_route() { 
+                                        AdministratorRouteModel::Roles => { "active" }, 
+                                        _ => {""} 
+                                    },
+                                    onclick: move |_| administrator_route.set(AdministratorRouteModel::Roles),
+                                    { translate!(i18, "messages.roles") }
+                                }
+                            }
                         }
                     }
                 }
             }
-            div { class: "flex flex-col p-2 grow body-scroll",
-                match administrator_route() {
-                    AdministratorRouteModel::Groups => rsx! { Groups {} },
-                    _ => rsx! { Dashboard {} },
-                }
+            match administrator_route() {
+                AdministratorRouteModel::Groups => rsx! { Groups {} },
+                AdministratorRouteModel::Roles => rsx! { Roles {} },
+                _ => rsx! { Dashboard {} },
             }
         }
     }

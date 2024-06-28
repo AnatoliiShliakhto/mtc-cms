@@ -10,6 +10,7 @@ use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
+use crate::model::page_action::PageAction;
 use crate::page::administrator::groups::list::GroupList;
 use crate::page::administrator::groups::single::GroupSingle;
 use crate::page::not_found::NotFoundPage;
@@ -27,32 +28,32 @@ pub fn Groups() -> Element {
     }
 
     let page = use_signal(|| 1usize);
-    let group_selected = use_signal(|| -1);
-    let mut groups = use_context_provider(|| Signal::new(BTreeMap::<i32, GroupModel>::new()));
+    let group_selected = use_context_provider(|| Signal::new(PageAction::None));
+
+    let mut groups = use_context_provider(|| Signal::new(BTreeMap::<usize, GroupModel>::new()));
     let mut pagination = use_context_provider(|| Signal::new(PaginationModel::new(0, 10)));
+    let mut groups_future = use_resource(move || async move { APP_STATE.peek().api.get_group_list(page()).await });
 
-    let future = use_resource(move || async move { APP_STATE.peek().api.get_group_list(page()).await });
+    use_effect(move || if group_selected() == PageAction::None { groups_future.restart() });
 
-    match &*future.read_unchecked() {
-        Some(Ok(response)) => {
-            let mut counter = 1;
-            let mut group_list = BTreeMap::<i32, GroupModel>::new();
-            for item in &response.data {
-                group_list.insert(counter, item.clone());
-                counter += 1;
-            }
-            groups.set(group_list);
-            pagination.set(response.pagination.clone().unwrap());
+    if group_selected() == PageAction::None {
+        match &*groups_future.read_unchecked() {
+            Some(Ok(response)) => {
+                let mut group_list = BTreeMap::<usize, GroupModel>::new();
 
-            rsx! {
-                if group_selected() < 0 {
-                    GroupList { page, selected: group_selected }
-                } else {
-                    GroupSingle { page, selected: group_selected }
+                for (count, item) in response.data.iter().enumerate() {
+                    group_list.insert(count, item.clone());
                 }
+
+                groups.set(group_list);
+                pagination.set(response.pagination.clone().unwrap_or(PaginationModel::new(0, 10)));
+
+                rsx! { GroupList { page } }
             }
+            Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), resource: groups_future } },
+            None => rsx! { LoadingBoxComponent {} },
         }
-        Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), resource: future } },
-        None => rsx! { LoadingBoxComponent {} },
+    } else {
+        rsx! { GroupSingle {} }
     }
 }

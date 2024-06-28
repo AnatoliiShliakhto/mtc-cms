@@ -4,7 +4,7 @@ use validator::Validate;
 
 use crate::from_thing;
 
-#[derive(Serialize, Debug, Deserialize, Clone)]
+#[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct GroupModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,

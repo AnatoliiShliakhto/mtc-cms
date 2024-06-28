@@ -5,7 +5,7 @@ use crate::model::response_model::ApiResponse;
 
 pub trait GroupHandler {
     async fn get_group_list(&self, page: usize) -> Result<ApiResponse<Vec<GroupModel>>, ApiError>;
-    async fn delete_group(&self, group: &str) -> Result<(), ApiError>;
+    async fn delete_group(&self, slug: &str) -> Result<(), ApiError>;
     async fn delete_group_list(&self, groups: GroupsModel) -> Result<(), ApiError>;
     async fn create_group(&self, slug: &str, group: &GroupCreateModel) -> Result<GroupModel, ApiError>;
     async fn update_group(&self, slug: &str, group: &GroupUpdateModel) -> Result<GroupModel, ApiError>;
@@ -22,10 +22,10 @@ impl GroupHandler for ApiHandler {
             .await
     }
 
-    async fn delete_group(&self, group: &str) -> Result<(), ApiError> {
+    async fn delete_group(&self, slug: &str) -> Result<(), ApiError> {
         self
             .api_client
-            .delete([&self.api_url, "group", group].join("/"))
+            .delete([&self.api_url, "group", slug].join("/"))
             .send()
             .await?;
         Ok(())

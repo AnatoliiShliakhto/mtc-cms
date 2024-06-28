@@ -6,36 +6,37 @@ use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
-use mtc_model::group_model::{GroupModel, GroupsModel};
 use mtc_model::pagination_model::PaginationModel;
+use mtc_model::role_model::{RoleModel, RolesModel};
 
 use crate::APP_STATE;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
-use crate::handler::group_handler::GroupHandler;
+use crate::handler::role_handler::RoleHandler;
 use crate::model::page_action::PageAction;
 
 #[derive(Props, Clone, PartialEq)]
-pub struct GroupListProps {
+pub struct RoleListProps {
     pub page: Signal<usize>,
 }
 
-pub fn GroupList(mut props: GroupListProps) -> Element {
+#[component]
+pub fn RoleList(mut props: RoleListProps) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read_unchecked();
     let i18 = use_i18();
 
     let mut page_action = use_context::<Signal<PageAction>>();
-    let groups = use_context::<Signal<BTreeMap<usize, GroupModel>>>();
+    let roles = use_context::<Signal<BTreeMap<usize, RoleModel>>>();
     let pagination = use_context::<Signal<PaginationModel>>();
     let mut is_busy = use_signal(|| false);
 
-    let delete_groups = move |event: Event<FormData>| {
+    let delete_roles = move |event: Event<FormData>| {
         event.stop_propagation();
-        if let Some((&_, value)) = event.values().get_key_value("groups") {
+        if let Some((&_, value)) = event.values().get_key_value("roles") {
             is_busy.set(true);
-            let groups_to_delete = GroupsModel { groups: value.0.to_vec().to_owned() };
+            let roles_to_delete = RolesModel { roles: value.0.to_vec().to_owned() };
             spawn(async move {
-                if APP_STATE.peek().api.delete_group_list(groups_to_delete).await.is_ok() {
+                if APP_STATE.peek().api.delete_role_list(roles_to_delete).await.is_ok() {
                     props.page.set(pagination().current_page);
                 }
                 is_busy.set(false);
@@ -47,8 +48,8 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
         div { class: "flex flex-row grow",
             div { class: "flex flex-col gap-3 grow items-center p-5 body-scroll",
                 form { class: "flex w-full", 
-                    id: "groups-form",
-                    onsubmit: delete_groups,
+                    id: "roles-form",
+                    onsubmit: delete_roles,
 
                     table { class: "table w-full",
                         thead {
@@ -59,7 +60,7 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                             }
                         }
                         tbody {
-                            for (id, item) in groups.read_unchecked().to_owned() {
+                            for (id, item) in roles.read_unchecked().to_owned() {
                                 tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
                                     onclick: move |event| {
                                         event.stop_propagation();
@@ -70,7 +71,7 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                                         onclick: move |event| event.stop_propagation(),
                                         input { class: "checkbox-xs",
                                             r#type: "checkbox",
-                                            name: "groups",
+                                            name: "roles",
                                             value: item.slug.clone(),
                                         }
                                     }
@@ -93,7 +94,7 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                     div { class: "flex flex-wrap gap-3",
                         PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
                     }
-                    if auth_state.is_permission("group::write") {
+                    if auth_state.is_permission("role::write") {
                         button { class: "w-full btn btn-outline btn-accent gap-3 justify-start",
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
@@ -106,11 +107,11 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                             { translate!(i18, "messages.add") }
                         }
                     }
-                    if auth_state.is_permission("group::delete") {
+                    if auth_state.is_permission("role::delete") {
                         button { class: "w-full btn btn-outline btn-error gap-3 justify-start",
                             r#type: "submit",
                             prevent_default: "onsubmit onclick",
-                            form: "groups-form",
+                            form: "roles-form",
                             Icon {
                                 width: 16,
                                 height: 16,

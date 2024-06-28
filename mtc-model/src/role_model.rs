@@ -4,24 +4,43 @@ use validator::Validate;
 
 use crate::from_thing;
 
-#[derive(Serialize, Debug, Deserialize, Clone)]
+#[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct RoleModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,
     pub slug: String,
     pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Vec<String>>,
     pub created_at: Datetime,
     pub updated_at: Datetime,
 }
 
-#[derive(Deserialize, Validate)]
+impl Default for RoleModel {
+    fn default() -> Self {
+        Self {
+            id: "".to_string(),
+            slug: "".to_string(),
+            title: "".to_string(),
+            permissions: None,
+            created_at: Default::default(),
+            updated_at: Default::default(),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct RoleCreateModel {
     pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct RoleUpdateModel {
     pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Serialize, Validate)]

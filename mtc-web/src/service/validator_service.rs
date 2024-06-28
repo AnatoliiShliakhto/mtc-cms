@@ -27,7 +27,7 @@ impl ValidatorService for Signal<HashMap<String, FormValue>> {
 
     fn is_string_valid(&self, field: &str, min_len: usize) -> bool {
         match self.read().get(field) {
-            Some(FormValue(field)) => !field.is_empty() && field[0].len().ge(&min_len),
+            Some(FormValue(field)) => !field.is_empty() && field[0].chars().count().ge(&min_len),
             None => false
         }
     }

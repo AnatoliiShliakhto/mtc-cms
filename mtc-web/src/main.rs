@@ -49,12 +49,14 @@ pub fn App() -> Element {
     let user_i18n_en =
         use_persistent("settings_i18n_en", || true);
 
-    match user_i18n_en.get().eq(&true) {
-        true => i18.set_language("en_US".parse().unwrap()),
-        false => i18.set_language("uk_UA".parse().unwrap()),
-    }
-
-    app_state.service.health_check();
+    use_effect(move || {
+        match user_i18n_en.get().eq(&true) {
+            true => i18.set_language("en_US".parse().unwrap()),
+            false => i18.set_language("uk_UA".parse().unwrap()),
+        }        
+    });
+    
+    use_hook(|| APP_STATE.peek().service.health_check());
 
     rsx! {
         Router::<Route> {}

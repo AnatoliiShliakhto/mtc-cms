@@ -14,22 +14,22 @@ use crate::router::Route::{AdministratorPage, DashboardPage};
 #[component]
 pub fn AccountControllerComponent() -> Element {
     let app_state = APP_STATE.peek();
-    let auth_state = app_state.auth.read().clone();
+    let auth_state = APP_STATE.peek().auth.signal();
     let i18 = use_i18();
 
-    let sign_out = move |_| {
+    let sign_out = |_| {
         spawn(async move {
-            let app_state = APP_STATE.read();
+            let mut auth_state = APP_STATE.peek().auth.signal();
 
-            match app_state.api.sign_out().await {
-                Ok(auth_model) => { app_state.auth.signal().set(auth_model) }
+            match APP_STATE.peek().api.sign_out().await {
+                Ok(auth_model) => { auth_state.set(auth_model) }
                 Err(e) => error!("SignOut: {}", e.message())
             }
         });
     };
 
     rsx! {
-        if !auth_state.is_auth() {
+        if !auth_state().is_auth() {
             Link { class: "btn btn-ghost join-item",
                 to: DashboardPage {},
                 Icon {
@@ -51,7 +51,7 @@ pub fn AccountControllerComponent() -> Element {
                 ul { tabindex: "0", class: "dropdown-content z-[1] menu p-2 shadow-md bg-base-100 w-52 border input-bordered rounded",
                     "onclick": "document.activeElement.blur()",
                     li { Link { to: DashboardPage {}, { translate!(i18, "messages.dashboard") } } }
-                    if auth_state.is_admin() {
+                    if auth_state().is_admin() {
                         li { Link { to: AdministratorPage {}, { translate!(i18, "messages.administrator") } } }
                     }
                     div { class: "divider my-0" }
