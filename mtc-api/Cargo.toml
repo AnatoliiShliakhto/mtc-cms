@@ -8,7 +8,6 @@ license = "MIT"
 resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 axum = { version = "0.7.5", features = ["multipart", "macros"] }
 serde = { version = "1.0.203", features = ["derive"] }
@@ -20,7 +19,7 @@ dotenvy = { version = "0.15.7" }
 axum-extra = { version = "0.9.3", features = ["cookie", "cookie-signed"] }
 tower = { version = "0.4.13" }
 argon2 = { version = "0.6.0-pre.0" }
-serde_json = { version = "1.0.118" }
+serde_json = { version = "1.0.119" }
 surrealdb = { version = "1.5.3", features = ["sql2", "kv-speedb"] }
 chrono = { version = "0.4.38" }
 tower-sessions = { version = "0.12.2", features = ["signed", "private"] }
@@ -30,3 +29,6 @@ tracing-appender = { version = "0.2.3" }
 validator = { version = "0.18.1", features = ["derive"] }
 axum-server = { version = "0.6.0", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
 mtc-model = { path = "../mtc-model" }
+
+[target.'cfg(unix)'.dependencies]
+openssl = { version = "0.10.64", features = ["vendored"] }

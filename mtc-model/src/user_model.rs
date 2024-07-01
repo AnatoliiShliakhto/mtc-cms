@@ -5,12 +5,12 @@ use validator::Validate;
 
 use crate::from_thing;
 
-#[derive(Serialize, Debug, Deserialize, Clone)]
+#[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct UserModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,
     pub login: String,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, default)]
     pub password: String,
     pub blocked: bool,
     #[serde(skip_serializing_if = "Option::is_none")]

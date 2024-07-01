@@ -1,9 +1,8 @@
 #![allow(non_snake_case, unused_variables)]
-
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use dioxus_std::i18n::{Language, use_i18, use_init_i18n};
+use dioxus_std::i18n::{use_i18, use_init_i18n, Language};
 use tracing::Level;
 
 use mtc_model::i18n::en_US::EN_US;
@@ -16,16 +15,16 @@ use crate::state::AppState;
 
 static API_URL: &str = "https://localhost/api";
 
-mod model;
 mod component;
-mod page;
-mod error;
-mod state;
-mod handler;
 mod element;
-mod router;
+mod error;
+mod handler;
+mod model;
+mod page;
 mod repository;
+mod router;
 mod service;
+mod state;
 
 pub static APP_STATE: GlobalSignal<AppState> = Signal::global(AppState::default);
 
@@ -35,6 +34,7 @@ fn main() {
     launch(App);
 }
 
+#[component]
 pub fn App() -> Element {
     let app_state = APP_STATE.peek();
 
@@ -45,18 +45,33 @@ pub fn App() -> Element {
     });
 
     let mut i18 = use_i18();
-    
-    let user_i18n_en =
-        use_persistent("settings_i18n_en", || true);
 
-    use_effect(move || {
-        match user_i18n_en.get().eq(&true) {
-            true => i18.set_language("en_US".parse().unwrap()),
-            false => i18.set_language("uk_UA".parse().unwrap()),
-        }        
+    let user_i18n_en = use_persistent("settings_i18n_en", || true);
+
+    use_effect(move || match user_i18n_en.get().eq(&true) {
+        true => i18.set_language("en_US".parse().unwrap()),
+        false => i18.set_language("uk_UA".parse().unwrap()),
     });
+
+    let health_eval = eval(
+        r#"
+        setInterval(() => dioxus.send(), 600000);
+        "#,
+    );
     
-    use_hook(|| APP_STATE.peek().service.health_check());
+    use_hook(|| {
+        let app_state = APP_STATE.peek();
+        app_state.service.health_check();
+        
+        spawn(async move {
+            to_owned![health_eval];
+            loop {
+                if health_eval.recv().await.is_ok() {
+                    app_state.service.health_check()
+                }
+            }
+        })
+    });
 
     rsx! {
         Router::<Route> {}

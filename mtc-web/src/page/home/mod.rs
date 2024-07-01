@@ -9,11 +9,11 @@ pub fn HomePage() -> Element {
     let i18 = use_i18();
 
     rsx! {
-        div { class: "flex flex-col p-10 gap-10 justify-center items-center grow",
+        div { class: "flex grow flex-col items-center justify-center gap-10 p-10",
             p { class: "text-4xl",
                 "Military training center content management system!"
             }
-            Link { class: "btn btn-neutral btn-outline w-fit",
+            Link { class: "w-fit btn btn-neutral btn-outline",
                 to: DashboardPage {},
                 { translate!(i18, "messages.dashboard") }
             }

@@ -48,7 +48,7 @@ pub fn AccountControllerComponent() -> Element {
                         icon: FaUser
                     }
                 }
-                ul { tabindex: "0", class: "dropdown-content z-[1] menu p-2 shadow-md bg-base-100 w-52 border input-bordered rounded",
+                ul { tabindex: "0", class: "w-52 rounded border p-2 shadow-md dropdown-content z-[1] menu bg-base-100 input-bordered",
                     "onclick": "document.activeElement.blur()",
                     li { Link { to: DashboardPage {}, { translate!(i18, "messages.dashboard") } } }
                     if auth_state().is_admin() {

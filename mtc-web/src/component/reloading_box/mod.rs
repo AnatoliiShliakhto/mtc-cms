@@ -30,14 +30,14 @@ pub fn ReloadingBoxComponent<T: 'static>(
     let i18 = use_i18();
 
     rsx! {
-        div { class: "flex items-center justify-center grow",
-            div { class: "flex flex-col gap-3 w-fit",
-                div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-error text-error",
+        div { class: "flex grow items-center justify-center",
+            div { class: "flex w-fit flex-col gap-3",
+                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-error text-error",
                     svg {
                         "xmlns": "http://www.w3.org/2000/svg",
                         "fill": "none",
                         "viewBox": "0 0 24 24",
-                        class: "stroke-current shrink-0 h-6 w-6",
+                        class: "h-6 w-6 shrink-0 stroke-current",
                         path {
                             "stroke-linecap": "round",
                             "stroke-width": "2",
@@ -47,7 +47,7 @@ pub fn ReloadingBoxComponent<T: 'static>(
                     }
                     span { { props.message } }
                 }
-                button { class: "link link-hover self-center",
+                button { class: "self-center link link-hover",
                     onclick: move |_| props.resource.restart(), { translate!(i18, "messages.reload") }
                 }
             }

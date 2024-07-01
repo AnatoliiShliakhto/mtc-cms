@@ -39,12 +39,12 @@ pub fn SignIn() -> Element {
     };
 
     rsx! {
-        form { class: "flex flex-col gap-3 grow items-center px-3",
+        form { class: "flex grow flex-col items-center gap-3 px-3",
             id: "credentials-form",
             prevent_default: "onsubmit oninput",
             autocomplete: "off",
             oninput: move |event| credentials_submit.set(event.values()),
-            label { class: "form-control w-full gap-2",
+            label { class: "w-full gap-2 form-control",
                 input { r#type: "text", name: "login", 
                     class: if is_login_valid() { "input input-bordered" } else { "input input-bordered input-error" },
                     placeholder: translate!(i18, "messages.login"),
@@ -58,7 +58,7 @@ pub fn SignIn() -> Element {
                     }
                 }
             }
-            label { class: "form-control w-full gap-2",
+            label { class: "w-full gap-2 form-control",
                 input { r#type: "password", name: "password", 
                     class: if is_password_valid() { "input input-bordered" } else { "input input-bordered input-error" },
                     placeholder: translate!(i18, "messages.password")
@@ -71,14 +71,14 @@ pub fn SignIn() -> Element {
                     }
                 }
                 if !is_busy() && is_login_valid() && is_password_valid() {
-                    button { class: "btn btn-neutral btn-outline w-fit self-center mt-2",
+                    button { class: "mt-2 w-fit self-center btn btn-neutral btn-outline",
                         r#type: "button",
                         prevent_default: "onclick",
                         onclick: sign_in_task,
                         { translate!(i18, "messages.sign_in") }
                     }
                 } else if is_busy() {
-                    div { class: "flex flex-row gap-4 py-3 w-fit self-center",
+                    div { class: "flex w-fit flex-row gap-4 self-center py-3",
                         span { class: "loading loading-spinner loading-md" }
                         span { { translate!(i18, "messages.sign_in") } "..." }
                     }                    

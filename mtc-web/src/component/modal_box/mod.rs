@@ -28,7 +28,7 @@ pub fn ModalBoxComponent() -> Element {
             "open": "true",
             div { class: "modal-box",
                 button {
-                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
+                    class: "absolute top-2 right-2 btn btn-sm btn-circle btn-ghost",
                     prevent_default: "onclick",
                     onclick: dialog_close,
                     "✕"
@@ -37,7 +37,7 @@ pub fn ModalBoxComponent() -> Element {
                     ModalModel::None => rsx! {},
                     ModalModel::Alert(message) => rsx! {
                         div {
-                            class: "flex flex-row font-bold text-lg gap-4 wrap",
+                            class: "flex flex-row gap-4 text-lg font-bold wrap",
                             svg {
                                 "fill": "none",
                                 "xmlns": "http://www.w3.org/2000/svg",
@@ -50,16 +50,16 @@ pub fn ModalBoxComponent() -> Element {
                                     "stroke-linecap": "round"
                                 }
                             }
-                            div { class: "flex flex-col grow",
+                            div { class: "flex grow flex-col",
                                 { translate!(i18, "messages.caption_alert") }
-                                div { class: "divider my-0" }
+                                div { class: "my-0 divider" }
                             }
                         }
                         p { class: "indent-14", { message } }                         
                     },
                     ModalModel::Info(message) => rsx! {
                         div {
-                            class: "flex flex-row font-bold text-lg gap-4 wrap",
+                            class: "flex flex-row gap-4 text-lg font-bold wrap",
                             svg {
                                 "fill": "none",
                                 "xmlns": "http://www.w3.org/2000/svg",
@@ -72,21 +72,21 @@ pub fn ModalBoxComponent() -> Element {
                                     "stroke-linecap": "round"
                                 }
                             }
-                            div { class: "flex flex-col grow",
+                            div { class: "flex grow flex-col",
                                 { translate!(i18, "messages.caption_info") }
-                                div { class: "divider my-0" }
+                                div { class: "my-0 divider" }
                             }
                         }
                         p { class: "indent-14", { message } }                             
                     },
                     ModalModel::Error(message) => rsx! {
                         div {
-                            class: "flex flex-row font-bold text-lg gap-4 text-error wrap",
+                            class: "flex flex-row gap-4 text-lg font-bold text-error wrap",
                             svg {
                                 "xmlns": "http://www.w3.org/2000/svg",
                                 "fill": "none",
                                 "viewBox": "0 0 24 24",
-                                class: "stroke-current shrink-0 h-10 w-10",
+                                class: "h-10 w-10 shrink-0 stroke-current",
                                 path {
                                     "stroke-linecap": "round",
                                     "stroke-width": "2",
@@ -94,21 +94,21 @@ pub fn ModalBoxComponent() -> Element {
                                     "stroke-linejoin": "round"
                                 }
                             }
-                            div { class: "flex flex-col grow",
+                            div { class: "flex grow flex-col",
                                 { translate!(i18, "messages.caption_error") }
-                                div { class: "divider my-0" }
+                                div { class: "my-0 divider" }
                             }
                         }
                         p { class: "indent-14", { message } } 
                     },
                     ModalModel::Success(message) => rsx! {
                         div {
-                            class: "flex flex-row font-bold text-lg gap-4 text-success wrap",
+                            class: "flex flex-row gap-4 text-lg font-bold text-success wrap",
                             svg {
                                 "fill": "none",
                                 "xmlns": "http://www.w3.org/2000/svg",
                                 "viewBox": "0 0 24 24",
-                                class: "stroke-current shrink-0 h-10 w-10",
+                                class: "h-10 w-10 shrink-0 stroke-current",
                                 path {
                                     "stroke-linecap": "round",
                                     "stroke-linejoin": "round",
@@ -116,21 +116,21 @@ pub fn ModalBoxComponent() -> Element {
                                     "d": "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                 }
                             }
-                            div { class: "flex flex-col grow",
+                            div { class: "flex grow flex-col",
                                 { translate!(i18, "messages.caption_success") }
-                                div { class: "divider my-0" }
+                                div { class: "my-0 divider" }
                             }
                         }
                         p { class: "indent-14", { message } }                          
                     },
                     ModalModel::Warning(message) => rsx! {
                         div {
-                            class: "flex flex-row font-bold text-lg gap-4 text-warning wrap",
+                            class: "flex flex-row gap-4 text-lg font-bold text-warning wrap",
                             svg {
                                 "viewBox": "0 0 24 24",
                                 "fill": "none",
                                 "xmlns": "http://www.w3.org/2000/svg",
-                                class: "stroke-current shrink-0 h-10 w-10",
+                                class: "h-10 w-10 shrink-0 stroke-current",
                                 path {
                                     "stroke-linejoin": "round",
                                     "stroke-width": "2",
@@ -138,9 +138,9 @@ pub fn ModalBoxComponent() -> Element {
                                     "d": "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                                 }
                             }
-                            div { class: "flex flex-col grow",
+                            div { class: "flex grow flex-col",
                                 { translate!(i18, "messages.caption_warning") }
-                                div { class: "divider my-0" }
+                                div { class: "my-0 divider" }
                             }
                         }
                         p { class: "indent-14", { message } }                         

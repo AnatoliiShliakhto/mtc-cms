@@ -6,6 +6,7 @@ use mtc_model::auth_model::AuthModelTrait;
 
 use crate::APP_STATE;
 use crate::page::administrator::dashboard::Dashboard;
+use crate::page::administrator::users::Users;
 use crate::page::administrator::groups::Groups;
 use crate::page::administrator::roles::Roles;
 use crate::page::not_found::NotFoundPage;
@@ -13,6 +14,7 @@ use crate::page::not_found::NotFoundPage;
 mod dashboard;
 mod groups;
 mod roles;
+mod users;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq)]
@@ -37,8 +39,8 @@ pub fn AdministratorPage() -> Element {
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
     rsx! {
-        div { class: "flex flex-row divide-x divide-slate-400/25 grow",
-            aside { class: "bg-base-100 min-w-60 body-scroll",
+        div { class: "flex grow flex-row divide-x divide-slate-400/25",
+            aside { class: "shadow-lg bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
                     li { 
                         a {
@@ -70,6 +72,17 @@ pub fn AdministratorPage() -> Element {
                                     { translate!(i18, "messages.roles") }
                                 }
                             }
+                            li {
+                                a {
+                                    prevent_default: "onclick",
+                                    class: match administrator_route() {
+                                        AdministratorRouteModel::Users => { "active" },
+                                        _ => {""}
+                                    },
+                                    onclick: move |_| administrator_route.set(AdministratorRouteModel::Users),
+                                    { translate!(i18, "messages.users") }
+                                }
+                            }
                         }
                     }
                 }
@@ -77,6 +90,7 @@ pub fn AdministratorPage() -> Element {
             match administrator_route() {
                 AdministratorRouteModel::Groups => rsx! { Groups {} },
                 AdministratorRouteModel::Roles => rsx! { Roles {} },
+                AdministratorRouteModel::Users => rsx! { Users {} },
                 _ => rsx! { Dashboard {} },
             }
         }

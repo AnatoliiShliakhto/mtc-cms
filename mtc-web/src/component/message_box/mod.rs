@@ -20,7 +20,7 @@ pub fn MessageBoxComponent(props: MessageBoxComponentProps) -> Element {
     match props.kind {
         MessageBoxComponentKind::Alert(message) => {
             rsx! {
-                div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border input-bordered",
+                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 input-bordered",
                     svg {
                         "fill": "none",
                         "xmlns": "http://www.w3.org/2000/svg",
@@ -39,7 +39,7 @@ pub fn MessageBoxComponent(props: MessageBoxComponentProps) -> Element {
         }
         MessageBoxComponentKind::Info(message) => {
             rsx! {
-                div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-info text-info",
+                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-info text-info",
                     svg {
                         "fill": "none",
                         "xmlns": "http://www.w3.org/2000/svg",
@@ -58,7 +58,7 @@ pub fn MessageBoxComponent(props: MessageBoxComponentProps) -> Element {
         }
         MessageBoxComponentKind::Error(message) => {
             rsx! {
-                div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-error text-error",
+                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-error text-error",
                     svg {
                         "xmlns": "http://www.w3.org/2000/svg",
                         "fill": "none",
@@ -77,7 +77,7 @@ pub fn MessageBoxComponent(props: MessageBoxComponentProps) -> Element {
         }
         MessageBoxComponentKind::Success(message) => {
             rsx! {
-                div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-success text-success",
+                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-success text-success",
                     svg {
                         "fill": "none",
                         "xmlns": "http://www.w3.org/2000/svg",
@@ -96,7 +96,7 @@ pub fn MessageBoxComponent(props: MessageBoxComponentProps) -> Element {
         }
         MessageBoxComponentKind::Warning(message) => {
             rsx! {
-                div { role: "alert", class: "flex flex-row p-4 gap-2 rounded border border-warning text-warning",
+                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-warning text-warning",
                     svg {
                         "viewBox": "0 0 24 24",
                         "fill": "none",

@@ -45,8 +45,8 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
     };
 
     rsx! {
-        div { class: "flex flex-row grow",
-            div { class: "flex flex-col gap-3 grow items-center p-5 body-scroll",
+        div { class: "flex grow flex-row",
+            div { class: "flex grow flex-col items-center gap-3 p-5 body-scroll",
                 form { class: "flex w-full", 
                     id: "roles-form",
                     onsubmit: delete_roles,
@@ -86,7 +86,7 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
             }
             div { class: "flex flex-col gap-3 p-5 min-w-36 body-scroll",
                 if is_busy() {
-                    div { class: "flex flex-col pt-4 gap-3 items-center",
+                    div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }
                         span { { translate!(i18, "messages.in_progress") } }
                     }
@@ -95,7 +95,7 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
                         PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
                     }
                     if auth_state.is_permission("role::write") {
-                        button { class: "w-full btn btn-outline btn-accent gap-3 justify-start",
+                        button { class: "btn btn-outline btn-accent",
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
                             Icon {
@@ -108,7 +108,7 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
                         }
                     }
                     if auth_state.is_permission("role::delete") {
-                        button { class: "w-full btn btn-outline btn-error gap-3 justify-start",
+                        button { class: "btn btn-outline btn-error",
                             r#type: "submit",
                             prevent_default: "onsubmit onclick",
                             form: "roles-form",

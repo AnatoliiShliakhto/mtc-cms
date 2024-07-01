@@ -6,36 +6,38 @@ use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
-use mtc_model::group_model::{GroupModel, GroupsModel};
 use mtc_model::pagination_model::PaginationModel;
-
+use mtc_model::user_model::UserModel;
 use crate::APP_STATE;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
-use crate::handler::group_handler::GroupHandler;
 use crate::model::page_action::PageAction;
+use crate::service::user_service::UserService;
 
 #[derive(Props, Clone, PartialEq)]
-pub struct GroupListProps {
+pub struct UserListProps {
     pub page: Signal<usize>,
 }
 
-pub fn GroupList(mut props: GroupListProps) -> Element {
+#[component]
+pub fn UserList(mut props: UserListProps) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read_unchecked();
     let i18 = use_i18();
 
+    let users_details = app_state.users.signal();
+
     let mut page_action = use_context::<Signal<PageAction>>();
-    let groups = use_context::<Signal<BTreeMap<usize, GroupModel>>>();
+    let users = use_context::<Signal<BTreeMap<usize, UserModel>>>();
     let pagination = use_context::<Signal<PaginationModel>>();
     let mut is_busy = use_signal(|| false);
-
-    let delete_groups = move |event: Event<FormData>| {
+/*
+    let delete_users = move |event: Event<FormData>| {
         event.stop_propagation();
-        if let Some((&_, value)) = event.values().get_key_value("groups") {
+        if let Some((&_, value)) = event.values().get_key_value("users") {
             is_busy.set(true);
-            let groups_to_delete = GroupsModel { groups: value.0.to_vec().to_owned() };
+            let users_to_delete = RolesModel { roles: value.0.to_vec().to_owned() };
             spawn(async move {
-                if APP_STATE.peek().api.delete_group_list(groups_to_delete).await.is_ok() {
+                if APP_STATE.peek().api.delete_role_list(roles_to_delete).await.is_ok() {
                     props.page.set(pagination().current_page);
                 }
                 is_busy.set(false);
@@ -43,23 +45,29 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
         }
     };
 
+ */
+
     rsx! {
         div { class: "flex grow flex-row",
             div { class: "flex grow flex-col items-center gap-3 p-5 body-scroll",
-                form { class: "flex w-full", 
-                    id: "groups-form",
-                    onsubmit: delete_groups,
+                form { class: "flex w-full",
+                    id: "users-form",
+                   // onsubmit: delete_roles,
 
                     table { class: "table w-full",
                         thead {
                             tr {
                                 th { style: "width: 1.75rem;" }
-                                th { { translate!(i18, "messages.slug") } }
-                                th { { translate!(i18, "messages.title") } }
+                                th { { translate!(i18, "messages.login") } }
+                                if !users_details().is_empty(){
+                                    th { { translate!(i18, "messages.rank") } }
+                                    th { { translate!(i18, "messages.name") } }
+                                }
+                                th { { translate!(i18, "messages.blocked") } }
                             }
                         }
                         tbody {
-                            for (id, item) in groups.read_unchecked().to_owned() {
+                            for (id, item) in users.read_unchecked().to_owned() {
                                 tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
                                     onclick: move |event| {
                                         event.stop_propagation();
@@ -70,12 +78,27 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                                         onclick: move |event| event.stop_propagation(),
                                         input { class: "checkbox-xs",
                                             r#type: "checkbox",
-                                            name: "groups",
-                                            value: item.slug.clone(),
+                                            name: "users",
+                                            value: item.login.clone(),
                                         }
                                     }
-                                    td { { item.slug.clone() } }
-                                    td { { item.title } }
+                                    td { { item.login.clone() } }
+                                    if !users_details().is_empty(){
+                                        td { { users_details().get_user_rank(&item.login) } }
+                                        td { { users_details().get_user_name(&item.login) } }
+                                    }
+                                    td { class: "py-1",                               
+                                        label { class: "border p-1 swap input-bordered",
+                                            onclick: move |event| event.stop_propagation(),
+                                            input { r#type: "checkbox",
+                                                name: "blocked",
+                                                value: item.login.clone(),
+                                                checked: if item.blocked { "checked" }
+                                            }
+                                            div { class: "swap-on", { "❌" } }
+                                            div { class: "swap-off" }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -93,7 +116,7 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                     div { class: "flex flex-wrap gap-3",
                         PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
                     }
-                    if auth_state.is_permission("group::write") {
+                    if auth_state.is_permission("user::write") {
                         button { class: "btn btn-outline btn-accent",
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
@@ -106,11 +129,11 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                             { translate!(i18, "messages.add") }
                         }
                     }
-                    if auth_state.is_permission("group::delete") {
+                    if auth_state.is_permission("user::delete") {
                         button { class: "btn btn-outline btn-error",
                             r#type: "submit",
                             prevent_default: "onsubmit onclick",
-                            form: "groups-form",
+                            form: "users-form",
                             Icon {
                                 width: 16,
                                 height: 16,

@@ -1,14 +1,17 @@
 [workspace]
 resolver = "2"
 members = ["mtc-model", "mtc-api", "mtc-web"]
-default-members = ["mtc-api", "mtc-web"]
-exclude = ["mtc-model"]
+default-members = ["mtc-api"]
+exclude = ["mtc-model", "mtc-web"]
 
 [workspace.package]
 version = "0.1.0"
 description = "MTC-CMS"
 authors = ["Anatolii Shliakhto <a.shlyalkhto@gmail.com>"]
 license = "MIT"
+
+[profile.dev]
+opt-level = 0
 
 [profile.release]
 opt-level = 3

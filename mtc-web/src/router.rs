@@ -24,7 +24,7 @@ pub enum Route {
 fn RootLayout() -> Element {
     rsx! {
         Header {}
-        div { class: "flex flex-col grow overflow",
+        div { class: "flex grow flex-col overflow",
             Outlet::<Route> {}
         }
 //        Footer {}

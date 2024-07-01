@@ -26,19 +26,19 @@ pub fn Dashboard() -> Element {
     };
 
     rsx! {
-        p { class: "text-xl self-center",
+        p { class: "self-center text-xl",
             { translate!(i18, "messages.welcome") }
         }
         p { class: "m-4",
             { translate!(i18, "messages.logged_in") }
         }
         if !is_busy() {
-            button { class: "btn btn-error btn-outline w-fit self-center",
+            button { class: "w-fit self-center btn btn-error btn-outline",
                 onclick: sign_out,
                 { translate!(i18, "messages.sign_out") }
             }
         } else {
-            div { class: "flex flex-row gap-4 py-3 w-fit self-center",
+            div { class: "flex w-fit flex-row gap-4 self-center py-3",
                 span { class: "loading loading-spinner loading-md" }
                     span { { translate!(i18, "messages.sign_out") } "..." }
             } 

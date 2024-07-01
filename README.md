@@ -14,7 +14,7 @@ RUST Content Management System Core Project `In-Dev`
 
 ## Pre-requires
 - Rust, SurrealDB, Node.Js
-- **CMake** to compile C++/ASM embedded database engine libraries
+- **LVMM** + **CMake** to compile C++/ASM embedded database engine libraries
 - Dioxus
 ```bash
 cargo install dioxus-cli

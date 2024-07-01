@@ -10,7 +10,7 @@ mod logo;
 
 pub fn Header() -> Element {
     rsx! {
-        div { class: "navbar sticky z-[1] bg-base-100 shadow-md p-0 min-h-12 border-input-bordered",
+        div { class: "sticky p-0 shadow-md navbar z-[1] bg-base-100 min-h-12 border-input-bordered",
             div { class: "navbar-start",
                 HeaderLogo {}
                 div { class: "dropdown",
@@ -29,7 +29,7 @@ pub fn Header() -> Element {
                             }
                         }
                     }
-                    ul { class: "menu menu-sm dropdown-content z-[1] p-2 shadow bg-base-100",
+                    ul { class: "p-2 shadow menu menu-sm dropdown-content z-[1] bg-base-100",
                         li { class: "rounded-md",
                             Link { to: HomePage {}, "Головна" } }
                         li {

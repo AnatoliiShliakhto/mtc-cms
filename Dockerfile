@@ -19,6 +19,7 @@ USER mtc-user
 # copy app with assets to container volume
 COPY ./target/x86_64-unknown-linux-musl/release/mtc-api ./mtc-cms/
 COPY ./public ./mtc-cms/public
+COPY ./cert ./mtc-cms/cert
 
 # run app
 WORKDIR /mtc-cms

@@ -126,14 +126,14 @@ pub fn RoleSingle() -> Element {
     };
 
     rsx! {
-        div { class: "flex flex-row grow select-none",
-            form { class: "flex flex-col gap-3 grow items-center p-3 px-10 body-scroll",
+        div { class: "flex grow select-none flex-row",
+            form { class: "flex grow flex-col items-center gap-3 p-3 px-10 body-scroll",
                 id: "role-form",
                 prevent_default: "oninput",
                 autocomplete: "off",
                 oninput: move |event| role_form.set(event.values()),
                 onsubmit: role_submit,
-                label { class: "form-control w-full",
+                label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text", { translate!(i18, "messages.slug") } }
                     }
@@ -150,7 +150,7 @@ pub fn RoleSingle() -> Element {
                         }
                     }
                 }
-                label { class: "form-control w-full",
+                label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text", { translate!(i18, "messages.title") } }
                     }
@@ -167,10 +167,10 @@ pub fn RoleSingle() -> Element {
                     }
                 }
 
-                div { class: "flex flex-col w-full py-3 gap-3 border input-bordered rounded",
+                div { class: "flex w-full flex-col gap-3 rounded border py-3 input-bordered",
                     span { class: "self-center text-md", { translate!(i18, "messages.permissions") } }
                     div { class: "flex w-full",
-                        div { class: "flex flex-wrap w-full p-3 gap-2 content-start",
+                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
                             for permission in role_permissions() {
                                 div { class: "badge badge-outline hover:cursor-pointer hover:text-error",
                                     prevent_default: "onclick",
@@ -179,8 +179,8 @@ pub fn RoleSingle() -> Element {
                                 }
                             }
                         }
-                        div { class: "divider divider-horizontal text-2xl", "⇄" }
-                        div { class: "flex flex-wrap w-full p-3 gap-2 content-start",
+                        div { class: "text-2xl divider divider-horizontal", "⇄" }
+                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
                             for permission in all_permissions() {
                                 div { class: "badge badge-outline hover:cursor-pointer hover:text-accent",
                                     prevent_default: "onclick",
@@ -194,18 +194,18 @@ pub fn RoleSingle() -> Element {
             }
             div { class: "flex flex-col gap-3 p-3 min-w-48 body-scroll",
                 if is_busy() {
-                    div { class: "flex flex-col pt-4 gap-3 items-center",
+                    div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }
                         span { { translate!(i18, "messages.in_progress") } }
                     }
                 } else {
-                    div { class: "flex flex-col border input-bordered gap-1 p-2 mt-3 rounded",
+                    div { class: "mt-3 flex flex-col gap-1 rounded border p-2 input-bordered",
                         span { class: "italic label-text", { translate!(i18, "messages.created_at") } ":" }
                         span { class: "text-info", { role().created_at.format("%H:%M %d/%m/%Y").to_string() } }
                         span { class: "italic label-text", { translate!(i18, "messages.updated_at") } ":" }
                         span { class: "text-info", { role().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
                     }
-                    button { class: "w-full btn btn-outline gap-3 justify-start",
+                    button { class: "btn btn-outline",
                         prevent_default: "onclick",
                         onclick: move |_| page_action.set(PageAction::None),
                         Icon {
@@ -218,7 +218,7 @@ pub fn RoleSingle() -> Element {
                     }
                 
                     if auth_state.is_permission("role::write") {
-                        button { class: "w-full btn btn-outline btn-accent gap-3 justify-start",
+                        button { class: "btn btn-outline btn-accent",
                             prevent_default: "onsubmit onclick",
                             r#type: "submit",
                             form: "role-form",
@@ -232,7 +232,7 @@ pub fn RoleSingle() -> Element {
                         }
                     }
                     if auth_state.is_permission("role::delete") && !is_new_role() {
-                        button { class: "w-full btn btn-outline btn-error gap-3 justify-start",
+                        button { class: "btn btn-outline btn-error",
                             prevent_default: "onsubmit onclick",
                             onclick: role_delete,
                             Icon {
