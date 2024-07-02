@@ -53,7 +53,7 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                     table { class: "table w-full",
                         thead {
                             tr {
-                                th { style: "width: 1.75rem;" }
+                                th { class: "w-6" }
                                 th { { translate!(i18, "messages.slug") } }
                                 th { { translate!(i18, "messages.title") } }
                             }
@@ -83,7 +83,7 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                 }
                 PaginatorComponent { mode: PaginatorComponentMode::Full, page: props.page, pagination }
             }
-            div { class: "flex flex-col gap-3 p-5 min-w-36 body-scroll",
+            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }

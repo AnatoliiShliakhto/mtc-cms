@@ -39,7 +39,7 @@ pub fn AdministratorPage() -> Element {
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
     rsx! {
-        div { class: "flex grow flex-row divide-x divide-slate-400/25",
+        div { class: "flex grow flex-row",
             aside { class: "shadow-lg bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
                     li { 
@@ -50,39 +50,45 @@ pub fn AdministratorPage() -> Element {
                             { translate!(i18, "messages.administrator") }
                         }
                         ul {
-                            li { 
-                                a {
-                                    prevent_default: "onclick",
-                                    class: match administrator_route() { 
-                                        AdministratorRouteModel::Groups => { "active" }, 
-                                        _ => {""} 
-                                    },
-                                    onclick: move |_| administrator_route.set(AdministratorRouteModel::Groups),
-                                    { translate!(i18, "messages.groups") }
+                            if auth_state.is_permission("group::read") {
+                                li { 
+                                    a {
+                                        prevent_default: "onclick",
+                                        class: match administrator_route() { 
+                                            AdministratorRouteModel::Groups => { "active" }, 
+                                            _ => {""} 
+                                        },
+                                        onclick: move |_| administrator_route.set(AdministratorRouteModel::Groups),
+                                        { translate!(i18, "messages.groups") }
+                                    }
                                 }
                             }
-                            li { 
-                                a {
-                                    prevent_default: "onclick",
-                                    class: match administrator_route() { 
-                                        AdministratorRouteModel::Roles => { "active" }, 
-                                        _ => {""} 
-                                    },
-                                    onclick: move |_| administrator_route.set(AdministratorRouteModel::Roles),
-                                    { translate!(i18, "messages.roles") }
+                            if auth_state.is_permission("role::read") {
+                                li { 
+                                    a {
+                                        prevent_default: "onclick",
+                                        class: match administrator_route() { 
+                                            AdministratorRouteModel::Roles => { "active" }, 
+                                            _ => {""} 
+                                        },
+                                        onclick: move |_| administrator_route.set(AdministratorRouteModel::Roles),
+                                        { translate!(i18, "messages.roles") }
+                                    }
                                 }
                             }
-                            li {
-                                a {
-                                    prevent_default: "onclick",
-                                    class: match administrator_route() {
-                                        AdministratorRouteModel::Users => { "active" },
-                                        _ => {""}
-                                    },
-                                    onclick: move |_| administrator_route.set(AdministratorRouteModel::Users),
-                                    { translate!(i18, "messages.users") }
+                            if auth_state.is_permission("user::read") {
+                                li {
+                                    a {
+                                        prevent_default: "onclick",
+                                        class: match administrator_route() {
+                                            AdministratorRouteModel::Users => { "active" },
+                                            _ => {""}
+                                        },
+                                        onclick: move |_| administrator_route.set(AdministratorRouteModel::Users),
+                                        { translate!(i18, "messages.users") }
+                                    }
                                 }
-                            }
+                            }    
                         }
                     }
                 }

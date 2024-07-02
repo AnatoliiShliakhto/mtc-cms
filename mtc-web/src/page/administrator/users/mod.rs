@@ -1,4 +1,5 @@
 mod list;
+mod single;
 
 use std::collections::BTreeMap;
 
@@ -14,6 +15,7 @@ use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::user_handler::UserHandler;
 use crate::model::page_action::PageAction;
 use crate::page::administrator::users::list::UserList;
+use crate::page::administrator::users::single::UserSingle;
 use crate::page::not_found::NotFoundPage;
 
 #[component]
@@ -21,7 +23,7 @@ pub fn Users() -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read_unchecked();
 
-    if !auth_state.is_permission("role::read") {
+    if !auth_state.is_permission("user::read") {
         return rsx! { NotFoundPage {} };
     }
 
@@ -52,6 +54,6 @@ pub fn Users() -> Element {
             None => rsx! { LoadingBoxComponent {} },
         }
     } else {
-        rsx! {  }
+        rsx! { UserSingle {} }
     }
 }

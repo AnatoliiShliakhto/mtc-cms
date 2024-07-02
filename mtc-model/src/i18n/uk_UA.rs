@@ -5,15 +5,15 @@ pub static UK_UA: &str = r#"{
             "not_found": "Сторінка відсутня",
             "add": "Створити",
             "administrator": "Адміністратор",
-            "blocked": "заблокован",
+            "blocked": "блок",
             "cancel": "Скасувати",
             "caption_alert": "УВАГА!",
             "caption_error": "ПОМИЛКА!",
             "caption_info": "ІНФОРМАЦІЯ!",
             "caption_success": "УСПІХ!",
             "caption_warning": "ПОПЕРЕДЖЕННЯ!",
-            "clipboard_copy": "Копіювати в Буфер",
-            "clipboard_paste": "Вставити із Буфера",
+            "clipboard_copy": "Копіювати",
+            "clipboard_paste": "Вставити",
             "close": "Закрити",
             "copyright": "2024 © Розробник - Анатолій Шляхто",
             "created_at": "створено",
@@ -64,7 +64,7 @@ pub static UK_UA: &str = r#"{
             "something_wrong": "Щось пійшло не так",
             "validation": "Помилка перевірки запросу",
             "unsupported_media": "Тип запиту не підтримується",
-            "user_blocked": "Користувач заблокований"
+            "user_blocked": "Обліковий запис заблоковано"
         },
         "validate" : {
             "login": "логін повинен бути не меньше 5 символів",

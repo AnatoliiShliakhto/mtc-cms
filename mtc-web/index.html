@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en_US">
+<html lang="en">
 <head>
   <title>{app_title}</title>
   <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
   <meta charset="UTF-8" />
   {style_include}
 </head>
-<body>
-  <div id="main"></div>
+<body class="h-screen w-screen overflow-hidden antialiased">
+  <div id="main" class="flex flex-col size-full"></div>
   <script type="module">
     import init from "/{base_path}/assets/dioxus/{app_name}.js";
     init("/{base_path}/assets/dioxus/{app_name}_bg.wasm").then(wasm => {

@@ -75,23 +75,22 @@ pub fn RoleSingle() -> Element {
             is_busy.set(true);
             let app_state = APP_STATE.read();
 
-            let permissions_role: Vec<String> = role_permissions().iter().cloned().collect();
-            let permissions_role = match permissions_role.is_empty() {
+            let permissions = match role_permissions().is_empty() {
                 true => None,
-                false => Some(permissions_role),
+                false => Some(role_permissions().iter().cloned().collect::<Vec<String>>()),
             };
 
             match match is_new_role() {
                 false => {
                     app_state.api.update_role(
                         &role_form.get_string("slug"),
-                        &RoleUpdateModel { title: role_form.get_string("title"), permissions: permissions_role },
+                        &RoleUpdateModel { title: role_form.get_string("title"), permissions },
                     ).await
                 }
                 true => {
                     app_state.api.create_role(
                         &role_form.get_string("slug"),
-                        &RoleCreateModel { title: role_form.get_string("title"), permissions: permissions_role },
+                        &RoleCreateModel { title: role_form.get_string("title"), permissions },
                     ).await
                 }
             } {
@@ -135,7 +134,7 @@ pub fn RoleSingle() -> Element {
                 onsubmit: role_submit,
                 label { class: "w-full form-control",
                     div { class: "label",
-                        span { class: "label-text", { translate!(i18, "messages.slug") } }
+                        span { class: "label-text text-primary", { translate!(i18, "messages.slug") } }
                     }
                     input { r#type: "text", name: "slug", value: role().slug.clone(),
                         class: if role_form.is_field_empty("slug") | role_form.is_slug_valid() { "input input-bordered" } else { "input input-bordered input-error" },
@@ -152,7 +151,7 @@ pub fn RoleSingle() -> Element {
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
-                        span { class: "label-text", { translate!(i18, "messages.title") } }
+                        span { class: "label-text text-primary", { translate!(i18, "messages.title") } }
                     }
                     input { r#type: "text", name: "title", value: role().title.clone(),
                         class: if role_form.is_field_empty("title") | role_form.is_string_valid("title", 5) { "input input-bordered" } else { "input input-bordered input-error" },
@@ -166,9 +165,9 @@ pub fn RoleSingle() -> Element {
                         }
                     }
                 }
-
+                
+                label { class: "w-full label-text text-primary", "⌘ " { translate!(i18, "messages.permissions") } }
                 div { class: "flex w-full flex-col gap-3 rounded border py-3 input-bordered",
-                    span { class: "self-center text-md", { translate!(i18, "messages.permissions") } }
                     div { class: "flex w-full",
                         div { class: "flex w-full flex-wrap content-start gap-2 p-3",
                             for permission in role_permissions() {
@@ -179,7 +178,7 @@ pub fn RoleSingle() -> Element {
                                 }
                             }
                         }
-                        div { class: "text-2xl divider divider-horizontal", "⇄" }
+                        div { class: "text-lg divider divider-horizontal text-primary", "⇄" }
                         div { class: "flex w-full flex-wrap content-start gap-2 p-3",
                             for permission in all_permissions() {
                                 div { class: "badge badge-outline hover:cursor-pointer hover:text-accent",
@@ -192,7 +191,7 @@ pub fn RoleSingle() -> Element {
                     }
                 }
             }
-            div { class: "flex flex-col gap-3 p-3 min-w-48 body-scroll",
+            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }

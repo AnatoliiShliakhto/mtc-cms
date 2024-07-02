@@ -12,6 +12,7 @@ repository_paginate!(GroupService, GroupModel, "groups");
 
 #[async_trait]
 pub trait GroupRepositoryTrait {
+    async fn all(&self) -> Result<GroupsModel>;
     async fn find_by_slug(&self, slug: &str) -> Result<GroupModel>;
     async fn find_by_user(&self, login: &str) -> Result<GroupsModel>;
     async fn create(&self, slug: &str, model: GroupCreateModel) -> Result<GroupModel>;
@@ -21,13 +22,27 @@ pub trait GroupRepositoryTrait {
 
 #[async_trait]
 impl GroupRepositoryTrait for GroupService {
-    async fn find_by_slug(
-        &self,
-        slug: &str,
-    ) -> Result<GroupModel> {
-        self.db.query(r#"
-            SELECT * FROM groups WHERE slug=$slug;
-            "#)
+    async fn all(&self) -> Result<GroupsModel> {
+        Ok(GroupsModel {
+            groups: self
+                .db
+                .query(
+                    r#"
+                    SELECT VALUE slug from groups;
+                    "#,
+                )
+                .await?
+                .take::<Vec<String>>(0)?,
+        })
+    }
+
+    async fn find_by_slug(&self, slug: &str) -> Result<GroupModel> {
+        self.db
+            .query(
+                r#"
+                SELECT * FROM groups WHERE slug=$slug;
+                "#,
+            )
             .bind(("slug", slug))
             .await?
             .take::<Option<GroupModel>>(0)?
@@ -44,17 +59,16 @@ impl GroupRepositoryTrait for GroupService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn create(
-        &self,
-        slug: &str,
-        model: GroupCreateModel,
-    ) -> Result<GroupModel> {
-        self.db.query(r#"
-            CREATE groups CONTENT {
-	            slug: $slug,
-	            title: $title
-            };
-            "#)
+    async fn create(&self, slug: &str, model: GroupCreateModel) -> Result<GroupModel> {
+        self.db
+            .query(
+                r#"
+                CREATE groups CONTENT {
+	                slug: $slug,
+	                title: $title
+                };
+            "#,
+            )
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
@@ -62,16 +76,15 @@ impl GroupRepositoryTrait for GroupService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn update(
-        &self,
-        slug: &str,
-        model: GroupUpdateModel,
-    ) -> Result<GroupModel> {
-        self.db.query(r#"
-            UPDATE groups MERGE {
-	            title: $title
-            } WHERE slug=$slug;
-            "#)
+    async fn update(&self, slug: &str, model: GroupUpdateModel) -> Result<GroupModel> {
+        self.db
+            .query(
+                r#"
+                UPDATE groups MERGE {
+	                title: $title
+                } WHERE slug=$slug;
+                "#,
+            )
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
@@ -79,13 +92,13 @@ impl GroupRepositoryTrait for GroupService {
             .ok_or(DbError::EntryUpdate.into())
     }
 
-    async fn delete(
-        &self,
-        slug: &str,
-    ) -> Result<()> {
-        self.db.query(r#"
-            DELETE FROM groups WHERE slug=$slug;
-            "#)
+    async fn delete(&self, slug: &str) -> Result<()> {
+        self.db
+            .query(
+                r#"
+                DELETE FROM groups WHERE slug=$slug;
+                "#,
+            )
             .bind(("slug", slug))
             .bind(("rel_table", "user_groups"))
             .await?;

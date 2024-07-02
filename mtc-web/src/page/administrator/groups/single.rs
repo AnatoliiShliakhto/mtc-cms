@@ -93,7 +93,7 @@ pub fn GroupSingle() -> Element {
                 onsubmit: group_submit,
                 label { class: "w-full form-control",
                     div { class: "label",
-                        span { class: "label-text", { translate!(i18, "messages.slug") } }
+                        span { class: "label-text text-primary", { translate!(i18, "messages.slug") } }
                     }
                     input { r#type: "text", name: "slug", value: group().slug.clone(),
                         class: if group_form.is_field_empty("slug") | group_form.is_slug_valid() { "input input-bordered" } else { "input input-bordered input-error" },
@@ -110,7 +110,7 @@ pub fn GroupSingle() -> Element {
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
-                        span { class: "label-text", { translate!(i18, "messages.title") } }
+                        span { class: "label-text text-primary", { translate!(i18, "messages.title") } }
                     }
                     input { r#type: "text", name: "title", value: group().title.clone(),
                         class: if group_form.is_field_empty("title") | group_form.is_string_valid("title", 5) { "input input-bordered" } else { "input input-bordered input-error" },
@@ -126,7 +126,7 @@ pub fn GroupSingle() -> Element {
                 }
             }
             
-            div { class: "flex flex-col gap-3 p-3 min-w-48 body-scroll",
+            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }

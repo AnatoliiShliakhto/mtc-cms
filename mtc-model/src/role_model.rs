@@ -43,7 +43,7 @@ pub struct RoleUpdateModel {
     pub permissions: Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Serialize, Validate)]
+#[derive(Default, Deserialize, Serialize, Validate)]
 pub struct RolesModel {
     pub roles: Vec<String>,
 }

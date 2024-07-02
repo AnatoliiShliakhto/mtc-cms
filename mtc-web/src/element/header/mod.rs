@@ -10,7 +10,7 @@ mod logo;
 
 pub fn Header() -> Element {
     rsx! {
-        div { class: "sticky p-0 shadow-md navbar z-[1] bg-base-100 min-h-12 border-input-bordered",
+        div { class: "sticky p-0 shadow-md navbar z-[1] bg-base-100 min-h-12",
             div { class: "navbar-start",
                 HeaderLogo {}
                 div { class: "dropdown",

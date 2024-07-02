@@ -91,7 +91,7 @@ pub fn Dashboard() -> Element {
                 table { class: "table w-full",
                     thead {
                         tr {
-                            th { style: "width: 1.75rem;" }
+                            th { class: "w-6" }
                             th { { translate!(i18, "messages.login") } }
                             th { { translate!(i18, "messages.rank") } }
                             th { { translate!(i18, "messages.name") } }
@@ -101,7 +101,7 @@ pub fn Dashboard() -> Element {
                         for item in users(){
                             tr {
                                 td {
-                                    button { class: "btn btn-sm btn-ghost",
+                                    button { class: "btn btn-xs btn-ghost",
                                         prevent_default: "onclick",
                                         onclick: move |_| remove_user(item.0.clone()),
                                         "❌"
@@ -115,7 +115,7 @@ pub fn Dashboard() -> Element {
                     }
                 }
             }
-            div { class: "flex flex-col gap-3 p-5 min-w-36 body-scroll",
+            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 button {
                     class: "btn btn-accent btn-outline",
                     prevent_default: "onclick",

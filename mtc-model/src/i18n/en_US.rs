@@ -12,8 +12,8 @@ pub static EN_US: &str = r#"{
             "caption_info": "INFO!",
             "caption_success": "SUCCESS!",
             "caption_warning": "WARNING!",
-            "clipboard_copy": "To Clipboard",
-            "clipboard_paste": "From Clipboard",
+            "clipboard_copy": "Copy",
+            "clipboard_paste": "Paste",
             "close": "Close",
             "copyright": "2024 © Developer - Anatolii Shliakhto",
             "created_at": "created at",
@@ -64,7 +64,7 @@ pub static EN_US: &str = r#"{
             "something_wrong": "Something went wrong",
             "validation": "Request validation error",
             "unsupported_media": "Unsupported Media Type",
-            "user_blocked": "User blocked"
+            "user_blocked": "Account is blocked"
         },
         "validate" : {
             "login": "login must be 5 characters at least",

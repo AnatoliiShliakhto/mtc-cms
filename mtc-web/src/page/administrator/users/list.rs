@@ -4,14 +4,16 @@ use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
-
+use tracing::error;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
-use mtc_model::user_model::UserModel;
-use crate::APP_STATE;
+use mtc_model::user_model::{UserModel, UsersModel};
+
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
+use crate::handler::user_handler::UserHandler;
 use crate::model::page_action::PageAction;
 use crate::service::user_service::UserService;
+use crate::APP_STATE;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct UserListProps {
@@ -30,14 +32,23 @@ pub fn UserList(mut props: UserListProps) -> Element {
     let users = use_context::<Signal<BTreeMap<usize, UserModel>>>();
     let pagination = use_context::<Signal<PaginationModel>>();
     let mut is_busy = use_signal(|| false);
-/*
+    let can_edit = use_memo(|| APP_STATE.peek().auth.peek().is_permission("user_write"));
+
     let delete_users = move |event: Event<FormData>| {
         event.stop_propagation();
         if let Some((&_, value)) = event.values().get_key_value("users") {
             is_busy.set(true);
-            let users_to_delete = RolesModel { roles: value.0.to_vec().to_owned() };
+            let users_to_delete = UsersModel {
+                users: value.0.to_vec().to_owned(),
+            };
             spawn(async move {
-                if APP_STATE.peek().api.delete_role_list(roles_to_delete).await.is_ok() {
+                if APP_STATE
+                    .peek()
+                    .api
+                    .delete_user_list(users_to_delete)
+                    .await
+                    .is_ok()
+                {
                     props.page.set(pagination().current_page);
                 }
                 is_busy.set(false);
@@ -45,19 +56,27 @@ pub fn UserList(mut props: UserListProps) -> Element {
         }
     };
 
- */
+    let user_block_toggle = move |login: String| {
+        if !can_edit() { return }
+        spawn(async move {
+            match APP_STATE.peek().api.toggle_block_user(&login).await {
+                Ok(_) => (),
+                Err(e) => error!("User block error: {:?}", e.message()),
+            }
+        });
+    };
 
     rsx! {
         div { class: "flex grow flex-row",
             div { class: "flex grow flex-col items-center gap-3 p-5 body-scroll",
                 form { class: "flex w-full",
                     id: "users-form",
-                   // onsubmit: delete_roles,
+                    onsubmit: delete_users,
 
                     table { class: "table w-full",
                         thead {
                             tr {
-                                th { style: "width: 1.75rem;" }
+                                th { class: "w-6" }
                                 th { { translate!(i18, "messages.login") } }
                                 if !users_details().is_empty(){
                                     th { { translate!(i18, "messages.rank") } }
@@ -87,13 +106,14 @@ pub fn UserList(mut props: UserListProps) -> Element {
                                         td { { users_details().get_user_rank(&item.login) } }
                                         td { { users_details().get_user_name(&item.login) } }
                                     }
-                                    td { class: "py-1",                               
+                                    td { class: "py-1",
                                         label { class: "border p-1 swap input-bordered",
                                             onclick: move |event| event.stop_propagation(),
                                             input { r#type: "checkbox",
                                                 name: "blocked",
-                                                value: item.login.clone(),
-                                                checked: if item.blocked { "checked" }
+                                                checked: item.blocked,
+                                                disabled: !can_edit(),
+                                                onchange: move |_| user_block_toggle(item.login.clone())
                                             }
                                             div { class: "swap-on", { "❌" } }
                                             div { class: "swap-off" }
@@ -106,7 +126,7 @@ pub fn UserList(mut props: UserListProps) -> Element {
                 }
                 PaginatorComponent { mode: PaginatorComponentMode::Full, page: props.page, pagination }
             }
-            div { class: "flex flex-col gap-3 p-5 min-w-36 body-scroll",
+            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }
@@ -116,7 +136,7 @@ pub fn UserList(mut props: UserListProps) -> Element {
                     div { class: "flex flex-wrap gap-3",
                         PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
                     }
-                    if auth_state.is_permission("user::write") {
+                    if can_edit() {
                         button { class: "btn btn-outline btn-accent",
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),

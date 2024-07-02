@@ -6,6 +6,7 @@ use crate::handler::{ApiHandler, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait RoleHandler {
+    async fn get_role_all(&self) -> Result<RolesModel, ApiError>;
     async fn get_role_list(&self, page: usize) -> Result<ApiResponse<Vec<RoleModel>>, ApiError>;
     async fn delete_role(&self, slug: &str) -> Result<(), ApiError>;
     async fn delete_role_list(&self, roles: RolesModel) -> Result<(), ApiError>;
@@ -15,6 +16,16 @@ pub trait RoleHandler {
 }
 
 impl RoleHandler for ApiHandler {
+    async fn get_role_all(&self) -> Result<RolesModel, ApiError> {
+        self
+            .api_client
+            .get([&self.api_url, "role", "all"].join("/"))
+            .send()
+            .await
+            .consume_data()
+            .await
+    }
+    
     async fn get_role_list(&self, page: usize) -> Result<ApiResponse<Vec<RoleModel>>, ApiError> {
         self
             .api_client

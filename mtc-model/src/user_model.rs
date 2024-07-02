@@ -19,17 +19,42 @@ pub struct UserModel {
     pub updated_at: Datetime,
 }
 
-#[derive(Deserialize, Validate)]
-pub struct UserCreateModel {
-    pub password: String,
+impl Default for UserModel {
+    fn default() -> Self {
+        Self {
+            id: "".to_string(),
+            login: "".to_string(),
+            password: "".to_string(),
+            blocked: false,
+            fields: None,
+            created_at: Default::default(),
+            updated_at: Default::default(),
+        }
+    }
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Serialize, Validate)]
+pub struct UserCreateModel {
+    pub password: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roles: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub groups: Option<Vec<String>>,
+}
+
+#[derive(Deserialize, Serialize, Validate)]
 pub struct UserUpdateModel {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub roles: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub groups: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fields: Option<Value>,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Serialize, Validate)]
 pub struct UserChangePasswordModel {
     #[validate(length(min = 6, message = "Password must be 6 characters at least"))]
     pub password: String,
@@ -37,12 +62,17 @@ pub struct UserChangePasswordModel {
     pub confirm_password: String,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Serialize, Validate)]
+pub struct UsersModel {
+    pub users: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize, Validate)]
 pub struct UserAssignRolesModel {
     pub roles: Vec<String>,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Serialize, Validate)]
 pub struct UserAssignGroupsModel {
     pub groups: Vec<String>,
 }

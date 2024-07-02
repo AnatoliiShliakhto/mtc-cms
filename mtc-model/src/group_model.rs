@@ -36,7 +36,7 @@ pub struct GroupUpdateModel {
     pub title: String,
 }
 
-#[derive(Deserialize, Serialize, Validate)]
+#[derive(Default, Deserialize, Serialize, Validate)]
 pub struct GroupsModel {
     pub groups: Vec<String>,
 }
