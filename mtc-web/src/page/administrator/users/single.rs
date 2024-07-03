@@ -4,9 +4,11 @@ use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
+
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
+use crate::component::list_switcher::ListSwitcherComponent;
 use crate::handler::group_handler::GroupHandler;
 use crate::handler::role_handler::RoleHandler;
 use crate::handler::user_handler::UserHandler;
@@ -192,24 +194,6 @@ pub fn UserSingle() -> Element {
         });
     };
 
-    let mut group_add = move |group: &String| {
-        all_groups.try_write().unwrap().remove(group);
-        user_groups.try_write().unwrap().insert(group.clone());
-    };
-    let mut group_remove = move |group: &String| {
-        user_groups.try_write().unwrap().remove(group);
-        all_groups.try_write().unwrap().insert(group.clone());
-    };
-
-    let mut role_add = move |role: &String| {
-        all_roles.try_write().unwrap().remove(role);
-        user_roles.try_write().unwrap().insert(role.clone());
-    };
-    let mut role_remove = move |role: &String| {
-        user_roles.try_write().unwrap().remove(role);
-        all_roles.try_write().unwrap().insert(role.clone());
-    };
-
     rsx! {
         div { class: "flex grow select-none flex-row",
             form { class: "flex grow flex-col items-center gap-3 p-3 px-10 body-scroll",
@@ -219,7 +203,10 @@ pub fn UserSingle() -> Element {
                 oninput: move |event| user_form.set(event.values()),
                 onsubmit: user_submit,
                 if users_details().contains_key(&user().login) {
-                    label { class: "w-full pt-5 form-control",
+                    label { class: "w-full form-control",
+                        div { class: "label",
+                            span { class: "label-text text-primary", { translate!(i18, "messages.rank") } " / " { translate!(i18, "messages.name") }}
+                        }
                         input { r#type: "text", name: "name",
                             value: [&users_details().get_user_rank(&user().login), " ", &users_details().get_user_name(&user().login)].concat(),
                             class: "input input-bordered",
@@ -260,55 +247,8 @@ pub fn UserSingle() -> Element {
                         }
                     }
                 }
-                label { class: "w-full label-text text-primary", "⌘ " { translate!(i18, "messages.roles") } }
-                div { class: "flex w-full flex-col gap-3 rounded border py-3 input-bordered",
-                    div { class: "flex w-full",
-                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
-                            for role in user_roles() {
-                                div { class: "badge badge-outline hover:cursor-pointer hover:text-error",
-                                    prevent_default: "onclick",
-                                    onclick: move |_| role_remove(&role),
-                                    { role.clone() }
-                                }
-                            }
-                        }
-                        div { class: "text-lg divider divider-horizontal text-primary", "⇄" }
-                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
-                            for role in all_roles() {
-                                div { class: "badge badge-outline hover:cursor-pointer hover:text-accent",
-                                    prevent_default: "onclick",
-                                    onclick: move |_| role_add(&role),
-                                    { role.clone() }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                label { class: "w-full label-text text-primary", "⌘ " { translate!(i18, "messages.groups") } }
-                div { class: "flex w-full flex-col gap-3 rounded border py-3 input-bordered",
-                    div { class: "flex w-full",
-                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
-                            for group in user_groups() {
-                                div { class: "badge badge-outline hover:cursor-pointer hover:text-error",
-                                    prevent_default: "onclick",
-                                    onclick: move |_| group_remove(&group),
-                                    { group.clone() }
-                                }
-                            }
-                        }
-                        div { class: "text-lg divider divider-horizontal text-primary", "⇄" }
-                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
-                            for group in all_groups() {
-                                div { class: "badge badge-outline hover:cursor-pointer hover:text-accent",
-                                    prevent_default: "onclick",
-                                    onclick: move |_| group_add(&group),
-                                    { group.clone() }
-                                }
-                            }
-                        }
-                    }
-                }
+                ListSwitcherComponent { title: translate!(i18, "messages.roles"), items: user_roles, all: all_roles }
+                ListSwitcherComponent { title: translate!(i18, "messages.groups"), items: user_groups, all: all_groups }
             }
 
             div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",

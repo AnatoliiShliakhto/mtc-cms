@@ -8,12 +8,13 @@ use dioxus_std::translate;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 
-use crate::APP_STATE;
+use crate::component::list_switcher::ListSwitcherComponent;
 use crate::handler::permissions_handler::PermissionsHandler;
 use crate::handler::role_handler::RoleHandler;
 use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
+use crate::APP_STATE;
 
 #[component]
 pub fn RoleSingle() -> Element {
@@ -26,11 +27,13 @@ pub fn RoleSingle() -> Element {
     let mut page_action = use_context::<Signal<PageAction>>();
     let roles = use_context::<Signal<BTreeMap<usize, RoleModel>>>();
 
-    let role = use_memo(move || {
-        match page_action() {
-            PageAction::Selected(value) => roles.peek().get(&value).unwrap_or(&RoleModel::default()).clone(),
-            _ => RoleModel::default()
-        }
+    let role = use_memo(move || match page_action() {
+        PageAction::Selected(value) => roles
+            .peek()
+            .get(&value)
+            .unwrap_or(&RoleModel::default())
+            .clone(),
+        _ => RoleModel::default(),
     });
     let mut role_form = use_signal(HashMap::<String, FormValue>::new);
 
@@ -45,11 +48,24 @@ pub fn RoleSingle() -> Element {
             let mut permissions_list = BTreeSet::<String>::new();
             let mut permissions_role = BTreeSet::<String>::new();
             if let Ok(permissions_model) = APP_STATE.peek().api.get_permissions().await {
-                permissions_list = permissions_model.permissions.iter().cloned().collect::<BTreeSet<String>>();
+                permissions_list = permissions_model
+                    .permissions
+                    .iter()
+                    .cloned()
+                    .collect::<BTreeSet<String>>();
             }
             if !is_new_role() {
-                if let Ok(permissions_model) = APP_STATE.peek().api.get_role_permissions(&role().slug.clone()).await {
-                    permissions_role = permissions_model.permissions.iter().cloned().collect::<BTreeSet<String>>();
+                if let Ok(permissions_model) = APP_STATE
+                    .peek()
+                    .api
+                    .get_role_permissions(&role().slug.clone())
+                    .await
+                {
+                    permissions_role = permissions_model
+                        .permissions
+                        .iter()
+                        .cloned()
+                        .collect::<BTreeSet<String>>();
                 }
             }
 
@@ -65,10 +81,14 @@ pub fn RoleSingle() -> Element {
 
     let role_submit = move |event: Event<FormData>| {
         role_form.set(event.values());
-        if !role_form.is_string_valid("title", 5) | !role_form.is_slug_valid() { 
-            APP_STATE.peek().modal.signal().set(ModalModel::Error(translate!(i18, "errors.fields")));
+        if !role_form.is_string_valid("title", 5) | !role_form.is_slug_valid() {
+            APP_STATE
+                .peek()
+                .modal
+                .signal()
+                .set(ModalModel::Error(translate!(i18, "errors.fields")));
             is_busy.set(false);
-            return; 
+            return;
         };
 
         spawn(async move {
@@ -82,20 +102,32 @@ pub fn RoleSingle() -> Element {
 
             match match is_new_role() {
                 false => {
-                    app_state.api.update_role(
-                        &role_form.get_string("slug"),
-                        &RoleUpdateModel { title: role_form.get_string("title"), permissions },
-                    ).await
+                    app_state
+                        .api
+                        .update_role(
+                            &role_form.get_string("slug"),
+                            &RoleUpdateModel {
+                                title: role_form.get_string("title"),
+                                permissions,
+                            },
+                        )
+                        .await
                 }
                 true => {
-                    app_state.api.create_role(
-                        &role_form.get_string("slug"),
-                        &RoleCreateModel { title: role_form.get_string("title"), permissions },
-                    ).await
+                    app_state
+                        .api
+                        .create_role(
+                            &role_form.get_string("slug"),
+                            &RoleCreateModel {
+                                title: role_form.get_string("title"),
+                                permissions,
+                            },
+                        )
+                        .await
                 }
             } {
                 Ok(_) => page_action.set(PageAction::None),
-                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message()))
+                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
 
             is_busy.set(false);
@@ -109,24 +141,15 @@ pub fn RoleSingle() -> Element {
 
             match app_state.api.delete_role(&role().slug).await {
                 Ok(_) => page_action.set(PageAction::None),
-                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message()))
+                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
         });
     };
 
-    let mut permission_add = move |permission: &String| {
-        all_permissions.try_write().unwrap().remove(permission);
-        role_permissions.try_write().unwrap().insert(permission.clone());
-    };
-    let mut permission_remove = move |permission: &String| {
-        role_permissions.try_write().unwrap().remove(permission);
-        all_permissions.try_write().unwrap().insert(permission.clone());
-    };
-
     rsx! {
         div { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center gap-3 p-3 px-10 body-scroll",
+            form { class: "flex grow flex-col items-center p-3 px-10 body-scroll",
                 id: "role-form",
                 prevent_default: "oninput",
                 autocomplete: "off",
@@ -165,32 +188,9 @@ pub fn RoleSingle() -> Element {
                         }
                     }
                 }
-                
-                label { class: "w-full label-text text-primary", "⌘ " { translate!(i18, "messages.permissions") } }
-                div { class: "flex w-full flex-col gap-3 rounded border py-3 input-bordered",
-                    div { class: "flex w-full",
-                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
-                            for permission in role_permissions() {
-                                div { class: "badge badge-outline hover:cursor-pointer hover:text-error",
-                                    prevent_default: "onclick",
-                                    onclick: move |_| permission_remove(&permission),
-                                    { permission.clone() }
-                                }
-                            }
-                        }
-                        div { class: "text-lg divider divider-horizontal text-primary", "⇄" }
-                        div { class: "flex w-full flex-wrap content-start gap-2 p-3",
-                            for permission in all_permissions() {
-                                div { class: "badge badge-outline hover:cursor-pointer hover:text-accent",
-                                    prevent_default: "onclick",
-                                    onclick: move |_| permission_add(&permission),
-                                    { permission.clone() }
-                                }
-                            }
-                        }
-                    }
-                }
+                ListSwitcherComponent { title: translate!(i18, "messages.permissions"), items: role_permissions, all: all_permissions }
             }
+
             div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
@@ -215,7 +215,7 @@ pub fn RoleSingle() -> Element {
                         }
                         { translate!(i18, "messages.cancel") }
                     }
-                
+
                     if auth_state.is_permission("role::write") {
                         button { class: "btn btn-outline btn-accent",
                             prevent_default: "onsubmit onclick",

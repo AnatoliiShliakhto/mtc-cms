@@ -32,7 +32,7 @@ pub fn UserList(mut props: UserListProps) -> Element {
     let users = use_context::<Signal<BTreeMap<usize, UserModel>>>();
     let pagination = use_context::<Signal<PaginationModel>>();
     let mut is_busy = use_signal(|| false);
-    let can_edit = use_memo(|| APP_STATE.peek().auth.peek().is_permission("user_write"));
+    let can_edit = use_memo(|| APP_STATE.peek().auth.peek().is_permission("user::write"));
 
     let delete_users = move |event: Event<FormData>| {
         event.stop_propagation();

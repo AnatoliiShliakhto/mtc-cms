@@ -2,24 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
-html, body, #main {
-    width: 100vw;
-    height: 100vh;
-}
-
-#main {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow: hidden;
-}
-
-
- */
 .body-scroll {
-    height: calc(100vh - 3rem); /*6.5*/
-    scroll-behavior: smooth;
-    scroll-padding-top: 5rem;
+    margin-top: 3rem;
+    height: calc(100vh - 3rem);
     overflow: auto;
 }
