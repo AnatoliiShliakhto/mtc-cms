@@ -67,7 +67,11 @@ pub async fn group_create_handler(
 ) -> Result<GroupModel> {
     session.permission("group::write").await?;
 
-    state.group_service.create(&slug, payload).await?.ok_model()
+    state
+        .group_service
+        .create(&session.auth_id().await?, &slug, payload)
+        .await?
+        .ok_model()
 }
 
 pub async fn group_update_handler(
@@ -78,7 +82,11 @@ pub async fn group_update_handler(
 ) -> Result<GroupModel> {
     session.permission("group::write").await?;
 
-    state.group_service.update(&slug, payload).await?.ok_model()
+    state
+        .group_service
+        .update(&session.auth_id().await?, &slug, payload)
+        .await?
+        .ok_model()
 }
 
 pub async fn group_delete_handler(

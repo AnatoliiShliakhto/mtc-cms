@@ -17,16 +17,16 @@ repository_paginate!(UserService, UserModel, "users");
 #[async_trait]
 pub trait UserRepositoryTrait {
     async fn find_by_login(&self, login: &str) -> Result<UserModel>;
-    async fn create(&self, login: &str, model: &UserCreateModel) -> Result<UserModel>;
-    async fn update(&self, login: &str, model: &UserUpdateModel) -> Result<UserModel>;
+    async fn create(&self, auth: &str, login: &str, model: &UserCreateModel) -> Result<UserModel>;
+    async fn update(&self, auth: &str, login: &str, model: &UserUpdateModel) -> Result<UserModel>;
     async fn delete(&self, login: &str) -> Result<()>;
     async fn role_assign(&self, user_id: &str, role_id: &str) -> Result<()>;
     async fn roles_drop(&self, user_id: &str) -> Result<()>;
     async fn group_assign(&self, user_id: &str, group_id: &str) -> Result<()>;
     async fn groups_drop(&self, user_id: &str) -> Result<()>;
-    async fn block(&self, login: &str) -> Result<()>;
-    async fn unblock(&self, login: &str) -> Result<()>;
-    async fn block_toggle(&self, login: &str) -> Result<()>;
+    async fn block(&self, auth: &str, login: &str) -> Result<()>;
+    async fn unblock(&self, auth: &str, login: &str) -> Result<()>;
+    async fn block_toggle(&self, auth: &str, login: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -44,7 +44,7 @@ impl UserRepositoryTrait for UserService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn create(&self, login: &str, model: &UserCreateModel) -> Result<UserModel> {
+    async fn create(&self, auth: &str, login: &str, model: &UserCreateModel) -> Result<UserModel> {
         let password = model.password.as_bytes();
         let salt = match SaltString::from_b64(&self.cfg.password_salt) {
             Ok(value) => value,
@@ -63,10 +63,13 @@ impl UserRepositoryTrait for UserService {
                 r#"
                 CREATE users CONTENT {
 	                login: $login,
-	                password: $password
+	                password: $password,
+	                created_by: $auth_id,
+	                updated_by: $auth_id
                 };
                 "#,
             )
+            .bind(("auth_id", auth))
             .bind(("login", login.to_uppercase()))
             .bind(("password", password_hash))
             .await?
@@ -88,7 +91,7 @@ impl UserRepositoryTrait for UserService {
         }
     }
 
-    async fn update(&self, login: &str, model: &UserUpdateModel) -> Result<UserModel> {
+    async fn update(&self, auth: &str, login: &str, model: &UserUpdateModel) -> Result<UserModel> {
         match &model.password {
             Some(value) => {
                 let password = value.as_bytes();
@@ -107,10 +110,12 @@ impl UserRepositoryTrait for UserService {
                         r#"
                         UPDATE users MERGE {
                             password: $password,
-	                        fields: $fields
+	                        fields: $fields,
+	                        updated_by: $auth_id
                         } WHERE login=$login;
                         "#,
                     )
+                    .bind(("auth_id", auth))
                     .bind(("login", login))
                     .bind(("password", password_hash))
                     .bind(("fields", model.fields.clone()))
@@ -123,10 +128,12 @@ impl UserRepositoryTrait for UserService {
                 .query(
                     r#"
                     UPDATE users MERGE {
-	                    fields: $fields
+	                    fields: $fields,
+	                    updated_by: $auth_id
                     } WHERE login=$login;
                     "#,
                 )
+                .bind(("auth_id", auth))
                 .bind(("login", login))
                 .bind(("fields", model.fields.clone()))
                 .await?
@@ -214,16 +221,18 @@ impl UserRepositoryTrait for UserService {
         }
     }
 
-    async fn block(&self, login: &str) -> Result<()> {
+    async fn block(&self, auth: &str, login: &str) -> Result<()> {
         match self
             .db
             .query(
                 r#"
                     UPDATE users MERGE {
-	                    blocked: true
+	                    blocked: true,
+	                    updated_by: $auth_id
                     } WHERE login=$login;
                     "#,
             )
+            .bind(("auth_id", auth))
             .bind(("login", login))
             .await
         {
@@ -232,16 +241,18 @@ impl UserRepositoryTrait for UserService {
         }
     }
 
-    async fn unblock(&self, login: &str) -> Result<()> {
+    async fn unblock(&self, auth: &str, login: &str) -> Result<()> {
         match self
             .db
             .query(
                 r#"
                     UPDATE users MERGE {
-	                    blocked: false
+	                    blocked: false,
+	                    updated_by: $auth_id
                     } WHERE login=$login;
                     "#,
             )
+            .bind(("auth_id", auth))
             .bind(("login", login))
             .await
         {
@@ -250,13 +261,13 @@ impl UserRepositoryTrait for UserService {
         }
     }
 
-    async fn block_toggle(&self, login: &str) -> Result<()> {
+    async fn block_toggle(&self, auth: &str, login: &str) -> Result<()> {
         let user_model = self.find_by_login(login).await?;
         match user_model.blocked {
-            true => self.unblock(login).await?,
-            false => self.block(login).await?,
+            true => self.unblock(auth, login).await?,
+            false => self.block(auth, login).await?,
         }
-        
+
         Ok(())
     }
 }

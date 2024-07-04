@@ -28,7 +28,7 @@ pub fn SignIn() -> Element {
             let app_state = APP_STATE.read();
 
             match app_state.api.sign_in(
-                credentials_submit.get_string("login"),
+                credentials_submit.get_string("login").to_uppercase(),
                 credentials_submit.get_string("password"),
             ).await {
                 Ok(auth_model) => { app_state.auth.signal().set(auth_model) }

@@ -17,6 +17,8 @@ pub struct UserModel {
     pub fields: Option<Value>,
     pub created_at: Datetime,
     pub updated_at: Datetime,
+    pub created_by: String,
+    pub updated_by: String,
 }
 
 impl Default for UserModel {
@@ -29,6 +31,8 @@ impl Default for UserModel {
             fields: None,
             created_at: Default::default(),
             updated_at: Default::default(),
+            created_by: "".to_string(),
+            updated_by: "".to_string(),
         }
     }
 }

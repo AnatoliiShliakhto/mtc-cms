@@ -37,7 +37,7 @@ pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
         div { class: "mt-4 rounded border p-3 collapse bg-base-100 input-bordered",
             tabindex: 0,
             div { class: "p-0 collapse-title",
-                label { class: "w-full label-text text-primary", "⌘ " { props.title.clone() } }
+                label { class: "w-full lowercase label-text text-primary", "⌘ " { props.title.clone() } }
                 div { class: "flex flex-wrap content-start gap-2 pt-3",
                     for item in items() {
                         div { class: "badge badge-outline text-success hover:cursor-pointer hover:text-error",

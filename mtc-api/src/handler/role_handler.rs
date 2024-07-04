@@ -74,7 +74,10 @@ pub async fn role_create_handler(
 ) -> Result<RoleModel> {
     session.permission("role::write").await?;
 
-    let role_model = state.role_service.create(&slug, &payload).await?;
+    let role_model = state
+        .role_service
+        .create(&session.auth_id().await?, &slug, &payload)
+        .await?;
 
     if let Some(permissions) = payload.permissions {
         for permission in permissions {
@@ -101,7 +104,10 @@ pub async fn role_update_handler(
 ) -> Result<RoleModel> {
     session.permission("role::write").await?;
 
-    let role_model = state.role_service.update(&slug, &payload).await?;
+    let role_model = state
+        .role_service
+        .update(&session.auth_id().await?, &slug, &payload)
+        .await?;
 
     state.role_service.permissions_drop(&role_model.id).await?;
 

@@ -23,12 +23,17 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         DEFINE FIELD is_collection ON TABLE schemas TYPE bool DEFAULT false;
         DEFINE FIELD created_at ON TABLE schemas TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE schemas TYPE datetime VALUE time::now();
+        DEFINE FIELD created_by ON TABLE schemas TYPE string;
+        DEFINE FIELD updated_by ON TABLE schemas TYPE string;
+        DEFINE INDEX idx_schemas_update ON TABLE schemas COLUMNS updated_at;
         DEFINE INDEX idx_schemas_slug ON TABLE schemas COLUMNS slug UNIQUE;
 
         CREATE schemas CONTENT {
             slug: 'schemas',
             title: 'Schemas',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login 
         };
 
         REMOVE TABLE IF EXISTS sessions;
@@ -36,7 +41,9 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'sessions',
             title: 'Sessions',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login
         };
 
         REMOVE TABLE IF EXISTS users;
@@ -45,7 +52,9 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'users',
             title: 'Users',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login
         };
 
         DEFINE FIELD login ON TABLE users TYPE string;
@@ -54,12 +63,17 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         DEFINE FIELD fields ON TABLE users FLEXIBLE TYPE option<object>;
         DEFINE FIELD created_at ON TABLE users TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE users TYPE datetime VALUE time::now();
+        DEFINE FIELD created_by ON TABLE users TYPE string;
+        DEFINE FIELD updated_by ON TABLE users TYPE string;
+        DEFINE INDEX idx_users_update ON TABLE users COLUMNS updated_at;
         DEFINE INDEX idx_users_login ON TABLE users COLUMNS login UNIQUE;
 
         CREATE users CONTENT {
             id: 'sa',
             login: $login,
-            password: $password
+            password: $password,
+            created_by: $login,
+            updated_by: $login
         };
 
         REMOVE TABLE IF EXISTS roles;
@@ -68,25 +82,34 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'roles',
             title: 'Roles',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login            
         };
 
         DEFINE FIELD slug ON TABLE roles TYPE string;
         DEFINE FIELD title ON TABLE roles TYPE string;
         DEFINE FIELD created_at ON TABLE roles TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE roles TYPE datetime VALUE time::now();
+        DEFINE FIELD created_by ON TABLE roles TYPE string;
+        DEFINE FIELD updated_by ON TABLE roles TYPE string;
+        DEFINE INDEX idx_roles_update ON TABLE roles COLUMNS updated_at;        
         DEFINE INDEX idx_roles_slug ON TABLE roles COLUMNS slug UNIQUE;
 
         CREATE roles CONTENT {
             id: 'administrator',
             slug: 'administrator',
-            title: 'Administrator'
+            title: 'Administrator',
+            created_by: $login,
+            updated_by: $login              
         };
 
         CREATE roles CONTENT {
             id: 'anonymous',
             slug: 'anonymous',
-            title: 'Anonymous'
+            title: 'Anonymous',
+            created_by: $login,
+            updated_by: $login              
         };
 
         REMOVE TABLE IF EXISTS permissions;
@@ -95,12 +118,14 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'permissions',
             title: 'Permissions',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login              
         };
 
         DEFINE FIELD slug ON TABLE permissions TYPE string;
         DEFINE FIELD created_at ON TABLE permissions TYPE datetime DEFAULT time::now();
-        DEFINE FIELD updated_at ON TABLE permissions TYPE datetime VALUE time::now();
+        DEFINE FIELD updated_at ON TABLE permissions TYPE datetime VALUE time::now();      
         DEFINE INDEX idx_permissions_slug ON TABLE permissions COLUMNS slug UNIQUE;
 
         CREATE permissions CONTENT {
@@ -162,7 +187,9 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'role_permissions',
             title: 'Role permissions',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login             
         };
 
         DEFINE FIELD created_at ON TABLE role_permissions TYPE datetime VALUE time::now();
@@ -188,7 +215,9 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'user_roles',
             title: 'User roles',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login             
         };
 
         DEFINE FIELD created_at ON TABLE user_roles TYPE datetime VALUE time::now();
@@ -202,13 +231,18 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'groups',
             title: 'Groups',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login             
         };
 
         DEFINE FIELD slug ON TABLE groups TYPE string;
         DEFINE FIELD title ON TABLE groups TYPE string;
         DEFINE FIELD created_at ON TABLE groups TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE groups TYPE datetime VALUE time::now();
+        DEFINE FIELD created_by ON TABLE groups TYPE string;
+        DEFINE FIELD updated_by ON TABLE groups TYPE string;
+        DEFINE INDEX idx_groups_update ON TABLE groups COLUMNS updated_at;         
         DEFINE INDEX idx_groups_slug ON TABLE groups COLUMNS slug UNIQUE;
 
         REMOVE TABLE IF EXISTS user_groups;
@@ -217,7 +251,9 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'user_groups',
             title: 'User groups',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login            
         };
 
         DEFINE FIELD created_at ON TABLE user_groups TYPE datetime VALUE time::now();
@@ -229,13 +265,18 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         CREATE schemas CONTENT {
             slug: 'singles',
             title: 'Singles',
-            is_system: true
+            is_system: true,
+            created_by: $login,
+            updated_by: $login            
         };
 
         DEFINE FIELD slug ON TABLE singles TYPE string;
         DEFINE FIELD fields ON TABLE singles FLEXIBLE TYPE option<object>;
         DEFINE FIELD created_at ON TABLE singles TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE singles TYPE datetime VALUE time::now();
+        DEFINE FIELD created_by ON TABLE singles TYPE string;
+        DEFINE FIELD updated_by ON TABLE singles TYPE string;
+        DEFINE INDEX idx_singles_update ON TABLE singles COLUMNS updated_at;          
         DEFINE INDEX idx_singles_slug ON TABLE singles COLUMNS slug UNIQUE;
 
         COMMIT TRANSACTION;
@@ -251,7 +292,7 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         .to_string();
 
     let responses = state.db.query(sql)
-        .bind(("login", state.cfg.setup_login.clone()))
+        .bind(("login", state.cfg.setup_login.clone().to_uppercase()))
         .bind(("password", password_hash.as_str()))
         .await?;
 

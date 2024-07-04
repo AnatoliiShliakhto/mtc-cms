@@ -20,7 +20,7 @@ macro_rules! repository_paginate {
         impl RepositoryPaginate<$model> for $repository {
             async fn get_page(&self, start: usize, limit: usize) -> crate::error::Result<Vec<$model>> {
                 let mut result = self.db
-                .query(r#"SELECT * FROM type::table($table) ORDER BY created_at DESC LIMIT $limit START $start;"#)
+                .query(r#"SELECT * FROM type::table($table) ORDER BY updated_at DESC LIMIT $limit START $start;"#)
                 .bind(("table", $table))
                 .bind(("start", start - 1))
                 .bind(("limit", limit))

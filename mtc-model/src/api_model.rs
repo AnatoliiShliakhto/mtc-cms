@@ -13,6 +13,8 @@ pub struct ApiModel {
     pub fields: Option<Value>,
     pub created_at: Option<Datetime>,
     pub updated_at: Option<Datetime>,
+    pub created_by: String,
+    pub updated_by: String,
 }
 
 #[derive(Deserialize, Validate)]

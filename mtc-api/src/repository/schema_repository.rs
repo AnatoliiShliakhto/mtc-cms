@@ -1,6 +1,8 @@
 use axum::async_trait;
 
-use mtc_model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
+use mtc_model::schema_model::{
+    SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel,
+};
 
 use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
@@ -14,60 +16,75 @@ repository_paginate!(SchemaService, SchemaModel, "schemas");
 #[async_trait]
 pub trait SchemaRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<SchemaModel>;
-    async fn can_create(&self, slug: &str) -> Result<bool>;
-    async fn create(&self, slug: &str, model: SchemaCreateModel) -> Result<SchemaModel>;
+    async fn can_create(&self, slug: &str) -> Result<()>;
+    async fn create(&self, auth: &str, slug: &str, model: SchemaCreateModel)
+        -> Result<SchemaModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
-    async fn update(&self, slug: &str, model: SchemaUpdateModel) -> Result<SchemaModel>;
-    async fn update_fields(&self, slug: &str, model: SchemaFieldsModel) -> Result<SchemaModel>;
+    async fn update(&self, auth: &str, slug: &str, model: SchemaUpdateModel)
+        -> Result<SchemaModel>;
+    async fn update_fields(
+        &self,
+        auth: &str,
+        slug: &str,
+        model: SchemaFieldsModel,
+    ) -> Result<SchemaModel>;
     async fn get_fields(&self, slug: &str) -> Result<SchemaFieldsModel>;
 }
 
 #[async_trait]
 impl SchemaRepositoryTrait for SchemaService {
-    async fn find_by_slug(
-        &self,
-        slug: &str,
-    ) -> Result<SchemaModel> {
-        self.db.query(r#"
+    async fn find_by_slug(&self, slug: &str) -> Result<SchemaModel> {
+        self.db
+            .query(
+                r#"
             SELECT * FROM schemas WHERE slug=$slug;
-            "#)
+            "#,
+            )
             .bind(("slug", slug))
             .await?
             .take::<Option<SchemaModel>>(0)?
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn can_create(
-        &self,
-        slug: &str,
-    ) -> Result<bool> {
-        let result: Option<String> = self.db.query(r#"
+    async fn can_create(&self, slug: &str) -> Result<()> {
+        let result: Option<String> = self
+            .db
+            .query(
+                r#"
             SELECT slug FROM schemas WHERE slug=$slug;
-            "#)
+            "#,
+            )
             .bind(("slug", slug))
             .await?
             .take(0)?;
 
         match result {
-            Some(..) => Ok(false),
-            None => Err(DbError::EntryAlreadyExists.into())
+            Some(..) => Err(DbError::EntryAlreadyExists.into()),
+            None => Ok(()),
         }
     }
 
     async fn create(
         &self,
+        auth: &str,
         slug: &str,
         model: SchemaCreateModel,
     ) -> Result<SchemaModel> {
         self.can_create(slug).await?;
 
-        let result: Option<SchemaModel> = self.db.query(r#"
+        let result: Option<SchemaModel> = self
+            .db
+            .query(
+                r#"
             BEGIN TRANSACTION;
 
             CREATE schemas CONTENT {
 	            slug: $slug,
 	            title: $title,
-	            is_collection: $is_collection
+	            fields: $fields,
+	            is_collection: $is_collection,
+	            created_by: $auth_id,
+	            updated_by: $auth_id
             };
 
             CREATE permissions CONTENT {
@@ -86,9 +103,12 @@ impl SchemaRepositoryTrait for SchemaService {
             };
 
             COMMIT TRANSACTION;
-            "#)
+            "#,
+            )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", &model.title))
+            .bind(("fields", &model.fields))
             .bind(("is_collection", &model.is_collection))
             .bind(("permission_read_id", format!("{}_read", slug)))
             .bind(("permission_read", format!("{}::read", slug)))
@@ -102,7 +122,9 @@ impl SchemaRepositoryTrait for SchemaService {
         match result {
             Some(value) => {
                 if model.is_collection {
-                    self.db.query(format!(r#"
+                    self.db
+                        .query(format!(
+                            r#"
                     BEGIN TRANSACTION;
 
                     DEFINE TABLE {0} SCHEMAFULL;
@@ -110,20 +132,34 @@ impl SchemaRepositoryTrait for SchemaService {
                     DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<object>;
                     DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
                     DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
+                    DEFINE FIELD created_by ON TABLE {0} TYPE string;
+                    DEFINE FIELD updated_by ON TABLE {0} TYPE string;
+                    DEFINE INDEX idx_{0}_update ON TABLE {0} COLUMNS updated_at; 
                     DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
 
                     COMMIT TRANSACTION;
-                    "#, slug)).await?;
+                    "#,
+                            slug
+                        ))
+                        .await?;
                 } else {
-                    self.db.query(r#"
+                    self.db
+                        .query(
+                            r#"
                     CREATE singles CONTENT {
 	                    slug: $slug,
+	                    created_by: $auth_id,
+	                    updated_by: $auth_id
                     };
-                    "#)
+                    "#,
+                        )
+                        .bind(("auth_id", auth))
                         .bind(("slug", slug))
                         .await?;
                 }
-                self.db.query(format!(r#"
+                self.db
+                    .query(format!(
+                        r#"
                     BEGIN TRANSACTION;
 
                     RELATE roles:administrator->role_permissions->permissions:{0}_read;
@@ -131,24 +167,26 @@ impl SchemaRepositoryTrait for SchemaService {
                     RELATE roles:administrator->role_permissions->permissions:{0}_delete;
 
                     COMMIT TRANSACTION;
-                    "#, slug)).await?;
+                    "#,
+                        slug
+                    ))
+                    .await?;
                 Ok(value)
             }
-            _ => Err(DbError::EntryAlreadyExists.into())
+            _ => Err(DbError::EntryAlreadyExists.into()),
         }
     }
 
-    async fn delete(
-        &self,
-        slug: &str,
-    ) -> Result<()> {
+    async fn delete(&self, slug: &str) -> Result<()> {
         let model = self.find_by_slug(slug).await?;
 
         if model.is_system {
             Err(ApiError::from(DbError::EntryDelete))?
         }
 
-        self.db.query(r#"
+        self.db
+            .query(
+                r#"
             BEGIN TRANSACTION;
 
             DELETE FROM schemas WHERE slug=$slug;
@@ -159,7 +197,8 @@ impl SchemaRepositoryTrait for SchemaService {
             DELETE FROM permissions WHERE slug=$permission_delete;
 
             COMMIT TRANSACTION;
-            "#)
+            "#,
+            )
             .bind(("slug", &model.slug))
             .bind(("permission_read", format!("{}::read", &model.slug)))
             .bind(("permission_write", format!("{}::write", &model.slug)))
@@ -167,9 +206,13 @@ impl SchemaRepositoryTrait for SchemaService {
             .await?;
 
         if model.is_collection {
-            self.db.query(format!(r#"
+            self.db
+                .query(format!(
+                    r#"
                 REMOVE TABLE IF EXISTS {};
-                "#, &model.slug))
+                "#,
+                    &model.slug
+                ))
                 .await?;
         }
 
@@ -178,16 +221,24 @@ impl SchemaRepositoryTrait for SchemaService {
 
     async fn update(
         &self,
+        auth: &str,
         slug: &str,
         model: SchemaUpdateModel,
     ) -> Result<SchemaModel> {
-        self.db.query(r#"
+        self.db
+            .query(
+                r#"
             UPDATE schemas MERGE {
-                title: $title
+                title: $title,
+                fields: $fields,
+                updated_by: $auth_id
             } WHERE slug=$slug;
-            "#)
+            "#,
+            )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", model.title))
+            .bind(("fields", model.fields))
             .await?
             .take::<Option<SchemaModel>>(0)?
             .ok_or(DbError::EntryUpdate.into())
@@ -195,14 +246,20 @@ impl SchemaRepositoryTrait for SchemaService {
 
     async fn update_fields(
         &self,
+        auth: &str,
         slug: &str,
         model: SchemaFieldsModel,
     ) -> Result<SchemaModel> {
-        self.db.query(r#"
+        self.db
+            .query(
+                r#"
             UPDATE schemas MERGE {
-                fields: $fields
+                fields: $fields,
+                updated_by: $auth_id
             } WHERE slug=$slug;
-            "#)
+            "#,
+            )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("fields", model.fields))
             .await?
@@ -210,20 +267,23 @@ impl SchemaRepositoryTrait for SchemaService {
             .ok_or(DbError::EntryUpdate.into())
     }
 
-    async fn get_fields(
-        &self,
-        slug: &str,
-    ) -> Result<SchemaFieldsModel> {
-        let result: Option<SchemaModel> = self.db.query(r#"
+    async fn get_fields(&self, slug: &str) -> Result<SchemaFieldsModel> {
+        let result: Option<SchemaModel> = self
+            .db
+            .query(
+                r#"
             SELECT * FROM schemas WHERE slug=$slug;
-            "#)
+            "#,
+            )
             .bind(("slug", slug))
             .await?
             .take(0)?;
 
         match result {
-            Some(schema_model) => Ok(SchemaFieldsModel { fields: schema_model.fields }),
-            _ => Err(ApiError::from(DbError::EntryNotFound))
+            Some(schema_model) => Ok(SchemaFieldsModel {
+                fields: schema_model.fields,
+            }),
+            _ => Err(ApiError::from(DbError::EntryNotFound)),
         }
     }
 }

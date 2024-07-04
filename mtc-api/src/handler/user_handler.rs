@@ -64,7 +64,10 @@ pub async fn user_create_handler(
 ) -> Result<UserModel> {
     session.permission("user::write").await?;
 
-    let user_model = state.user_service.create(&login, &payload).await?;
+    let user_model = state
+        .user_service
+        .create(&session.auth_id().await?, &login, &payload)
+        .await?;
 
     if let Some(roles) = payload.roles {
         set_roles(&state, &user_model.id, roles).await?;
@@ -85,10 +88,13 @@ pub async fn user_update_handler(
 ) -> Result<UserModel> {
     session.permission("user::write").await?;
 
-    let user_model = state.user_service.update(&login, &payload).await?;
+    let user_model = state
+        .user_service
+        .update(&session.auth_id().await?, &login, &payload)
+        .await?;
     state.user_service.roles_drop(&user_model.id).await?;
     state.user_service.groups_drop(&user_model.id).await?;
-    
+
     if let Some(roles) = payload.roles {
         set_roles(&state, &user_model.id, roles).await?;
     }
@@ -96,7 +102,7 @@ pub async fn user_update_handler(
     if let Some(groups) = payload.groups {
         set_groups(&state, &user_model.id, groups).await?;
     }
-    
+
     user_model.ok_model()
 }
 
@@ -225,5 +231,9 @@ pub async fn user_block_toggle_handler(
 ) -> Result<()> {
     session.permission("user::write").await?;
 
-    state.user_service.block_toggle(&login).await?.ok_ok()
+    state
+        .user_service
+        .block_toggle(&session.auth_id().await?, &login)
+        .await?
+        .ok_ok()
 }

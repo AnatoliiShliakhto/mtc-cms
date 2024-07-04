@@ -17,9 +17,13 @@ pub trait PermissionsRepositoryTrait {
 #[async_trait]
 impl PermissionsRepositoryTrait for PermissionsService {
     async fn all(&self) -> Result<PermissionsModel> {
-        let permissions: Vec<String> = self.db.query(r#"
+        let permissions: Vec<String> = self
+            .db
+            .query(
+                r#"
             SELECT VALUE slug FROM permissions;
-            "#)
+            "#,
+            )
             .await?
             .take(0)?;
 
@@ -27,19 +31,19 @@ impl PermissionsRepositoryTrait for PermissionsService {
     }
 
     async fn find_by_slug(&self, slug: &str) -> Result<PermissionModel> {
-        self.db.query(r#"
+        self.db
+            .query(
+                r#"
             SELECT * FROM permissions WHERE slug=$slug;
-            "#)
+            "#,
+            )
             .bind(("slug", slug))
             .await?
             .take::<Option<PermissionModel>>(0)?
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn find_by_role(
-        &self,
-        slug: &str,
-    ) -> Result<PermissionsModel> {
+    async fn find_by_role(&self, slug: &str) -> Result<PermissionsModel> {
         self.db.query(r#"
             SELECT array::sort(array::distinct(->role_permissions->permissions.slug)) as permissions FROM roles WHERE slug=$slug
             "#)

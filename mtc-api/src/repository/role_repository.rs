@@ -15,8 +15,8 @@ pub trait RoleRepositoryTrait {
     async fn all(&self) -> Result<RolesModel>;
     async fn find_by_slug(&self, slug: &str) -> Result<RoleModel>;
     async fn find_by_user(&self, login: &str) -> Result<RolesModel>;
-    async fn create(&self, slug: &str, model: &RoleCreateModel) -> Result<RoleModel>;
-    async fn update(&self, slug: &str, model: &RoleUpdateModel) -> Result<RoleModel>;
+    async fn create(&self, auth: &str, slug: &str, model: &RoleCreateModel) -> Result<RoleModel>;
+    async fn update(&self, auth: &str, slug: &str, model: &RoleUpdateModel) -> Result<RoleModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
     async fn permission_assign(&self, role_id: &str, permission_id: &str) -> Result<()>;
     async fn permissions_drop(&self, role_id: &str) -> Result<()>;
@@ -61,16 +61,19 @@ impl RoleRepositoryTrait for RoleService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn create(&self, slug: &str, model: &RoleCreateModel) -> Result<RoleModel> {
+    async fn create(&self, auth: &str, slug: &str, model: &RoleCreateModel) -> Result<RoleModel> {
         self.db
             .query(
                 r#"
                 CREATE roles CONTENT {
 	                slug: $slug,
 	                title: $title,
+	                created_by: $auth_id,
+	                updated_by: $auth_id
                 };
                 "#,
             )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", model.title.clone()))
             .await?
@@ -78,15 +81,17 @@ impl RoleRepositoryTrait for RoleService {
             .ok_or(DbError::EntryAlreadyExists.into())
     }
 
-    async fn update(&self, slug: &str, model: &RoleUpdateModel) -> Result<RoleModel> {
+    async fn update(&self, auth: &str, slug: &str, model: &RoleUpdateModel) -> Result<RoleModel> {
         self.db
             .query(
                 r#"
                 UPDATE roles MERGE {
-	                title: $title
+	                title: $title,
+	                updated_by: $auth_id
                 } WHERE slug=$slug;
                 "#,
             )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", model.title.clone()))
             .await?

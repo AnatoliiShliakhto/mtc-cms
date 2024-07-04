@@ -12,6 +12,8 @@ pub struct GroupModel {
     pub title: String,
     pub created_at: Datetime,
     pub updated_at: Datetime,
+    pub created_by: String,
+    pub updated_by: String,
 }
 
 impl Default for GroupModel {
@@ -22,6 +24,8 @@ impl Default for GroupModel {
             title: "".to_string(),
             created_at: Default::default(),
             updated_at: Default::default(),
+            created_by: "".to_string(),
+            updated_by: "".to_string(),
         }
     }
 }

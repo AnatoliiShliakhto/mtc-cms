@@ -4,6 +4,7 @@ pub static EN_US: &str = r#"{
         "messages": {
             "not_found": "Page not found",
             "add": "Add",
+            "add_field": "Add",
             "administrator": "Administrator",
             "blocked": "blocked",
             "cancel": "Cancel",
@@ -15,10 +16,15 @@ pub static EN_US: &str = r#"{
             "clipboard_copy": "Copy",
             "clipboard_paste": "Paste",
             "close": "Close",
+            "collection": "collection",
+            "collections": "Collections",
+            "constructor": "Constructor",
+            "content": "Content",
             "copyright": "2024 © Developer - Anatolii Shliakhto",
             "created_at": "created at",
             "dashboard": "Dashboard",
             "delete": "Delete",
+            "fields": "fields",
             "home": "Home",
             "groups": "Groups",
             "in_progress": "In progress...",
@@ -26,6 +32,7 @@ pub static EN_US: &str = r#"{
             "login": "login",
             "logged_in": "You are logged in.",
             "name": "name",
+            "new_field": "new field",
             "no": "No",
             "page": "page",
             "password": "password",
@@ -34,10 +41,15 @@ pub static EN_US: &str = r#"{
             "reload": "Reload",
             "roles": "Roles",
             "save": "Save",
+            "schema": "Schema",
+            "schema_type": "schema type",
             "sign_in": "Sign In",
             "sign_out": "Sign Out",
+            "single": "single",
+            "singles": "Single",
             "slug": "slug",
             "title": "title",
+            "type": "type",
             "updated_at": "updated at",
             "users": "Users",            
             "welcome": "Welcome!",
@@ -66,11 +78,25 @@ pub static EN_US: &str = r#"{
             "unsupported_media": "Unsupported Media Type",
             "user_blocked": "Account is blocked"
         },
-        "validate" : {
+        "validate": {
             "login": "login must be 5 characters at least",
             "password": "password must be 6 characters at least",
             "slug": "must be 5 characters at least",
             "title": "must be 5 character at least"
+        },
+        "fields": {
+            "str": "String",
+            "bool": "Boolean",
+            "int": "Integer",
+            "float": "Float",
+            "datetime": "DateTime",
+            "text": "Text",
+            "html": "HTML",
+            "bool-array": "BooleanArray",
+            "int-array": "IntegerArray",
+            "float-array": "FloatArray",
+            "str-array": "StringArray",
+            "text:array": "TextArray"
         }
     }
 }"#;

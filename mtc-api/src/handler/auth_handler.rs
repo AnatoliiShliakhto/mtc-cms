@@ -45,12 +45,12 @@ pub async fn sign_in_handler(
         Ok(value) => value,
         _ => Err(ApiError::from(SessionError::PasswordHash))?,
     };
-    if !argon2.verify_password(payload.password.as_bytes(), &parsed_hash).is_ok() {
+    if argon2.verify_password(payload.password.as_bytes(), &parsed_hash).is_err() {
         Err(ApiError::from(SessionError::InvalidCredentials))?
     }
 
     let auth_model = AuthModel {
-        id: user_model.id.clone(),
+        id: user_model.login.clone(),
         roles: state.role_service
             .find_by_user(&user_model.login)
             .await

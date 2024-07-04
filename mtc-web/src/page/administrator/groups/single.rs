@@ -133,11 +133,13 @@ pub fn GroupSingle() -> Element {
                         span { { translate!(i18, "messages.in_progress") } }
                     }
                 } else {
-                    div { class: "mt-3 flex flex-col gap-1 rounded border p-2 input-bordered",
-                        span { class: "italic label-text", { translate!(i18, "messages.created_at") } ":" }
-                        span { class: "text-info", { group().created_at.format("%H:%M %d/%m/%Y").to_string() } }
-                        span { class: "italic label-text", { translate!(i18, "messages.updated_at") } ":" }
-                        span { class: "text-info", { group().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
+                        span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
+                        span { { group().created_by } }
+                        span { class: "label-text-alt", { group().created_at.format("%H:%M %d/%m/%Y").to_string() } }
+                        span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
+                        span { { group().updated_by } }
+                        span { class: "label-text-alt", { group().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
                     }
                     button { class: "btn btn-outline",
                         prevent_default: "onclick",

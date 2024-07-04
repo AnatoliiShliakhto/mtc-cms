@@ -15,8 +15,8 @@ pub trait GroupRepositoryTrait {
     async fn all(&self) -> Result<GroupsModel>;
     async fn find_by_slug(&self, slug: &str) -> Result<GroupModel>;
     async fn find_by_user(&self, login: &str) -> Result<GroupsModel>;
-    async fn create(&self, slug: &str, model: GroupCreateModel) -> Result<GroupModel>;
-    async fn update(&self, slug: &str, model: GroupUpdateModel) -> Result<GroupModel>;
+    async fn create(&self, auth: &str, slug: &str, model: GroupCreateModel) -> Result<GroupModel>;
+    async fn update(&self, auth: &str, slug: &str, model: GroupUpdateModel) -> Result<GroupModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
 }
 
@@ -59,16 +59,19 @@ impl GroupRepositoryTrait for GroupService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn create(&self, slug: &str, model: GroupCreateModel) -> Result<GroupModel> {
+    async fn create(&self, auth: &str, slug: &str, model: GroupCreateModel) -> Result<GroupModel> {
         self.db
             .query(
                 r#"
                 CREATE groups CONTENT {
 	                slug: $slug,
-	                title: $title
+	                title: $title,
+	                created_by: $auth_id,
+	                updated_by: $auth_id
                 };
             "#,
             )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?
@@ -76,15 +79,17 @@ impl GroupRepositoryTrait for GroupService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn update(&self, slug: &str, model: GroupUpdateModel) -> Result<GroupModel> {
+    async fn update(&self, auth: &str, slug: &str, model: GroupUpdateModel) -> Result<GroupModel> {
         self.db
             .query(
                 r#"
                 UPDATE groups MERGE {
-	                title: $title
+	                title: $title,
+	                updated_by: $auth_id
                 } WHERE slug=$slug;
                 "#,
             )
+            .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", model.title))
             .await?

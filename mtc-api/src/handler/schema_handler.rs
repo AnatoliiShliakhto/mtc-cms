@@ -2,16 +2,19 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use tower_sessions::Session;
+use tracing::error;
 
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
-use mtc_model::schema_model::{SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel};
+use mtc_model::schema_model::{
+    SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel, SchemasModel,
+};
 
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::{ApiResponse, HandlerResult};
-use crate::repository::RepositoryPaginate;
 use crate::repository::schema_repository::SchemaRepositoryTrait;
+use crate::repository::RepositoryPaginate;
 use crate::state::AppState;
 
 pub async fn schema_list_handler(
@@ -22,14 +25,14 @@ pub async fn schema_list_handler(
     session.permission("schema::read").await?;
     let page: usize = match page {
         Some(Path(value)) => value,
-        _ => 1
+        _ => 1,
     };
 
     let pagination = PaginationModel::new(
         state.schema_service.get_total().await?,
         state.cfg.rows_per_page,
     )
-        .page(page);
+    .page(page);
 
     state
         .schema_service
@@ -45,11 +48,7 @@ pub async fn schema_get_handler(
 ) -> Result<SchemaModel> {
     session.permission("schema::read").await?;
 
-    state
-        .schema_service
-        .find_by_slug(&slug)
-        .await?
-        .ok_model()
+    state.schema_service.find_by_slug(&slug).await?.ok_model()
 }
 
 pub async fn schema_create_handler(
@@ -62,7 +61,7 @@ pub async fn schema_create_handler(
 
     state
         .schema_service
-        .create(&slug, payload)
+        .create(&session.auth_id().await?, &slug, payload)
         .await?
         .ok_model()
 }
@@ -74,11 +73,23 @@ pub async fn schema_delete_handler(
 ) -> Result<()> {
     session.permission("schema::delete").await?;
 
-    state
-        .schema_service
-        .delete(&slug)
-        .await?
-        .ok_ok()
+    state.schema_service.delete(&slug).await?.ok_ok()
+}
+
+pub async fn schema_list_delete_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<SchemasModel>,
+) -> Result<()> {
+    session.permission("schema::delete").await?;
+
+    for item in payload.schemas {
+        match state.schema_service.delete(&item).await {
+            Ok(_) => (),
+            Err(e) => error!("Schema delete: {}", e.to_string()),
+        }
+    }
+    Ok(ApiResponse::Ok)
 }
 
 pub async fn schema_update_handler(
@@ -91,7 +102,7 @@ pub async fn schema_update_handler(
 
     state
         .schema_service
-        .update(&slug, payload)
+        .update(&session.auth_id().await?, &slug, payload)
         .await?
         .ok_model()
 }
@@ -106,10 +117,12 @@ pub async fn schema_update_fields_handler(
 
     let schema_model = state
         .schema_service
-        .update_fields(&slug, payload)
+        .update_fields(&session.auth_id().await?, &slug, payload)
         .await?;
 
-    Ok(ApiResponse::Data(SchemaFieldsModel { fields: schema_model.fields }))
+    Ok(ApiResponse::Data(SchemaFieldsModel {
+        fields: schema_model.fields,
+    }))
 }
 
 pub async fn schema_get_fields_handler(
@@ -119,9 +132,5 @@ pub async fn schema_get_fields_handler(
 ) -> Result<SchemaFieldsModel> {
     session.permission("schema::read").await?;
 
-    state
-        .schema_service
-        .get_fields(&slug)
-        .await?
-        .ok_model()
+    state.schema_service.get_fields(&slug).await?.ok_model()
 }

@@ -25,10 +25,7 @@ pub async fn api_collection_list_handler(
 
     session.permission(&format!("{}::read", &api)).await?;
 
-    let schema_model = state
-        .schema_service
-        .find_by_slug(&api)
-        .await?;
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
@@ -38,7 +35,7 @@ pub async fn api_collection_list_handler(
         state.api_service.get_total(&api).await?,
         state.cfg.rows_per_page,
     )
-        .page(page);
+    .page(page);
 
     state
         .api_service
@@ -54,10 +51,7 @@ pub async fn api_get_single_handler(
 ) -> Result<ApiModel> {
     session.permission(&format!("{}::read", &api)).await?;
 
-    let schema_model = state
-        .schema_service
-        .find_by_slug(&api)
-        .await?;
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     //todo: collection response (perhaps)
     if schema_model.is_system || schema_model.is_collection {
@@ -79,10 +73,7 @@ pub async fn api_update_single_item_handler(
 ) -> Result<ApiModel> {
     session.permission(&format!("{}::write", &api)).await?;
 
-    let schema_model = state
-        .schema_service
-        .find_by_slug(&api)
-        .await?;
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || schema_model.is_collection {
         Err("Isn't a single type api end-point".to_bad_request_error())?
@@ -90,7 +81,12 @@ pub async fn api_update_single_item_handler(
 
     state
         .api_service
-        .update("singles", &schema_model.slug, payload)
+        .update(
+            &session.auth_id().await?,
+            "singles",
+            &schema_model.slug,
+            payload,
+        )
         .await?
         .ok_model()
 }
@@ -102,10 +98,7 @@ pub async fn api_get_collection_item_handler(
 ) -> Result<ApiModel> {
     session.permission(&format!("{}::read", &api)).await?;
 
-    let schema_model = state
-        .schema_service
-        .find_by_slug(&api)
-        .await?;
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
@@ -126,10 +119,7 @@ pub async fn api_create_collection_item_handler(
 ) -> Result<ApiModel> {
     session.permission(&format!("{}::write", &api)).await?;
 
-    let schema_model = state
-        .schema_service
-        .find_by_slug(&api)
-        .await?;
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
@@ -137,7 +127,12 @@ pub async fn api_create_collection_item_handler(
 
     state
         .api_service
-        .create(&schema_model.slug, &slug, payload)
+        .create(
+            &session.auth_id().await?,
+            &schema_model.slug,
+            &slug,
+            payload,
+        )
         .await?
         .ok_model()
 }
@@ -150,10 +145,7 @@ pub async fn api_update_collection_item_handler(
 ) -> Result<ApiModel> {
     session.permission(&format!("{}::write", &api)).await?;
 
-    let schema_model = state
-        .schema_service
-        .find_by_slug(&api)
-        .await?;
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
@@ -161,7 +153,12 @@ pub async fn api_update_collection_item_handler(
 
     state
         .api_service
-        .update(&schema_model.slug, &slug, payload)
+        .update(
+            &session.auth_id().await?,
+            &schema_model.slug,
+            &slug,
+            payload,
+        )
         .await?
         .ok_model()
 }
