@@ -15,18 +15,32 @@ use crate::APP_STATE;
 #[component]
 pub fn Dashboard() -> Element {
     let i18 = use_i18();
-    /*
-        let mut clipboard_eval = eval(r#"
-            let msg = await dioxus.recv();
-            console.log(msg);
-             const link = document.createElement("a");
-             const file = new Blob([msg], { type: "text/plain;charset=utf-8" });
-             link.href = URL.createObjectURL(file);
-             link.download = "sample.json";
-             link.click();
-             URL.revokeObjectURL(link.href);
-            "#);
-    */
+
+    let users_download_eval = eval(
+        r#"
+            const toObject = (map = new Map()) =>
+                Object.fromEntries(Array.from(map.entries(), ([ k, v ]) =>
+                    v instanceof Map ? [ k, toObject (v) ] : [ k, v ]
+                )
+            )
+            const obj = JSON.stringify(toObject(await dioxus.recv()));
+            const file = new Blob([obj], { type: "application/json" });
+
+            if( window.showSaveFilePicker ) {
+                let opts = {
+                    types: [{
+                    description: 'JSON',
+                    accept: {'application/json': ['.json']},
+                    }],
+                    suggestedName: 'mtc-users',
+                };
+                var handle = await showSaveFilePicker(opts);
+                var writable = await handle.createWritable();
+                await writable.write(file);
+                writable.close();
+            } else { alert( "File save error" ); }
+        "#,
+    );
 
     let clipboard_write_eval = eval(
         r#"
@@ -45,12 +59,14 @@ pub fn Dashboard() -> Element {
         spawn(async move {
             to_owned![clipboard_read_eval];
             match clipboard_read_eval.recv().await {
-                Ok(Value::String(value)) => APP_STATE.peek().users.signal().set(BTreeMap::<
-                    String,
-                    UserDetailsModel,
-                >::from_string(
-                    &value
-                )),
+                Ok(Value::String(value)) => {
+                    let users = APP_STATE.peek().users.signal();
+                    APP_STATE
+                        .peek()
+                        .users
+                        .signal()
+                        .set(users().import_str(value.as_str()))
+                }
                 _ => APP_STATE
                     .peek()
                     .modal
@@ -60,22 +76,45 @@ pub fn Dashboard() -> Element {
         });
     };
 
-    let users = APP_STATE.peek().users.signal();
-/*
-    let users_submit = move |event: Event<FormData>| {
-        if event.value().is_empty() {
+    let download_user_set = move |_| {
+        let users = APP_STATE.peek().users.signal();
+        if users().is_empty() {
             return;
         }
-        APP_STATE
-            .peek()
-            .users
-            .signal()
-            .set(BTreeMap::<String, UserDetailsModel>::from_string(
-                &event.value(),
-            ));
+        users_download_eval.send(users().get_users_json()).unwrap()
     };
-    
- */
+
+    let upload_user_set = move |event: Event<FormData>| async move {
+        let users = APP_STATE.peek().users.signal();
+        let mut user_details = users.peek().clone();
+
+        if let Some(file_engine) = event.files() {
+            let files = file_engine.files();
+            for file_name in &files {
+                if let Some(file) = file_engine.read_file_to_string(file_name).await {
+                    user_details.import_json(file.as_str());
+                }
+            }
+            APP_STATE.peek().users.signal().set(user_details)
+        }
+    };
+
+    let users = APP_STATE.peek().users.signal();
+    /*
+       let users_submit = move |event: Event<FormData>| {
+           if event.value().is_empty() {
+               return;
+           }
+           APP_STATE
+               .peek()
+               .users
+               .signal()
+               .set(BTreeMap::<String, UserDetailsModel>::from_string(
+                   &event.value(),
+               ));
+       };
+
+    */
 
     let remove_user = move |user: String| {
         APP_STATE
@@ -117,6 +156,19 @@ pub fn Dashboard() -> Element {
             }
             div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
                 button {
+                    class: "btn btn-error btn-outline",
+                    prevent_default: "onclick",
+                    onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
+                    Icon {
+                            width: 16,
+                            height: 16,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::fa_regular_icons::FaFile
+                    }
+                    { translate!(i18, "messages.clear") }
+                }
+                h2 { class: "menu-title", { translate!(i18, "messages.clipboard") } }
+                button {
                     class: "btn btn-accent btn-outline",
                     prevent_default: "onclick",
                     onclick: users_from_clipboard,
@@ -131,7 +183,7 @@ pub fn Dashboard() -> Element {
                 button {
                     class: "btn btn-warning btn-outline",
                     prevent_default: "onclick",
-                    onclick: move |_| { clipboard_write_eval.send(users().get_users_json().into()).unwrap(); },
+                    onclick: move |_| { clipboard_write_eval.send(users().get_users_string()).unwrap(); },
                     Icon {
                             width: 16,
                             height: 16,
@@ -139,6 +191,38 @@ pub fn Dashboard() -> Element {
                             icon: dioxus_free_icons::icons::fa_regular_icons::FaCopy
                     }
                     { translate!(i18, "messages.clipboard_copy") }
+                }
+                h2 { class: "menu-title", { translate!(i18, "messages.files") } }
+                input { class: "hidden",
+                    id: "users-upload",
+                    r#type: "file",
+                    accept: ".json",
+                    multiple: true,
+                    onchange: upload_user_set
+                }
+                button {
+                    class: "btn btn-accent btn-outline",
+                    prevent_default: "onclick",
+                    "onclick": "document.getElementById('users-upload').click()",
+                    Icon {
+                            width: 16,
+                            height: 16,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::fa_regular_icons::FaFile
+                    }
+                    { translate!(i18, "messages.load") }
+                }
+                button {
+                    class: "btn btn-warning btn-outline",
+                    prevent_default: "onclick",
+                    onclick: download_user_set,
+                    Icon {
+                            width: 16,
+                            height: 16,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                    }
+                    { translate!(i18, "messages.save") }
                 }
             }
         }

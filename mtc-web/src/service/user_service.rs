@@ -1,18 +1,23 @@
 use std::collections::BTreeMap;
-use std::iter::Map;
+
+use serde_json::{Map, Value};
+
 use mtc_model::user_details_model::UserDetailsModel;
 
 pub trait UserService {
-    fn from_string(data: &str) -> Self;
+    fn import_str(&self, data: &str) -> Self;
+    fn import_json(&mut self, data: &str);
     fn remove_user(&mut self, user: &str) -> Self;
-    fn get_users_json(&self) -> String;
+    fn get_users_string(&self) -> Value;
+    fn get_users_json(&self) -> Value;
     fn get_user_rank(&self, login: &str) -> String;
     fn get_user_name(&self, login: &str) -> String;
 }
 
 impl UserService for BTreeMap<String, UserDetailsModel> {
-    fn from_string(data: &str) -> Self {
-        let mut users_details = BTreeMap::<String, UserDetailsModel>::new();
+    fn import_str(&self, data: &str) -> Self {
+        let mut user_details = self.clone();
+
         let user_array = data
             .split('\n')
             .filter(|val| !val.is_empty())
@@ -23,11 +28,11 @@ impl UserService for BTreeMap<String, UserDetailsModel> {
             let user_fields = item
                 .split('\t')
                 //                .filter(|val| !val.trim().is_empty())
-//                .map(|val| val.to_string())
+                //                .map(|val| val.to_string())
                 .collect::<Vec<&str>>();
 
             if user_fields.len().ge(&3) {
-                users_details.insert(
+                user_details.insert(
                     user_fields[2].trim().to_uppercase(),
                     UserDetailsModel {
                         rank: user_fields[0].trim().to_string(),
@@ -36,8 +41,16 @@ impl UserService for BTreeMap<String, UserDetailsModel> {
                 );
             }
         }
-        
-        users_details
+
+        user_details
+    }
+
+    fn import_json(&mut self, data: &str) {
+        let users =
+            serde_json::from_str(data).unwrap_or(BTreeMap::<String, UserDetailsModel>::new());
+        users.iter().for_each(|(login, details)| {
+            self.insert(login.clone(), details.clone());
+        })
     }
 
     fn remove_user(&mut self, user: &str) -> Self {
@@ -45,22 +58,38 @@ impl UserService for BTreeMap<String, UserDetailsModel> {
         self.to_owned()
     }
 
-    fn get_users_json(&self) -> String {
-        Map::collect(self
-            .iter()
-            .map(|(login, user)| format!("{:1}\t{:2}\t{:3}\n", user.rank, user.name, login)))
+    fn get_users_string(&self) -> Value {
+        std::iter::Map::collect::<String>(
+            self.iter()
+                //.map(|(login, user)| format!("{:1}\t{:2}\t{:3}\n", user.rank, user.name, login)))
+                .map(|(login, details)| {
+                    [&details.rank, "\t", &details.name, "\t", login, "\n"].concat()
+                }),
+        )
+        .into()
     }
 
-    //todo REMOVE String operations
+    fn get_users_json(&self) -> Value {
+        Value::Object(
+            self.iter()
+                .map(|(login, details)| (login.clone(), serde_json::to_value(details).unwrap()))
+                .collect::<Map<String, Value>>(),
+        )
+    }
+
     fn get_user_rank(&self, login: &str) -> String {
         let key = login.to_uppercase();
-        if !self.contains_key(&key) { return String::new() }
+        if !self.contains_key(&key) {
+            return String::new();
+        }
         self.get_key_value(&key).unwrap().1.rank.clone()
     }
 
     fn get_user_name(&self, login: &str) -> String {
         let key = login.to_uppercase();
-        if !self.contains_key(&key) { return String::new() }
+        if !self.contains_key(&key) {
+            return String::new();
+        }
         self.get_key_value(&key).unwrap().1.name.clone()
     }
 }
