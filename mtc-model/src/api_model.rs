@@ -11,6 +11,7 @@ pub struct ApiModel {
     pub id: String,
     pub slug: String,
     pub fields: Option<Value>,
+    pub published: bool,
     pub created_at: Option<Datetime>,
     pub updated_at: Option<Datetime>,
     pub created_by: String,

@@ -39,7 +39,7 @@ pub fn SignIn() -> Element {
     };
 
     rsx! {
-        form { class: "flex grow flex-col items-center gap-3 px-3",
+        form { class: "flex grow flex-col items-center gap-3",
             id: "credentials-form",
             prevent_default: "onsubmit oninput",
             autocomplete: "off",

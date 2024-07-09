@@ -90,9 +90,6 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                         span { { translate!(i18, "messages.in_progress") } }
                     }
                 } else {
-                    div { class: "flex flex-wrap gap-3",
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
-                    }
                     if auth_state.is_permission("group::write") {
                         button { class: "btn btn-outline btn-accent",
                             prevent_default: "onclick",
@@ -120,6 +117,9 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                             { translate!(i18, "messages.delete") }
                         }
                     }
+                }
+                div { class: "flex grow items-end",
+                    PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
                 }
             }
         }

@@ -7,7 +7,7 @@ pub fn LoadingBoxComponent() -> Element {
     let i18 = use_i18();
 
     rsx! {
-        div { class: "flex grow items-center justify-center",
+        div { class: "grid w-full place-items-center body-scroll",
             div { class: "flex w-fit flex-row gap-4",
                 span { class: "loading loading-spinner loading-xl" }
                 span { { translate!(i18, "messages.loading") } }

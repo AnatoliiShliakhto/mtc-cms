@@ -154,75 +154,81 @@ pub fn Dashboard() -> Element {
                     }
                 }
             }
-            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
-                button {
-                    class: "btn btn-error btn-outline",
-                    prevent_default: "onclick",
-                    onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
-                    Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaFile
+            div { class: "flex shrink flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
+                h2 { class: "menu-title self-center", { translate!(i18, "messages.external_data") } }
+                div { class: "join",
+                    div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
+                        button {
+                            class: "join-item btn btn-sm btn-ghost text-primary",
+                            prevent_default: "onclick",
+                            onclick: users_from_clipboard,
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaPaste
+                            }
+                        }
                     }
-                    { translate!(i18, "messages.clear") }
-                }
-                h2 { class: "menu-title", { translate!(i18, "messages.clipboard") } }
-                button {
-                    class: "btn btn-accent btn-outline",
-                    prevent_default: "onclick",
-                    onclick: users_from_clipboard,
-                    Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaPaste
+                    div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_copy"),
+                        button {
+                            class: "join-item btn btn-sm btn-ghost text-primary",
+                            prevent_default: "onclick",
+                            onclick: move |_| { clipboard_write_eval.send(users().get_users_string()).unwrap(); },
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaCopy
+                            }
+                        }
                     }
-                    { translate!(i18, "messages.clipboard_paste") }
-                }
-                button {
-                    class: "btn btn-warning btn-outline",
-                    prevent_default: "onclick",
-                    onclick: move |_| { clipboard_write_eval.send(users().get_users_string()).unwrap(); },
-                    Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaCopy
+                    input { class: "hidden",
+                        id: "users-upload",
+                        r#type: "file",
+                        accept: ".json",
+                        multiple: true,
+                        onchange: upload_user_set
                     }
-                    { translate!(i18, "messages.clipboard_copy") }
-                }
-                h2 { class: "menu-title", { translate!(i18, "messages.files") } }
-                input { class: "hidden",
-                    id: "users-upload",
-                    r#type: "file",
-                    accept: ".json",
-                    multiple: true,
-                    onchange: upload_user_set
-                }
-                button {
-                    class: "btn btn-accent btn-outline",
-                    prevent_default: "onclick",
-                    "onclick": "document.getElementById('users-upload').click()",
-                    Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaFile
+                    div { class: "tooltip", "data-tip": translate!(i18, "messages.upload"),
+                        button {
+                            class: "join-item btn btn-sm btn-ghost text-accent",
+                            prevent_default: "onclick",
+                            "onclick": "document.getElementById('users-upload').click()",
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFile
+                            }
+                        }    
                     }
-                    { translate!(i18, "messages.load") }
-                }
-                button {
-                    class: "btn btn-warning btn-outline",
-                    prevent_default: "onclick",
-                    onclick: download_user_set,
-                    Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                    div { class: "tooltip", "data-tip": translate!(i18, "messages.download"),
+                        button {
+                            class: "join-item btn btn-sm btn-ghost text-accent",
+                            prevent_default: "onclick",
+                            onclick: download_user_set,
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                            }
+                        }    
                     }
-                    { translate!(i18, "messages.save") }
+                    div { class: "tooltip", "data-tip": translate!(i18, "messages.clear"),
+                        button {
+                            class: "join-item btn btn-sm btn-ghost text-error",
+                            prevent_default: "onclick",
+                            onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
+                            Icon {
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
+                            }
+                        }    
+                    }
                 }
             }
         }

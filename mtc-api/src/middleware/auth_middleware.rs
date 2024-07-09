@@ -46,6 +46,7 @@ pub trait UserSession {
     async fn group(&self, slug: &str) -> Result<()>;
     async fn permission(&self, slug: &str) -> Result<()>;
     async fn auth_id(&self) -> Result<String>;
+    async fn is_admin(&self) -> Result<bool>;
 }
 
 #[async_trait]
@@ -125,5 +126,13 @@ impl UserSession for Session {
             .await?
             .ok_or(ApiError::from(SessionError::InvalidSession))?
             .id)
+    }
+
+    async fn is_admin(&self) -> Result<bool> {
+        Ok(self
+            .get::<AuthModel>(SESSION_USER_KEY)
+            .await?
+            .ok_or(ApiError::from(SessionError::InvalidSession))?
+            .is_admin())
     }
 }

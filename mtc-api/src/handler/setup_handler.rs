@@ -133,6 +133,18 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
             slug: 'administrator'
         };
         CREATE permissions CONTENT {
+            id: 'store_read',
+            slug: 'store::read'
+        };
+        CREATE permissions CONTENT {
+            id: 'store_write',
+            slug: 'store::write'
+        };
+        CREATE permissions CONTENT {
+            id: 'store_delete',
+            slug: 'store::delete'
+        };
+        CREATE permissions CONTENT {
             id: 'role_read',
             slug: 'role::read'
         };
@@ -196,6 +208,9 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
         DEFINE INDEX idx_role_permissions ON TABLE role_permissions COLUMNS in, out UNIQUE;
 
         RELATE roles:administrator->role_permissions->permissions:administrator;
+        RELATE roles:administrator->role_permissions->permissions:store_read;
+        RELATE roles:administrator->role_permissions->permissions:store_write;
+        RELATE roles:administrator->role_permissions->permissions:store_delete;
         RELATE roles:administrator->role_permissions->permissions:role_read;
         RELATE roles:administrator->role_permissions->permissions:role_write;
         RELATE roles:administrator->role_permissions->permissions:role_delete;
@@ -272,6 +287,7 @@ pub async fn setup_handler(state: State<Arc<AppState>>) -> Result<()> {
 
         DEFINE FIELD slug ON TABLE singles TYPE string;
         DEFINE FIELD fields ON TABLE singles FLEXIBLE TYPE option<object>;
+        DEFINE FIELD published ON TABLE singles TYPE bool DEFAULT false;
         DEFINE FIELD created_at ON TABLE singles TYPE datetime DEFAULT time::now();
         DEFINE FIELD updated_at ON TABLE singles TYPE datetime VALUE time::now();
         DEFINE FIELD created_by ON TABLE singles TYPE string;

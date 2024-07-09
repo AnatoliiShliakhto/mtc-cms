@@ -133,9 +133,6 @@ pub fn UserList(mut props: UserListProps) -> Element {
                         span { { translate!(i18, "messages.in_progress") } }
                     }
                 } else {
-                    div { class: "flex flex-wrap gap-3",
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
-                    }
                     if can_edit() {
                         button { class: "btn btn-outline btn-accent",
                             prevent_default: "onclick",
@@ -164,6 +161,9 @@ pub fn UserList(mut props: UserListProps) -> Element {
                         }
                     }
                 }
+                div { class: "flex grow items-end",
+                    PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
+                }                 
             }
         }
     }

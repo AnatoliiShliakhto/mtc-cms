@@ -198,6 +198,15 @@ pub fn RoleSingle() -> Element {
                         span { { translate!(i18, "messages.in_progress") } }
                     }
                 } else {
+                    button { class: "btn btn-outline",
+                        prevent_default: "onclick",
+                        onclick: move |_| page_action.set(PageAction::None),
+                        Icon {
+                            width: 16,
+                            icon: dioxus_free_icons::icons::fa_regular_icons::FaCircleLeft
+                        }
+                        { translate!(i18, "messages.cancel") }
+                    }
                     div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
                         span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
                         span { { role().created_by } }
@@ -205,17 +214,6 @@ pub fn RoleSingle() -> Element {
                         span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
                         span { { role().updated_by } }
                         span { class: "label-text-alt", { role().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
-                    }
-                    button { class: "btn btn-outline",
-                        prevent_default: "onclick",
-                        onclick: move |_| page_action.set(PageAction::None),
-                        Icon {
-                            width: 16,
-                            height: 16,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaCircleLeft
-                        }
-                        { translate!(i18, "messages.cancel") }
                     }
 
                     if auth_state.is_permission("role::write") {

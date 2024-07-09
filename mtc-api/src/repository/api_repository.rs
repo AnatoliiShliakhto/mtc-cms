@@ -25,8 +25,8 @@ pub trait ApiRepositoryTrait {
         slug: &str,
         model: ApiPostModel,
     ) -> Result<ApiModel>;
-    async fn get_page(&self, table: &str, start: usize, limit: usize) -> Result<Vec<ApiModel>>;
-    async fn get_total(&self, table: &str) -> Result<usize>;
+    async fn get_page(&self, table: &str, start: usize, limit: usize, is_admin: bool) -> Result<Vec<ApiModel>>;
+    async fn get_total(&self, table: &str, is_admin: bool) -> Result<usize>;
 }
 
 #[async_trait]
@@ -111,10 +111,13 @@ impl ApiRepositoryTrait for ApiService {
             .ok_or(DbError::EntryUpdate.into())
     }
 
-    async fn get_page(&self, table: &str, start: usize, limit: usize) -> Result<Vec<ApiModel>> {
+    async fn get_page(&self, table: &str, start: usize, limit: usize, is_admin: bool) -> Result<Vec<ApiModel>> {
         Ok(self
             .db
-            .query(r#"SELECT * FROM type::table($table) LIMIT $limit START $start;"#)
+            .query(match is_admin {
+                true => r#"SELECT * FROM type::table($table) LIMIT $limit START $start;"#,
+                false => r#"SELECT * FROM type::table($table) WHERE published = true LIMIT $limit START $start;"#,
+            })
             .bind(("table", table))
             .bind(("start", start - 1))
             .bind(("limit", limit))
@@ -122,10 +125,13 @@ impl ApiRepositoryTrait for ApiService {
             .take::<Vec<ApiModel>>(0)?)
     }
 
-    async fn get_total(&self, table: &str) -> Result<usize> {
+    async fn get_total(&self, table: &str, is_admin: bool) -> Result<usize> {
         match self
             .db
-            .query(r#"SELECT count() FROM type::table($table) GROUP ALL;"#)
+            .query(match is_admin {
+                true => r#"SELECT count() FROM type::table($table) GROUP ALL;"#,
+                false => r#"SELECT count() FROM type::table($table) WHERE published = true GROUP ALL;"#,
+            })
             .bind(("table", table))
             .await?
             .take::<Option<CountModel>>(0)?

@@ -30,7 +30,7 @@ pub fn ReloadingBoxComponent<T: 'static>(
     let i18 = use_i18();
 
     rsx! {
-        div { class: "flex grow items-center justify-center",
+        div { class: "grid w-full place-items-center body-scroll",
             div { class: "flex w-fit flex-col gap-3",
                 div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-error text-error",
                     svg {

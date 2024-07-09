@@ -2,6 +2,7 @@ use axum::extract::rejection::{FormRejection, JsonRejection};
 use axum::response::{IntoResponse, Response};
 use surrealdb::Error;
 use thiserror::Error;
+use tokio::io;
 use tracing::error;
 
 use crate::error::db_error::DbError;
@@ -256,6 +257,20 @@ impl From<tower_sessions::session::Error> for ApiError {
     fn from(error: tower_sessions::session::Error) -> Self {
         error!(target: "session", "{error}");
         Self::from(SessionError::InvalidSession)
+    }
+}
+
+impl From<axum::extract::multipart::MultipartError> for ApiError {
+    fn from(error: axum::extract::multipart::MultipartError) -> Self {
+        error!(target: "uploading", "{error}");
+        Self::from(GenericError::InternalError)
+    }
+}
+
+impl From<io::Error> for ApiError {
+    fn from(error: io::Error) -> Self {
+        error!(target: "uploading", "{error}");
+        Self::from(GenericError::InternalError)
     }
 }
 

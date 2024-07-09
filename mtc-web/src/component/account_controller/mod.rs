@@ -34,17 +34,14 @@ pub fn AccountControllerComponent() -> Element {
                 to: DashboardPage {},
                 Icon {
                     width: 20,
-                    height: 20,
-                    fill: "currentColor",
                     icon: FaUser
                 }
             }
         } else {
             div { class: "dropdown dropdown-end dropdown-hover join-item",
-                div { tabindex: "0", role: "button", class: "btn btn-ghost join-item",
+                div { tabindex: "0", role: "button", class: "btn btn-ghost join-item text-success",
                     Icon {
                         width: 20,
-                        fill: "green",
                         icon: FaUser
                     }
                 }

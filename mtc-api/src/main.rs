@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+#![allow(dead_code)]
 
 use std::future::Future;
 use std::net::SocketAddr;

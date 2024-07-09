@@ -15,6 +15,7 @@ pub struct Config {
     pub setup_password: String,
 
     pub public_path: String,
+    pub store_path: String,
     pub cert_path: String,
     pub log_path: String,
     pub db_path: String,
@@ -60,6 +61,7 @@ impl Config {
             setup_login: get_env("SETUP_ADMIN_LOGIN"),
             setup_password: get_env("SETUP_ADMIN_PASSWORD"),
             public_path: get_env("PUBLIC_PATH"),
+            store_path: get_env("STORE_PATH"),
             cert_path: get_env("CERT_PATH"),
             log_path: get_env("LOG_PATH"),
         }

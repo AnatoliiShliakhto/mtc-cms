@@ -44,7 +44,7 @@ pub fn AdministratorPage() -> Element {
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
     rsx! {
-        div { class: "flex grow flex-row",
+        div { class: "flex w-full flex-row",
             aside { class: "shadow-lg bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
                     li {

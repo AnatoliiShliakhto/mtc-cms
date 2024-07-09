@@ -106,9 +106,6 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                         span { { translate!(i18, "messages.in_progress") } }
                     }
                 } else {
-                    div { class: "flex flex-wrap gap-3",
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
-                    }
                     if auth_state.is_permission("schema::write") {
                         button { class: "btn btn-outline btn-accent",
                             prevent_default: "onclick",
@@ -137,6 +134,9 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                         }
                     }
                 }
+                div { class: "flex grow items-end",
+                    PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
+                }                 
             }
         }
     }

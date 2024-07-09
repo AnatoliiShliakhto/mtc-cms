@@ -44,4 +44,4 @@ script = []
 script = []
 
 #[[web.proxy]]
-#backend = "https://localhost"
+#backend = "https://localhost/api"

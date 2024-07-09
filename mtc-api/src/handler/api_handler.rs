@@ -24,6 +24,7 @@ pub async fn api_collection_list_handler(
     let page = api_page_request.page.unwrap_or(1);
 
     session.permission(&format!("{}::read", &api)).await?;
+    let is_admin = session.is_admin().await?;
 
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
@@ -32,14 +33,14 @@ pub async fn api_collection_list_handler(
     }
 
     let pagination = PaginationModel::new(
-        state.api_service.get_total(&api).await?,
+        state.api_service.get_total(&api, is_admin).await?,
         state.cfg.rows_per_page,
     )
     .page(page);
 
     state
         .api_service
-        .get_page(&api, pagination.from, pagination.per_page)
+        .get_page(&api, pagination.from, pagination.per_page, is_admin)
         .await?
         .ok_page(pagination)
 }

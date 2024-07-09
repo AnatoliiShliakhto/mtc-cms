@@ -130,6 +130,7 @@ impl SchemaRepositoryTrait for SchemaService {
                     DEFINE TABLE {0} SCHEMAFULL;
                     DEFINE FIELD slug ON TABLE {0} TYPE string;
                     DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<object>;
+                    DEFINE FIELD published ON TABLE {0} TYPE bool DEFAULT false;
                     DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
                     DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
                     DEFINE FIELD created_by ON TABLE {0} TYPE string;

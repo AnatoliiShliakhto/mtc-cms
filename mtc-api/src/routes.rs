@@ -4,7 +4,7 @@ use axum::http::header::{CONTENT_TYPE, COOKIE};
 use axum::http::HeaderValue;
 use axum::middleware::from_fn_with_state;
 use axum::Router;
-use axum::routing::{get, post};
+use axum::routing::{delete, get, post};
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tracing::log::info;
@@ -17,6 +17,7 @@ use crate::handler::permissions_handler::*;
 use crate::handler::role_handler::*;
 use crate::handler::schema_handler::*;
 use crate::handler::setup_handler::*;
+use crate::handler::store_handler::*;
 use crate::handler::user_handler::*;
 use crate::middleware::auth_middleware::middleware_auth_handler;
 use crate::state::AppState;
@@ -43,6 +44,9 @@ pub fn routes(
         .route("/:api/list", get(api_collection_list_handler))
         .route("/:slug", get(api_get_single_handler).patch(api_update_single_item_handler))
 
+        .route("/store/:path/:file", delete(store_delete_handler))
+        .route("/store/:path", get(store_get_dir_handler).post(store_upload_handler))
+        
         .route("/schema/:slug/fields", get(schema_get_fields_handler).post(schema_update_fields_handler))
         .route("/schema/:slug", post(schema_create_handler).get(schema_get_handler).patch(schema_update_handler).delete(schema_delete_handler))
         .route("/schema/list/:page", get(schema_list_handler))

@@ -15,6 +15,7 @@ use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::{ApiResponse, HandlerResult};
 use crate::repository::schema_repository::SchemaRepositoryTrait;
 use crate::repository::RepositoryPaginate;
+use crate::service::store_service::StoreTrait;
 use crate::state::AppState;
 
 pub async fn schema_list_handler(
@@ -59,11 +60,17 @@ pub async fn schema_create_handler(
 ) -> Result<SchemaModel> {
     session.permission("schema::write").await?;
 
-    state
+    let schema_model = state
         .schema_service
         .create(&session.auth_id().await?, &slug, payload)
-        .await?
-        .ok_model()
+        .await?;
+
+    state
+        .store_service
+        .is_dir_exists_or_create(schema_model.id.as_str())
+        .await?;
+
+    schema_model.ok_model()
 }
 
 pub async fn schema_delete_handler(
@@ -73,7 +80,12 @@ pub async fn schema_delete_handler(
 ) -> Result<()> {
     session.permission("schema::delete").await?;
 
-    state.schema_service.delete(&slug).await?.ok_ok()
+    let schema_model = state.schema_service.find_by_slug(&slug).await?;
+
+    state.schema_service.delete(&schema_model.slug).await?;
+    state.store_service.remove_dir(&schema_model.id).await?;
+
+    schema_model.ok_ok()
 }
 
 pub async fn schema_list_delete_handler(
