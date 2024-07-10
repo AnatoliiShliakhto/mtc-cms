@@ -274,6 +274,14 @@ impl From<io::Error> for ApiError {
     }
 }
 
+//std::convert::Infallible
+impl From<std::convert::Infallible> for ApiError {
+    fn from(error: std::convert::Infallible) -> Self {
+        error!(target: "uploading", "{error}");
+        Self::from(GenericError::InternalError)
+    }
+}
+
 impl From<&str> for ApiError {
     fn from(message: &str) -> Self {
         error!("Conflict error: {}", message);

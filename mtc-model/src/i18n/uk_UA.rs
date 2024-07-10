@@ -37,6 +37,8 @@ pub static UK_UA: &str = r#"{
             "loading": "Завантаження...",
             "login": "логін",
             "logged_in": "Ви успішно авторизовані.",
+            "migration": "Міграція",
+            "migration_success": "Міграція виконана успішно!",
             "name": "ПІБ",
             "new_field": "нове поле",
             "no": "Ні",

@@ -13,10 +13,10 @@ use crate::handler::api_handler::*;
 use crate::handler::auth_handler::*;
 use crate::handler::group_handler::*;
 use crate::handler::health_handler::*;
+use crate::handler::migration_handler::*;
 use crate::handler::permissions_handler::*;
 use crate::handler::role_handler::*;
 use crate::handler::schema_handler::*;
-use crate::handler::setup_handler::*;
 use crate::handler::store_handler::*;
 use crate::handler::user_handler::*;
 use crate::middleware::auth_middleware::middleware_auth_handler;
@@ -39,11 +39,13 @@ pub fn routes(
         ]);
 
     Router::new()
-        .route("/:api/:slug", get(api_get_collection_item_handler).post(api_create_collection_item_handler).patch(api_update_collection_item_handler))
+        .route("/:api/:slug", get(api_get_collection_item_handler).post(api_create_collection_item_handler).patch(api_update_collection_item_handler).delete(api_delete_collection_item_handler))
         .route("/:api/list/:page", get(api_collection_list_handler))
         .route("/:api/list", get(api_collection_list_handler))
         .route("/:slug", get(api_get_single_handler).patch(api_update_single_item_handler))
 
+        .route("/protected/:path/:file", get(protected_store_get_handler).delete(protected_store_delete_handler))
+        .route("/protected/:path", get(protected_store_get_dir_handler).post(protected_store_upload_handler))
         .route("/store/:path/:file", delete(store_delete_handler))
         .route("/store/:path", get(store_get_dir_handler).post(store_upload_handler))
         
@@ -77,7 +79,7 @@ pub fn routes(
         //todo: change password
         .route("/auth", get(get_credentials_handler).post(sign_in_handler).delete(sign_out_handler))
 
-        .route("/setup", post(setup_handler))
+        .route("/migration", post(migration_handler))
         .route("/health", get(health_handler))
 
         .layer(ServiceBuilder::new().layer(from_fn_with_state(Arc::clone(&state), middleware_auth_handler)))

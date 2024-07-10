@@ -11,14 +11,14 @@ pub struct Config {
     pub front_end_url: String,
 
     pub password_salt: String,
-    pub setup_login: String,
-    pub setup_password: String,
 
     pub public_path: String,
     pub store_path: String,
+    pub protected_path: String,
     pub cert_path: String,
     pub log_path: String,
     pub db_path: String,
+    pub migration_path: String,
 
     pub db_namespace: String,
     pub db_name: String,
@@ -51,23 +51,31 @@ impl Config {
             db_namespace: get_env("DB_NAMESPACE"),
             db_name: get_env("DB_NAME"),
             session_expiration: get_env("SESSION_EXPIRATION_IN_MINUTES")
-                .trim().parse::<i64>().unwrap_or(24 * 60),
+                .trim()
+                .parse::<i64>()
+                .unwrap_or(24 * 60),
             session_secure_key: get_env("SESSION_SECURE_KEY"),
             front_end_url: get_env("FRONT_END_URL"),
             max_body_limit: get_env("MAX_BODY_LIMIT")
-                .trim().parse::<usize>().unwrap_or(104_857_600),
+                .trim()
+                .parse::<usize>()
+                .unwrap_or(104_857_600),
             rows_per_page: get_env("ROWS_PER_PAGE")
-                .trim().parse::<usize>().unwrap_or(10),
-            setup_login: get_env("SETUP_ADMIN_LOGIN"),
-            setup_password: get_env("SETUP_ADMIN_PASSWORD"),
+                .trim()
+                .parse::<usize>()
+                .unwrap_or(10),
             public_path: get_env("PUBLIC_PATH"),
             store_path: get_env("STORE_PATH"),
+            protected_path: get_env("PROTECTED_PATH"),
             cert_path: get_env("CERT_PATH"),
             log_path: get_env("LOG_PATH"),
+            migration_path: get_env("MIGRATION_PATH"),
         }
     }
 }
 
 fn get_env(name: &str) -> String {
-    env::var(name).map_err(|_| error!("ENV missing: {name}")).unwrap()
+    env::var(name)
+        .map_err(|_| error!("ENV missing: {name}"))
+        .unwrap()
 }

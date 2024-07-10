@@ -5,6 +5,7 @@ pub mod group_service;
 pub mod schema_service;
 pub mod api_service;
 pub mod store_service;
+pub mod migration_service;
 
 #[macro_export]
 macro_rules! impl_service {

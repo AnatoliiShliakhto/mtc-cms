@@ -13,6 +13,7 @@ use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::{ApiResponse, HandlerResult};
+use crate::repository::api_repository::ApiRepositoryTrait;
 use crate::repository::schema_repository::SchemaRepositoryTrait;
 use crate::repository::RepositoryPaginate;
 use crate::service::store_service::StoreTrait;
@@ -64,11 +65,11 @@ pub async fn schema_create_handler(
         .schema_service
         .create(&session.auth_id().await?, &slug, payload)
         .await?;
-
-    state
-        .store_service
-        .is_dir_exists_or_create(schema_model.id.as_str())
-        .await?;
+    
+    if !schema_model.is_collection {
+        let single = state.api_service.find_by_slug("singles", &slug).await?;
+        state.store_service.create_assets(&single.id).await?;
+    }
 
     schema_model.ok_model()
 }
@@ -82,8 +83,11 @@ pub async fn schema_delete_handler(
 
     let schema_model = state.schema_service.find_by_slug(&slug).await?;
 
+    if !schema_model.is_collection {
+        let single = state.api_service.find_by_slug("singles", &slug).await?;
+        state.store_service.delete_assets(&single.id).await?;
+    }
     state.schema_service.delete(&schema_model.slug).await?;
-    state.store_service.remove_dir(&schema_model.id).await?;
 
     schema_model.ok_ok()
 }

@@ -13,6 +13,7 @@ use crate::model::request_model::{ApiPageRequest, ValidatedPayload};
 use crate::model::response_model::HandlerResult;
 use crate::repository::api_repository::ApiRepositoryTrait;
 use crate::repository::schema_repository::SchemaRepositoryTrait;
+use crate::service::store_service::StoreTrait;
 use crate::state::AppState;
 
 pub async fn api_collection_list_handler(
@@ -126,7 +127,7 @@ pub async fn api_create_collection_item_handler(
         Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
 
-    state
+    let api_model = state
         .api_service
         .create(
             &session.auth_id().await?,
@@ -134,8 +135,11 @@ pub async fn api_create_collection_item_handler(
             &slug,
             payload,
         )
-        .await?
-        .ok_model()
+        .await?;
+
+    state.store_service.create_assets(&api_model.id).await?;
+
+    api_model.ok_model()
 }
 
 pub async fn api_update_collection_item_handler(
@@ -162,4 +166,24 @@ pub async fn api_update_collection_item_handler(
         )
         .await?
         .ok_model()
+}
+
+pub async fn api_delete_collection_item_handler(
+    Path((api, slug)): Path<(String, String)>,
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<()> {
+    session.permission(&format!("{}::delete", &api)).await?;
+
+    let schema_model = state.schema_service.find_by_slug(&api).await?;
+
+    if schema_model.is_system || !schema_model.is_collection {
+        Err("Isn't a collection type api end-point".to_bad_request_error())?
+    }
+
+    state
+        .api_service
+        .delete(&schema_model.slug, &slug)
+        .await?
+        .ok_ok()
 }

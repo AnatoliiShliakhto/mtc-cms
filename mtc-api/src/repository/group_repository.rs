@@ -105,7 +105,6 @@ impl GroupRepositoryTrait for GroupService {
                 "#,
             )
             .bind(("slug", slug))
-            .bind(("rel_table", "user_groups"))
             .await?;
 
         Ok(())

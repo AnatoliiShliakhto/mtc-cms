@@ -4,17 +4,19 @@ use dioxus::prelude::*;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use crate::handler::auth_handler::AuthHandler;
+use crate::APP_STATE;
+use crate::component::message_box::{MessageBoxComponent, MessageBoxComponentKind};
+use crate::handler::migration_handler::MigrationHandler;
 use crate::model::modal_model::ModalModel;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 #[component]
-pub fn SignIn() -> Element {
+pub fn Migration() -> Element {
     let i18 = use_i18();
 
     let mut credentials_submit = use_signal(HashMap::<String, FormValue>::new);
     let mut is_busy = use_signal(|| false);
+    let mut is_success = use_signal(|| false);
 
     let is_login_valid = use_memo(move || {
         credentials_submit.is_field_empty("login") | credentials_submit.is_string_valid("login", 5)
@@ -24,23 +26,14 @@ pub fn SignIn() -> Element {
             | credentials_submit.is_string_valid("password", 6)
     });
 
-    let sign_in_task = move |_| {
+    let migrate_task = move |_| {
         is_busy.set(true);
         if !credentials_submit.is_string_valid("login", 5)
             || !credentials_submit.is_string_valid("password", 6)
         {
-            is_busy.set(true);
-            if !credentials_submit.is_string_valid("login", 5)
-                || !credentials_submit.is_string_valid("password", 6)
-            {
-                APP_STATE
-                    .peek()
-                    .modal
-                    .signal()
-                    .set(ModalModel::Error(translate!(i18, "errors.fields")));
-                is_busy.set(false);
-                return;
-            }
+            APP_STATE.peek().modal.signal().set(ModalModel::Error(translate!(i18, "errors.fields")));
+            is_busy.set(false);
+            return;
         }
 
         spawn(async move {
@@ -48,22 +41,30 @@ pub fn SignIn() -> Element {
 
             match app_state
                 .api
-                .sign_in(
+                .migrate(
                     credentials_submit.get_string("login").to_uppercase(),
                     credentials_submit.get_string("password"),
                 )
                 .await
             {
-                Ok(auth_model) => app_state.auth.signal().set(auth_model),
+                Ok(auth_model) => is_success.set(true),
                 Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
         });
     };
 
+    if is_success() {
+        return rsx! {
+            div { class: "m-10",
+                MessageBoxComponent { kind: MessageBoxComponentKind::Success(translate!(i18, "messages.migration_success")) }
+            }    
+        };
+    }
+
     rsx! {
         form { class: "flex grow flex-col items-center gap-3",
-            id: "credentials-form",
+            id: "migration-form",
             prevent_default: "onsubmit oninput",
             autocomplete: "off",
             oninput: move |event| credentials_submit.set(event.values()),
@@ -97,13 +98,13 @@ pub fn SignIn() -> Element {
                     button { class: "mt-2 w-fit self-center btn btn-neutral btn-outline",
                         r#type: "button",
                         prevent_default: "onclick",
-                        onclick: sign_in_task,
-                        { translate!(i18, "messages.sign_in") }
+                        onclick: migrate_task,
+                        { translate!(i18, "messages.migration") }
                     }
                 } else {
                     div { class: "flex w-fit flex-row gap-4 self-center py-3",
                         span { class: "loading loading-spinner loading-md" }
-                        span { { translate!(i18, "messages.sign_in") } "..." }
+                        span { { translate!(i18, "messages.migration") } "..." }
                     }
                 }
             }

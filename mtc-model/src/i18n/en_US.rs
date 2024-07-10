@@ -37,6 +37,8 @@ pub static EN_US: &str = r#"{
             "loading": "Loading...",
             "login": "login",
             "logged_in": "You are logged in.",
+            "migration": "Migration",
+            "migration_success": "Migration successfull!",
             "name": "name",
             "new_field": "new field",
             "no": "No",

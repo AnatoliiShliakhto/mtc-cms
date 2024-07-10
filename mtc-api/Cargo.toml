@@ -29,7 +29,8 @@ tracing-appender = { version = "0.2.3" }
 validator = { version = "0.18.1", features = ["derive"] }
 axum-server = { version = "0.6.0", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
 mtc-model = { path = "../mtc-model" }
-uuid = { version = "1.9.1", features = ["v4"] }
+uuid = { version = "1.10.0", features = ["v4"] }
+mime_guess = { version = "2.0.5" }
 
 [target.'cfg(unix)'.dependencies]
 openssl = { version = "0.10.64", features = ["vendored"] }

@@ -25,7 +25,14 @@ pub trait ApiRepositoryTrait {
         slug: &str,
         model: ApiPostModel,
     ) -> Result<ApiModel>;
-    async fn get_page(&self, table: &str, start: usize, limit: usize, is_admin: bool) -> Result<Vec<ApiModel>>;
+    async fn delete(&self, table: &str, slug: &str) -> Result<()>;
+    async fn get_page(
+        &self,
+        table: &str,
+        start: usize,
+        limit: usize,
+        is_admin: bool,
+    ) -> Result<Vec<ApiModel>>;
     async fn get_total(&self, table: &str, is_admin: bool) -> Result<usize>;
 }
 
@@ -35,7 +42,7 @@ impl ApiRepositoryTrait for ApiService {
         self.db
             .query(
                 r#"
-            SELECT * FROM type::thing($table, $id);
+                SELECT * FROM type::thing($table, $id);
             "#,
             )
             .bind(("table", table))
@@ -49,7 +56,7 @@ impl ApiRepositoryTrait for ApiService {
         self.db
             .query(
                 r#"
-            SELECT * FROM type::table($table) WHERE slug=$slug;
+                SELECT * FROM type::table($table) WHERE slug=$slug;
             "#,
             )
             .bind(("table", table))
@@ -69,12 +76,12 @@ impl ApiRepositoryTrait for ApiService {
         self.db
             .query(
                 r#"
-            CREATE type::table($table) CONTENT {
-	            slug: $slug,
-	            fields: $fields,
-	            created_by: $auth_id,
-	            updated_by: $auth_id
-            };
+                CREATE type::table($table) CONTENT {
+	                slug: $slug,
+	                fields: $fields,
+	                created_by: $auth_id,
+	                updated_by: $auth_id
+                };
             "#,
             )
             .bind(("auth_id", auth))
@@ -96,10 +103,10 @@ impl ApiRepositoryTrait for ApiService {
         self.db
             .query(
                 r#"
-            UPDATE type::table($table) MERGE {
-                fields: $fields,
-                updated_by: $auth_id
-            } WHERE slug=$slug;
+                UPDATE type::table($table) MERGE {
+                    fields: $fields,
+                    updated_by: $auth_id
+                } WHERE slug=$slug;
             "#,
             )
             .bind(("auth_id", auth))
@@ -111,7 +118,27 @@ impl ApiRepositoryTrait for ApiService {
             .ok_or(DbError::EntryUpdate.into())
     }
 
-    async fn get_page(&self, table: &str, start: usize, limit: usize, is_admin: bool) -> Result<Vec<ApiModel>> {
+    async fn delete(&self, table: &str, slug: &str) -> Result<()> {
+        self.db
+            .query(
+                r#"
+                DELETE FROM type::table($table) WHERE slug=$slug;
+            "#,
+            )
+            .bind(("table", table))
+            .bind(("slug", slug))
+            .await?;
+
+        Ok(())
+    }
+
+    async fn get_page(
+        &self,
+        table: &str,
+        start: usize,
+        limit: usize,
+        is_admin: bool,
+    ) -> Result<Vec<ApiModel>> {
         Ok(self
             .db
             .query(match is_admin {
@@ -130,7 +157,9 @@ impl ApiRepositoryTrait for ApiService {
             .db
             .query(match is_admin {
                 true => r#"SELECT count() FROM type::table($table) GROUP ALL;"#,
-                false => r#"SELECT count() FROM type::table($table) WHERE published = true GROUP ALL;"#,
+                false => {
+                    r#"SELECT count() FROM type::table($table) WHERE published = true GROUP ALL;"#
+                }
             })
             .bind(("table", table))
             .await?
