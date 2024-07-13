@@ -1,6 +1,6 @@
 use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupsModel, GroupUpdateModel};
 use crate::error::api_error::ApiError;
-use crate::handler::{ApiHandler, HandlerResponse};
+use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait GroupHandler {
@@ -38,8 +38,9 @@ impl GroupHandler for ApiHandler {
             .api_client
             .delete([&self.api_url, "group", slug].join("/"))
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 
     async fn delete_group_list(&self, groups: GroupsModel) -> Result<(), ApiError> {
@@ -48,8 +49,9 @@ impl GroupHandler for ApiHandler {
             .delete([&self.api_url, "group", "list"].join("/"))
             .json(&groups)
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 
     async fn create_group(&self, slug: &str, group: &GroupCreateModel) -> Result<GroupModel, ApiError> {

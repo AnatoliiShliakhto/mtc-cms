@@ -3,7 +3,7 @@ use mtc_model::role_model::RolesModel;
 use mtc_model::user_model::{UserCreateModel, UserModel, UsersModel, UserUpdateModel};
 
 use crate::error::api_error::ApiError;
-use crate::handler::{ApiHandler, HandlerResponse};
+use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait UserHandler {
@@ -53,8 +53,9 @@ impl UserHandler for ApiHandler {
         self.api_client
             .delete([&self.api_url, "user", login].join("/"))
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 
     async fn delete_user_list(&self, users: UsersModel) -> Result<(), ApiError> {
@@ -62,8 +63,9 @@ impl UserHandler for ApiHandler {
             .delete([&self.api_url, "user", "list"].join("/"))
             .json(&users)
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 
     async fn create_user(
@@ -98,7 +100,8 @@ impl UserHandler for ApiHandler {
         self.api_client
             .post([&self.api_url, "user", login, "block"].join("/"))
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 }

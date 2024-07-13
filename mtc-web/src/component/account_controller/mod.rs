@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::fa_regular_icons::FaUser;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 use tracing::error;
@@ -33,28 +32,49 @@ pub fn AccountControllerComponent() -> Element {
             Link { class: "btn btn-ghost join-item",
                 to: DashboardPage {},
                 Icon {
-                    width: 20,
-                    icon: FaUser
+                    width: 22,
+                    height: 22,
+                    icon: dioxus_free_icons::icons::md_action_icons::MdLogin
                 }
             }
         } else {
             div { class: "dropdown dropdown-end dropdown-hover join-item",
-                div { tabindex: "0", role: "button", class: "btn btn-ghost join-item text-success",
+                div { tabindex: "0", role: "button", class: "btn btn-ghost join-item",
                     Icon {
-                        width: 20,
-                        icon: FaUser
+                        width: 28,
+                        height: 28,
+                        icon: dioxus_free_icons::icons::md_social_icons::MdPersonOutline
                     }
                 }
                 ul { tabindex: "0", class: "w-52 rounded border p-2 shadow-md dropdown-content z-[1] menu bg-base-100 input-bordered",
                     "onclick": "document.activeElement.blur()",
-                    li { Link { to: DashboardPage {}, { translate!(i18, "messages.dashboard") } } }
+                    li { Link { to: DashboardPage {},
+                        Icon {
+                                width: 18,
+                                height: 18,
+                                icon: dioxus_free_icons::icons::md_action_icons::MdSettings
+                        }
+                        { translate!(i18, "messages.settings") } }
+                    }
                     if auth_state().is_admin() {
-                        li { Link { to: AdministratorPage {}, { translate!(i18, "messages.administrator") } } }
+                        li { Link { to: AdministratorPage {},
+                            Icon {
+                                width: 18,
+                                height: 18,
+                                icon: dioxus_free_icons::icons::md_action_icons::MdAdminPanelSettings
+                            }
+                            { translate!(i18, "messages.administrator") }
+                        } }
                     }
                     div { class: "divider my-0" }
                     li {
                         a {
                             onclick: sign_out,
+                            Icon {
+                                width: 18,
+                                height: 18,
+                                icon: dioxus_free_icons::icons::md_action_icons::MdLogout
+                            }
                             { translate!(i18, "messages.sign_out") }
                         }
                     }

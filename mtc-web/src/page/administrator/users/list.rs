@@ -5,12 +5,14 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 use tracing::error;
+
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
 use mtc_model::user_model::{UserModel, UsersModel};
 
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::handler::user_handler::UserHandler;
+use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::user_service::UserService;
 use crate::APP_STATE;
@@ -42,14 +44,13 @@ pub fn UserList(mut props: UserListProps) -> Element {
                 users: value.0.to_vec().to_owned(),
             };
             spawn(async move {
-                if APP_STATE
-                    .peek()
-                    .api
-                    .delete_user_list(users_to_delete)
-                    .await
-                    .is_ok()
-                {
-                    props.page.set(pagination().current_page);
+                match APP_STATE.peek().api.delete_user_list(users_to_delete).await {
+                    Ok(_) => props.page.set(pagination().current_page),
+                    Err(e) => APP_STATE
+                        .peek()
+                        .modal
+                        .signal()
+                        .set(ModalModel::Error(e.message())),
                 }
                 is_busy.set(false);
             });
@@ -57,7 +58,9 @@ pub fn UserList(mut props: UserListProps) -> Element {
     };
 
     let user_block_toggle = move |login: String| {
-        if !can_edit() { return }
+        if !can_edit() {
+            return;
+        }
         spawn(async move {
             match APP_STATE.peek().api.toggle_block_user(&login).await {
                 Ok(_) => (),
@@ -138,10 +141,10 @@ pub fn UserList(mut props: UserListProps) -> Element {
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 26,
+                                height: 26,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
+                                icon: dioxus_free_icons::icons::md_content_icons::MdAdd
                             }
                             { translate!(i18, "messages.add") }
                         }
@@ -152,8 +155,8 @@ pub fn UserList(mut props: UserListProps) -> Element {
                             prevent_default: "onsubmit onclick",
                             form: "users-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }
@@ -163,7 +166,7 @@ pub fn UserList(mut props: UserListProps) -> Element {
                 }
                 div { class: "flex grow items-end",
                     PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
-                }                 
+                }
             }
         }
     }

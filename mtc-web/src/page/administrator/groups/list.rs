@@ -12,6 +12,7 @@ use mtc_model::pagination_model::PaginationModel;
 use crate::APP_STATE;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::handler::group_handler::GroupHandler;
+use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 
 #[derive(Props, Clone, PartialEq)]
@@ -35,8 +36,9 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
             is_busy.set(true);
             let groups_to_delete = GroupsModel { groups: value.0.to_vec().to_owned() };
             spawn(async move {
-                if APP_STATE.peek().api.delete_group_list(groups_to_delete).await.is_ok() {
-                    props.page.set(pagination().current_page);
+                match APP_STATE.peek().api.delete_group_list(groups_to_delete).await {
+                    Ok(_) => props.page.set(pagination().current_page),
+                    Err(e) => APP_STATE.peek().modal.signal().set(ModalModel::Error(e.message())),
                 }
                 is_busy.set(false);
             });
@@ -95,10 +97,10 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 26,
+                                height: 26,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
+                                icon: dioxus_free_icons::icons::md_content_icons::MdAdd
                             }
                             { translate!(i18, "messages.add") }
                         }
@@ -109,8 +111,8 @@ pub fn GroupList(mut props: GroupListProps) -> Element {
                             prevent_default: "onsubmit onclick",
                             form: "groups-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }

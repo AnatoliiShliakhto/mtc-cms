@@ -12,6 +12,7 @@ use mtc_model::role_model::{RoleModel, RolesModel};
 use crate::APP_STATE;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::handler::role_handler::RoleHandler;
+use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 
 #[derive(Props, Clone, PartialEq)]
@@ -36,8 +37,9 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
             is_busy.set(true);
             let roles_to_delete = RolesModel { roles: value.0.to_vec().to_owned() };
             spawn(async move {
-                if APP_STATE.peek().api.delete_role_list(roles_to_delete).await.is_ok() {
-                    props.page.set(pagination().current_page);
+                match  APP_STATE.peek().api.delete_role_list(roles_to_delete).await {
+                    Ok(_) => props.page.set(pagination().current_page),
+                    Err(e) => APP_STATE.peek().modal.signal().set(ModalModel::Error(e.message())),
                 }
                 is_busy.set(false);
             });
@@ -96,10 +98,10 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 26,
+                                height: 26,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
+                                icon: dioxus_free_icons::icons::md_content_icons::MdAdd
                             }
                             { translate!(i18, "messages.add") }
                         }
@@ -110,8 +112,8 @@ pub fn RoleList(mut props: RoleListProps) -> Element {
                             prevent_default: "onsubmit onclick",
                             form: "roles-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }

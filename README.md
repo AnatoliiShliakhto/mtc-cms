@@ -87,9 +87,9 @@ docker compose up --build
 - [x] Authentication middleware
 - [x] Core REST API end-points
 - [x] Custom API service
-- [ ] File manager API
-- [ ] Protected file store
-- [ ] SQL Migrations API 
+- [x] File manager API
+- [x] Protected file store
+- [x] SQL Migrations API 
 - [ ] Front-end admin panel
 - [ ] Quiz API (tests, exams etc.)
 - [ ] Cross-platform `Tauri App` for semi-offline using *Windows, Android, iOS*

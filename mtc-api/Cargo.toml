@@ -20,11 +20,11 @@ axum-extra = { version = "0.9.3", features = ["cookie", "cookie-signed"] }
 tower = { version = "0.4.13" }
 argon2 = { version = "0.6.0-pre.0" }
 serde_json = { version = "1.0.120" }
-surrealdb = { version = "1.5.3", features = ["sql2", "kv-speedb"] }
+surrealdb = { version = "1.5.4", features = ["sql2", "kv-speedb"] }
 chrono = { version = "0.4.38" }
 tower-sessions = { version = "0.12.2", features = ["signed", "private"] }
 tower-sessions-surrealdb-store = { version = "0.4.0" }
-thiserror = { version = "1.0.61" }
+thiserror = { version = "1.0.62" }
 tracing-appender = { version = "0.2.3" }
 validator = { version = "0.18.1", features = ["derive"] }
 axum-server = { version = "0.6.0", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }

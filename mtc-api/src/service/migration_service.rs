@@ -2,7 +2,6 @@ use std::collections::BTreeSet;
 
 use axum::async_trait;
 use tokio::fs;
-use tracing::warn;
 use crate::error::Result;
 
 crate::impl_service!(MigrationService);

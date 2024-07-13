@@ -11,6 +11,7 @@ use mtc_model::schema_model::{SchemaModel, SchemasModel};
 
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::handler::schema_handler::SchemaHandler;
+use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::APP_STATE;
 
@@ -38,14 +39,18 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                 schemas: value.0.to_vec().to_owned(),
             };
             spawn(async move {
-                if APP_STATE
+                match APP_STATE
                     .peek()
                     .api
                     .delete_schema_list(schemas_to_delete)
                     .await
-                    .is_ok()
                 {
-                    props.page.set(pagination().current_page);
+                    Ok(_) => props.page.set(pagination().current_page),
+                    Err(e) => APP_STATE
+                        .peek()
+                        .modal
+                        .signal()
+                        .set(ModalModel::Error(e.message())),
                 }
                 is_busy.set(false);
             });
@@ -72,13 +77,13 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                                 tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
                                     onclick: move |event| {
                                         event.stop_propagation();
-                                        if !item.is_system { page_action.set(PageAction::Selected(id)) }    
+                                        if !item.is_system { page_action.set(PageAction::Selected(id)) }
                                     },
 
                                     td { class: "text-nowrap",
                                         onclick: move |event| event.stop_propagation(),
                                         if item.is_system {
-                                            span { { "🔒" } }    
+                                            span { { "🔒" } }
                                         } else {
                                             input { class: "checkbox-xs",
                                                 r#type: "checkbox",
@@ -87,7 +92,7 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                                             }
                                         }
                                         if item.is_collection {
-                                            span { class: "pl-3 text-xl text-primary",{ "☰" } }                                            
+                                            span { class: "pl-3 text-xl text-primary",{ "☰" } }
                                         }
                                     }
                                     td { { item.slug.clone() } }
@@ -111,10 +116,10 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                             prevent_default: "onclick",
                             onclick: move |_| page_action.set(PageAction::New),
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 26,
+                                height: 26,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
+                                icon: dioxus_free_icons::icons::md_content_icons::MdAdd
                             }
                             { translate!(i18, "messages.add") }
                         }
@@ -125,8 +130,8 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                             prevent_default: "onsubmit onclick",
                             form: "schemas-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }
@@ -136,7 +141,7 @@ pub fn SchemaList(mut props: SchemaListProps) -> Element {
                 }
                 div { class: "flex grow items-end",
                     PaginatorComponent { mode: PaginatorComponentMode::Compact, page: props.page, pagination }
-                }                 
+                }
             }
         }
     }

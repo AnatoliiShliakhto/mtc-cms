@@ -159,7 +159,7 @@ pub fn Dashboard() -> Element {
                 div { class: "join",
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
                         button {
-                            class: "join-item btn btn-sm btn-ghost text-primary",
+                            class: "join-item btn btn-sm btn-ghost text-accent",
                             prevent_default: "onclick",
                             onclick: users_from_clipboard,
                             Icon {
@@ -172,7 +172,7 @@ pub fn Dashboard() -> Element {
                     }
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_copy"),
                         button {
-                            class: "join-item btn btn-sm btn-ghost text-primary",
+                            class: "join-item btn btn-sm btn-ghost",
                             prevent_default: "onclick",
                             onclick: move |_| { clipboard_write_eval.send(users().get_users_string()).unwrap(); },
                             Icon {
@@ -196,23 +196,23 @@ pub fn Dashboard() -> Element {
                             prevent_default: "onclick",
                             "onclick": "document.getElementById('users-upload').click()",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 20,
+                                height: 20,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFile
+                                icon: dioxus_free_icons::icons::md_file_icons::MdFileUpload
                             }
                         }    
                     }
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.download"),
                         button {
-                            class: "join-item btn btn-sm btn-ghost text-accent",
+                            class: "join-item btn btn-sm btn-ghost",
                             prevent_default: "onclick",
                             onclick: download_user_set,
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 20,
+                                height: 20,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                                icon: dioxus_free_icons::icons::md_file_icons::MdFileDownload
                             }
                         }    
                     }
@@ -222,10 +222,10 @@ pub fn Dashboard() -> Element {
                             prevent_default: "onclick",
                             onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
+                                icon: dioxus_free_icons::icons::md_content_icons::MdClear
                             }
                         }    
                     }

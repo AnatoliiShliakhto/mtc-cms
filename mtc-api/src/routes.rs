@@ -76,7 +76,7 @@ pub fn routes(
 
         .route("/permissions", get(permissions_list_handler))
 
-        //todo: change password
+        .route("/auth/change", post(change_password_handler))
         .route("/auth", get(get_credentials_handler).post(sign_in_handler).delete(sign_out_handler))
 
         .route("/migration", post(migration_handler))

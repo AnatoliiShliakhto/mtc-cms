@@ -27,6 +27,7 @@ pub trait UserRepositoryTrait {
     async fn block(&self, auth: &str, login: &str) -> Result<()>;
     async fn unblock(&self, auth: &str, login: &str) -> Result<()>;
     async fn block_toggle(&self, auth: &str, login: &str) -> Result<()>;
+    async fn change_password(&self, login: &str, password: &str) -> Result<UserModel>;
 }
 
 #[async_trait]
@@ -269,5 +270,33 @@ impl UserRepositoryTrait for UserService {
         }
 
         Ok(())
+    }
+
+    async fn change_password(&self, login: &str, password: &str) -> Result<UserModel> {
+        let password = password.as_bytes();
+        let salt = match SaltString::from_b64(&self.cfg.password_salt) {
+            Ok(value) => value,
+            _ => Err(ApiError::from(SessionError::PasswordHash))?,
+        };
+
+        let argon2 = Argon2::default();
+        let password_hash = match argon2.hash_password(password, &salt) {
+            Ok(value) => value.to_string(),
+            _ => Err(ApiError::from(SessionError::PasswordHash))?,
+        };
+
+        self.db
+            .query(
+                r#"
+                UPDATE users MERGE {
+                    password: $password,
+                } WHERE login=$login;
+            "#,
+            )
+            .bind(("login", login))
+            .bind(("password", password_hash))
+            .await?
+            .take::<Option<UserModel>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 }

@@ -1,7 +1,7 @@
 use mtc_model::auth_model::SignInModel;
 
 use crate::error::api_error::ApiError;
-use crate::handler::ApiHandler;
+use crate::handler::{ApiHandler, HandlerNullResponse};
 
 pub trait MigrationHandler {
     async fn migrate(&self, login: String, password: String) -> Result<(), ApiError>;
@@ -16,8 +16,8 @@ impl MigrationHandler for ApiHandler {
                 password: password.to_string(),
             })
             .send()
-            .await?;
-
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 }

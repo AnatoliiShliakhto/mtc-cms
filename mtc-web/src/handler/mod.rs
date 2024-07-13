@@ -30,6 +30,26 @@ impl Default for ApiHandler {
     }
 }
 
+pub trait HandlerNullResponse {
+    async fn consume(self) -> Result<(), ApiError>;
+}
+
+impl HandlerNullResponse for Result<Response, Error> {
+    async fn consume(self) -> Result<(), ApiError> {
+        match self {
+            Ok(response) => {
+                if response.status() == StatusCode::OK {
+                    Ok(())
+                } else {
+                    Err(ApiError::ResponseError(response.json::<ApiErrorResponse>().await?.message
+                        .unwrap_or("errors.bad_response".to_string())))
+                }
+            }
+            Err(e) => Err(ApiError::from(e))
+        }
+    }
+}
+
 pub trait HandlerResponse<T: DeserializeOwned> {
     async fn consume_data(self) -> Result<T, ApiError>;
     async fn consume_page(self) -> Result<ApiResponse<T>, ApiError>;

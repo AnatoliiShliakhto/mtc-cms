@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
+use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
@@ -98,6 +99,11 @@ pub fn SignIn() -> Element {
                         r#type: "button",
                         prevent_default: "onclick",
                         onclick: sign_in_task,
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            icon: dioxus_free_icons::icons::md_action_icons::MdLogin
+                        }
                         { translate!(i18, "messages.sign_in") }
                     }
                 } else {

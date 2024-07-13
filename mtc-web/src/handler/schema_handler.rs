@@ -1,7 +1,7 @@
 use mtc_model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel, SchemasModel};
 
 use crate::error::api_error::ApiError;
-use crate::handler::{ApiHandler, HandlerResponse};
+use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait SchemaHandler {
@@ -35,12 +35,12 @@ impl SchemaHandler for ApiHandler {
     }
 
     async fn delete_schema(&self, slug: &str) -> Result<(), ApiError> {
-        self
-            .api_client
+        self.api_client
             .delete([&self.api_url, "schema", slug].join("/"))
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 
     async fn delete_schema_list(&self, schemas: SchemasModel) -> Result<(), ApiError> {
@@ -48,8 +48,9 @@ impl SchemaHandler for ApiHandler {
             .delete([&self.api_url, "schema", "list"].join("/"))
             .json(&schemas)
             .send()
-            .await?;
-        Ok(())
+            .await
+            .consume()
+            .await
     }
 
     async fn create_schema(

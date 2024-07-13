@@ -61,9 +61,9 @@ pub struct UserUpdateModel {
 #[derive(Deserialize, Serialize, Validate)]
 pub struct UserChangePasswordModel {
     #[validate(length(min = 6, message = "Password must be 6 characters at least"))]
-    pub password: String,
-    #[validate(must_match(other = "password"))]
-    pub confirm_password: String,
+    pub old_password: String,
+    #[validate(length(min = 6, message = "Password must be 6 characters at least"))]
+    pub new_password: String,
 }
 
 #[derive(Deserialize, Serialize, Validate)]

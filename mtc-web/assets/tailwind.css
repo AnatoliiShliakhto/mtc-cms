@@ -1873,6 +1873,10 @@ html {
     --btn-color: var(--fallback-n);
   }
 
+  .btn-success {
+    --btn-color: var(--fallback-su);
+  }
+
   .btn-error {
     --btn-color: var(--fallback-er);
   }
@@ -1930,6 +1934,10 @@ html {
     --btn-color: var(--n);
   }
 
+  .btn-success {
+    --btn-color: var(--su);
+  }
+
   .btn-error {
     --btn-color: var(--er);
   }
@@ -1945,6 +1953,12 @@ html {
   --tw-text-opacity: 1;
   color: var(--fallback-nc,oklch(var(--nc)/var(--tw-text-opacity)));
   outline-color: var(--fallback-n,oklch(var(--n)/1));
+}
+
+.btn-success {
+  --tw-text-opacity: 1;
+  color: var(--fallback-suc,oklch(var(--suc)/var(--tw-text-opacity)));
+  outline-color: var(--fallback-su,oklch(var(--su)/1));
 }
 
 .btn-error {
@@ -3211,6 +3225,10 @@ details.collapse summary::-webkit-details-marker {
   z-index: 1;
 }
 
+.m-10 {
+  margin: 2.5rem;
+}
+
 .m-4 {
   margin: 1rem;
 }
@@ -3242,6 +3260,10 @@ details.collapse summary::-webkit-details-marker {
 
 .flex {
   display: flex;
+}
+
+.inline-flex {
+  display: inline-flex;
 }
 
 .table {
@@ -3388,6 +3410,10 @@ details.collapse summary::-webkit-details-marker {
   justify-content: center;
 }
 
+.justify-between {
+  justify-content: space-between;
+}
+
 .gap-1 {
   gap: 0.25rem;
 }
@@ -3519,11 +3545,6 @@ details.collapse summary::-webkit-details-marker {
   padding-right: 2.5rem;
 }
 
-.px-3 {
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-}
-
 .py-1 {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
@@ -3549,6 +3570,10 @@ details.collapse summary::-webkit-details-marker {
 
 .pt-4 {
   padding-top: 1rem;
+}
+
+.pt-5 {
+  padding-top: 1.25rem;
 }
 
 .indent-14 {

@@ -45,7 +45,6 @@ pub fn GroupSingle() -> Element {
         };
 
         spawn(async move {
-            is_busy.set(true);
             let app_state = APP_STATE.read();
 
             match match is_new_group() {
@@ -137,8 +136,9 @@ pub fn GroupSingle() -> Element {
                         prevent_default: "onclick",
                         onclick: move |_| page_action.set(PageAction::None),
                         Icon {
-                            width: 16,
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaCircleLeft
+                            width: 22,
+                            height: 22,
+                            icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack
                         }
                         { translate!(i18, "messages.cancel") }
                     }
@@ -157,10 +157,10 @@ pub fn GroupSingle() -> Element {
                             r#type: "submit",
                             form: "group-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 22,
+                                height: 22,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                                icon: dioxus_free_icons::icons::md_content_icons::MdSave
                             }
                             { translate!(i18, "messages.save") }
                         }
@@ -170,8 +170,8 @@ pub fn GroupSingle() -> Element {
                             prevent_default: "onsubmit onclick",
                             onclick: group_delete,
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }

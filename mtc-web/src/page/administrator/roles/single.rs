@@ -202,8 +202,9 @@ pub fn RoleSingle() -> Element {
                         prevent_default: "onclick",
                         onclick: move |_| page_action.set(PageAction::None),
                         Icon {
-                            width: 16,
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaCircleLeft
+                            width: 22,
+                            height: 22,
+                            icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack
                         }
                         { translate!(i18, "messages.cancel") }
                     }
@@ -222,10 +223,10 @@ pub fn RoleSingle() -> Element {
                             r#type: "submit",
                             form: "role-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 22,
+                                height: 22,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                                icon: dioxus_free_icons::icons::md_content_icons::MdSave
                             }
                             { translate!(i18, "messages.save") }
                         }
@@ -235,8 +236,8 @@ pub fn RoleSingle() -> Element {
                             prevent_default: "onsubmit onclick",
                             onclick: role_delete,
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }

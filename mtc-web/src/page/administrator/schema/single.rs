@@ -172,7 +172,7 @@ pub fn SchemaSingle() -> Element {
                             div { class: "label",
                                 span { class: "label-text text-primary", { translate!(i18, "messages.schema_type") } }
                             }
-                            label { class: "w-fit rounded border px-3 py-1 swap text-warning input-bordered",
+                            label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
                                 input { r#type: "checkbox", name: "is_collection", value: true }
                                 div { class: "swap-on whitespace-pre", "☰   " { translate!(i18, "messages.collection") } }
                                 div { class: "swap-off whitespace-pre", "⚊   " { translate!(i18, "messages.single") } }
@@ -275,10 +275,10 @@ pub fn SchemaSingle() -> Element {
                             r#type: "submit",
                             form: "field-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 24,
+                                height: 24,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaSquarePlus
+                                icon: dioxus_free_icons::icons::md_content_icons::MdAdd
                             }
                             { translate!(i18, "messages.add_field") }
                         }
@@ -297,8 +297,9 @@ pub fn SchemaSingle() -> Element {
                         prevent_default: "onclick",
                         onclick: move |_| page_action.set(PageAction::None),
                         Icon {
-                            width: 16,
-                            icon: dioxus_free_icons::icons::fa_regular_icons::FaCircleLeft
+                            width: 22,
+                            height: 22,
+                            icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack
                         }
                         { translate!(i18, "messages.cancel") }
                     }
@@ -317,10 +318,10 @@ pub fn SchemaSingle() -> Element {
                             r#type: "submit",
                             form: "schema-form",
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 22,
+                                height: 22,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaFloppyDisk
+                                icon: dioxus_free_icons::icons::md_content_icons::MdSave
                             }
                             { translate!(i18, "messages.save") }
                         }
@@ -330,8 +331,8 @@ pub fn SchemaSingle() -> Element {
                             prevent_default: "onsubmit onclick",
                             onclick: schema_delete,
                             Icon {
-                                width: 16,
-                                height: 16,
+                                width: 18,
+                                height: 18,
                                 fill: "currentColor",
                                 icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                             }
