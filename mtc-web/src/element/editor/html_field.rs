@@ -83,12 +83,13 @@ pub fn HtmlField(props: FieldProps) -> Element {
             div { class: "label",
                 span { class: "label-text text-primary", { props.title } }
             }
-            textarea {
-                id: props.slug.clone(),
-                name: props.slug,
-                class: "w-full rounded textarea textarea-bordered",
-                dangerous_inner_html: props.value,
-            }
+            article { class: "prose max-w-full",
+                textarea {
+                    id: props.slug.clone(),
+                    name: props.slug,
+                    dangerous_inner_html: props.value,
+                }
+            }    
         }
         script { r#type: "module", { script } }
     }

@@ -1,9 +1,9 @@
 {
   "devDependencies": {
-    "daisyui": "^4.11.1"
+    "@tailwindcss/typography": "^0.5.13",
+    "daisyui": "^4.12.10"
   },
   "dependencies": {
-    "@tailwindcss/typography": "^0.5.13",
     "node": "^18.20.3"
   }
 }

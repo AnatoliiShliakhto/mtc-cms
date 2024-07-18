@@ -7,3 +7,8 @@
     height: calc(100vh - 3rem);
     overflow: auto;
 }
+
+:root {
+    --ck-color-base-text: var(--fallback-bc,oklch(var(--bc)/1));
+    --ck-color-base-background: var(--fallback-b1,oklch(var(--b1)/1));
+}
