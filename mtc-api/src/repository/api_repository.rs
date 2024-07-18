@@ -1,6 +1,6 @@
 use axum::async_trait;
 
-use mtc_model::api_model::{ApiModel, ApiPostModel};
+use mtc_model::api_model::{ApiListItemModel, ApiModel, ApiPostModel};
 use mtc_model::pagination_model::CountModel;
 
 use crate::error::db_error::DbError;
@@ -34,6 +34,7 @@ pub trait ApiRepositoryTrait {
         is_admin: bool,
     ) -> Result<Vec<ApiModel>>;
     async fn get_total(&self, table: &str, is_admin: bool) -> Result<usize>;
+    async fn get_all_items(&self, table: &str) -> Result<Vec<ApiListItemModel>>;
 }
 
 #[async_trait]
@@ -78,6 +79,8 @@ impl ApiRepositoryTrait for ApiService {
                 r#"
                 CREATE type::table($table) CONTENT {
 	                slug: $slug,
+	                title: $title,
+	                published: $published,
 	                fields: $fields,
 	                created_by: $auth_id,
 	                updated_by: $auth_id
@@ -87,6 +90,8 @@ impl ApiRepositoryTrait for ApiService {
             .bind(("auth_id", auth))
             .bind(("table", table))
             .bind(("slug", slug))
+            .bind(("title", model.title))
+            .bind(("published", model.published))
             .bind(("fields", model.fields))
             .await?
             .take::<Option<ApiModel>>(0)?
@@ -104,6 +109,8 @@ impl ApiRepositoryTrait for ApiService {
             .query(
                 r#"
                 UPDATE type::table($table) MERGE {
+                    title: $title,
+                    published: $published,
                     fields: $fields,
                     updated_by: $auth_id
                 } WHERE slug=$slug;
@@ -112,6 +119,8 @@ impl ApiRepositoryTrait for ApiService {
             .bind(("auth_id", auth))
             .bind(("table", table))
             .bind(("slug", slug))
+            .bind(("title", model.title))
+            .bind(("published", model.published))
             .bind(("fields", model.fields))
             .await?
             .take::<Option<ApiModel>>(0)?
@@ -168,5 +177,14 @@ impl ApiRepositoryTrait for ApiService {
             Some(value) => Ok(value.count),
             _ => Ok(0usize),
         }
+    }
+
+    async fn get_all_items(&self, table: &str) -> Result<Vec<ApiListItemModel>> {
+        Ok(self
+            .db
+            .query(r#"SELECT slug, title, published FROM type::table($table);"#)
+            .bind(("table", table))
+            .await?
+            .take::<Vec<ApiListItemModel>>(0)?)
     }
 }

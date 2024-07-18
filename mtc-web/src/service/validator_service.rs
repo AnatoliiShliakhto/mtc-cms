@@ -6,6 +6,7 @@ use dioxus::prelude::*;
 pub trait ValidatorService {
     fn is_field_empty(&self, field: &str) -> bool;
     fn is_slug_valid(&self) -> bool;
+    fn is_title_valid(&self) -> bool;
     fn is_string_valid(&self, field: &str, min_len: usize) -> bool;
     fn get_string(&self, field: &str) -> String;
     fn get_string_option(&self, field: &str) -> Option<String>;
@@ -21,7 +22,14 @@ impl ValidatorService for Signal<HashMap<String, FormValue>> {
 
     fn is_slug_valid(&self) -> bool {
         match self.read().get("slug") {
-            Some(FormValue(field)) => !field.is_empty() && field[0].len().ge(&5),
+            Some(FormValue(field)) => !field.is_empty() && field[0].len().ge(&4),
+            None => false,
+        }
+    }
+
+    fn is_title_valid(&self) -> bool {
+        match self.read().get("title") {
+            Some(FormValue(field)) => !field.is_empty() && field[0].len().ge(&4),
             None => false,
         }
     }

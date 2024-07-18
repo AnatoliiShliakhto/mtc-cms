@@ -3,6 +3,9 @@ pub static EN_US: &str = r#"{
     "texts": {
         "messages": {
             "not_found": "Page not found",
+            "access": "access",
+            "access_public": "public",
+            "access_limited": "limited",
             "add": "Add",
             "add_field": "Add",
             "administrator": "Administrator",
@@ -26,6 +29,7 @@ pub static EN_US: &str = r#"{
             "created_at": "created at",
             "dashboard": "Dashboard",
             "delete": "Delete",
+            "draft": "Draft",
             "download": "download",
             "external_data": "External data",
             "fields": "fields",
@@ -51,6 +55,7 @@ pub static EN_US: &str = r#"{
             "password_old": "old password",            
             "permissions": "Permissions",
             "processing": "Processing",
+            "published": "Published",
             "rank": "rank",
             "reload": "Reload",
             "roles": "Roles",
@@ -98,8 +103,8 @@ pub static EN_US: &str = r#"{
             "login": "login must be 5 characters at least",
             "password": "password must be 6 characters at least",
             "confirm_password": "password and confirmation password do not match",
-            "slug": "must be 5 characters at least",
-            "title": "must be 5 character at least"
+            "slug": "must be 4 characters at least",
+            "title": "must be 4 character at least"
         },
         "fields": {
             "str": "String",

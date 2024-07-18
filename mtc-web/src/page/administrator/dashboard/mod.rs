@@ -125,8 +125,8 @@ pub fn Dashboard() -> Element {
     };
 
     rsx! {
-        div { class: "flex grow flex-row",
-            div { class: "flex grow flex-col items-center gap-3 p-5 body-scroll",
+        section { class: "flex grow flex-row",
+            div { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
                 table { class: "table w-full",
                     thead {
                         tr {
@@ -154,9 +154,9 @@ pub fn Dashboard() -> Element {
                     }
                 }
             }
-            div { class: "flex shrink flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
+            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
                 h2 { class: "menu-title self-center", { translate!(i18, "messages.external_data") } }
-                div { class: "join",
+                div { class: "px-2 join",
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
                         button {
                             class: "join-item btn btn-sm btn-ghost text-accent",

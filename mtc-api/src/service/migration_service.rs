@@ -15,7 +15,7 @@ pub trait MigrationTrait {
 #[async_trait]
 impl MigrationTrait for MigrationService {
     async fn is_new(&self) -> Result<bool> {
-        Ok(fs::try_exists([&self.cfg.migration_path, "init.sql"].join("/")).await?)
+        Ok(fs::try_exists([&self.cfg.migration_path, "0000-init.sql"].join("/")).await?)
     }
 
     async fn get_migration(&self) -> Result<Option<String>> {

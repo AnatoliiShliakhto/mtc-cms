@@ -105,6 +105,7 @@ pub fn SchemaSingle() -> Element {
             is_busy.set(true);
             let app_state = APP_STATE.read();
             let is_collection = schema_form.get_string_option("is_collection").is_some();
+            let is_public = schema_form.get_string_option("is_public").is_some();
             let field_set = match fields().is_empty() {
                 true => None,
                 false => Some(fields().values().cloned().collect::<Vec<FieldModel>>()),
@@ -132,6 +133,7 @@ pub fn SchemaSingle() -> Element {
                                 title: schema_form.get_string("title"),
                                 fields: field_set,
                                 is_collection,
+                                is_public,
                             },
                         )
                         .await
@@ -159,8 +161,8 @@ pub fn SchemaSingle() -> Element {
     };
 
     rsx! {
-        div { class: "flex grow select-none flex-row",
-            div { class: "flex grow flex-col items-center p-3 px-10 body-scroll",
+        section { class: "flex grow select-none flex-row",
+            div { class: "flex grow flex-col items-center p-2 body-scroll",
                 form { class: "w-full",
                     id: "schema-form",
                     prevent_default: "oninput",
@@ -168,14 +170,26 @@ pub fn SchemaSingle() -> Element {
                     oninput: move |event| schema_form.set(event.values()),
                     onsubmit: schema_submit,
                     if is_new_schema() {
-                        label { class: "w-full form-control",
-                            div { class: "label",
-                                span { class: "label-text text-primary", { translate!(i18, "messages.schema_type") } }
+                        div { class: "inline-flex gap-5",
+                            label { class: "w-fit form-control",
+                                div { class: "label",
+                                    span { class: "label-text text-primary", { translate!(i18, "messages.schema_type") } }
+                                }
+                                label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
+                                    input { r#type: "checkbox", name: "is_collection", value: true }
+                                    div { class: "swap-on whitespace-pre", "☰   " { translate!(i18, "messages.collection") } }
+                                    div { class: "swap-off whitespace-pre", "⚊   " { translate!(i18, "messages.single") } }
+                                }
                             }
-                            label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
-                                input { r#type: "checkbox", name: "is_collection", value: true }
-                                div { class: "swap-on whitespace-pre", "☰   " { translate!(i18, "messages.collection") } }
-                                div { class: "swap-off whitespace-pre", "⚊   " { translate!(i18, "messages.single") } }
+                            label { class: "w-fit form-control",
+                                div { class: "label",
+                                    span { class: "label-text text-primary", { translate!(i18, "messages.access") } }
+                                }
+                                label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
+                                    input { r#type: "checkbox", name: "is_public", value: true }
+                                    div { class: "swap-on whitespace-pre", "🔓   " { translate!(i18, "messages.access_public") } }
+                                    div { class: "swap-off whitespace-pre", "🔒   " { translate!(i18, "messages.access_limited") } }
+                                }
                             }
                         }
                     }
@@ -253,7 +267,7 @@ pub fn SchemaSingle() -> Element {
                     div { class: "mt-1 label",
                         span { class: "label-text text-primary", "⌘ " { translate!(i18, "messages.new_field") } }
                     }
-                    div { class: "flex flex-wrap gap-5 rounded p-3 bg-base-200",
+                    div { class: "flex flex-wrap gap-5 rounded p-2 bg-base-200",
                         select { class: "select select-bordered input-bordered",
                             name: "field_type",
                             option { value: "str", selected: true, { translate!(i18, "fields.str") } }
@@ -286,7 +300,7 @@ pub fn SchemaSingle() -> Element {
                 }
             }
 
-            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
+            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }

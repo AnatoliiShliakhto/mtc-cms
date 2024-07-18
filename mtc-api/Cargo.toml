@@ -9,9 +9,10 @@ resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
+mtc-model = { path = "../mtc-model" }
 axum = { version = "0.7.5", features = ["multipart", "macros"] }
 serde = { version = "1.0.204", features = ["derive"] }
-tokio = { version = "1.38.0", features = ["macros", "rt-multi-thread", "fs"] }
+tokio = { version = "1.38.1", features = ["macros", "rt-multi-thread", "fs"] }
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tower-http = { version = "0.5.2", features = ["fs", "cors"] }
@@ -24,11 +25,10 @@ surrealdb = { version = "1.5.4", features = ["sql2", "kv-speedb"] }
 chrono = { version = "0.4.38" }
 tower-sessions = { version = "0.12.2", features = ["signed", "private"] }
 tower-sessions-surrealdb-store = { version = "0.4.0" }
-thiserror = { version = "1.0.62" }
+thiserror = { version = "1.0.63" }
 tracing-appender = { version = "0.2.3" }
 validator = { version = "0.18.1", features = ["derive"] }
 axum-server = { version = "0.6.0", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
-mtc-model = { path = "../mtc-model" }
 uuid = { version = "1.10.0", features = ["v4"] }
 mime_guess = { version = "2.0.5" }
 

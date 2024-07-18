@@ -83,8 +83,8 @@ pub fn GroupSingle() -> Element {
     };
 
     rsx! {
-        div { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center gap-3 p-3 px-10 body-scroll",
+        section { class: "flex grow select-none flex-row",
+            form { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
                 id: "group-form",
                 prevent_default: "oninput",
                 autocomplete: "off",
@@ -125,7 +125,7 @@ pub fn GroupSingle() -> Element {
                 }
             }
             
-            div { class: "flex flex-col gap-3 p-5 shadow-lg bg-base-200 min-w-48 body-scroll",
+            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
                 if is_busy() {
                     div { class: "flex flex-col items-center gap-3 pt-4",
                         span { class: "loading loading-bars loading-lg" }

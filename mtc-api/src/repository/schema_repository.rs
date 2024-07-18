@@ -1,7 +1,7 @@
 use axum::async_trait;
 
 use mtc_model::schema_model::{
-    SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel,
+    SchemaCreateModel, SchemaFieldsModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel,
 };
 
 use crate::error::api_error::ApiError;
@@ -29,6 +29,7 @@ pub trait SchemaRepositoryTrait {
         model: SchemaFieldsModel,
     ) -> Result<SchemaModel>;
     async fn get_fields(&self, slug: &str) -> Result<SchemaFieldsModel>;
+    async fn get_all_collections(&self) -> Result<Vec<SchemaListItemModel>>;
 }
 
 #[async_trait]
@@ -72,10 +73,7 @@ impl SchemaRepositoryTrait for SchemaService {
     ) -> Result<SchemaModel> {
         self.can_create(slug).await?;
 
-        let result: Option<SchemaModel> = self
-            .db
-            .query(
-                r#"
+        let sql = r#"
             BEGIN TRANSACTION;
 
             CREATE schemas CONTENT {
@@ -83,33 +81,45 @@ impl SchemaRepositoryTrait for SchemaService {
 	            title: $title,
 	            fields: $fields,
 	            is_collection: $is_collection,
+	            is_public: $is_public,
 	            created_by: $auth_id,
 	            updated_by: $auth_id
             };
+        "#;
 
-            CREATE permissions CONTENT {
-                id: $permission_read_id,
-                slug: $permission_read
-            };
+        let result: Option<SchemaModel> = self
+            .db
+            .query(match model.is_public {
+                true => [sql, "COMMIT TRANSACTION;"].concat(),
+                false => [
+                    sql,
+                    r#"
+                    CREATE permissions CONTENT {
+                        id: $permission_read_id,
+                        slug: $permission_read
+                    };
 
-            CREATE permissions CONTENT {
-                id: $permission_write_id,
-                slug: $permission_write
-            };
+                    CREATE permissions CONTENT {
+                        id: $permission_write_id,
+                        slug: $permission_write
+                    };
 
-            CREATE permissions CONTENT {
-                id: $permission_delete_id,
-                slug: $permission_delete
-            };
+                    CREATE permissions CONTENT {
+                        id: $permission_delete_id,
+                        slug: $permission_delete
+                    };
 
-            COMMIT TRANSACTION;
-            "#,
-            )
+                    COMMIT TRANSACTION;
+                "#,
+                ]
+                .concat(),
+            })
             .bind(("auth_id", auth))
             .bind(("slug", slug))
             .bind(("title", &model.title))
             .bind(("fields", &model.fields))
             .bind(("is_collection", &model.is_collection))
+            .bind(("is_public", &model.is_public))
             .bind(("permission_read_id", format!("{}_read", slug)))
             .bind(("permission_read", format!("{}::read", slug)))
             .bind(("permission_write_id", format!("{}_write", slug)))
@@ -125,21 +135,22 @@ impl SchemaRepositoryTrait for SchemaService {
                     self.db
                         .query(format!(
                             r#"
-                    BEGIN TRANSACTION;
+                        BEGIN TRANSACTION;
 
-                    DEFINE TABLE {0} SCHEMAFULL;
-                    DEFINE FIELD slug ON TABLE {0} TYPE string;
-                    DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<object>;
-                    DEFINE FIELD published ON TABLE {0} TYPE bool DEFAULT false;
-                    DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
-                    DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
-                    DEFINE FIELD created_by ON TABLE {0} TYPE string;
-                    DEFINE FIELD updated_by ON TABLE {0} TYPE string;
-                    DEFINE INDEX idx_{0}_update ON TABLE {0} COLUMNS updated_at; 
-                    DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
+                        DEFINE TABLE {0} SCHEMAFULL;
+                        DEFINE FIELD slug ON TABLE {0} TYPE string;
+                        DEFINE FIELD title ON TABLE {0} TYPE string;
+                        DEFINE FIELD fields ON TABLE {0} FLEXIBLE TYPE option<object>;
+                        DEFINE FIELD published ON TABLE {0} TYPE bool DEFAULT false;
+                        DEFINE FIELD created_at ON TABLE {0} TYPE datetime DEFAULT time::now();
+                        DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
+                        DEFINE FIELD created_by ON TABLE {0} TYPE string;
+                        DEFINE FIELD updated_by ON TABLE {0} TYPE string;
+                        DEFINE INDEX idx_{0}_update ON TABLE {0} COLUMNS updated_at;
+                        DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
 
-                    COMMIT TRANSACTION;
-                    "#,
+                        COMMIT TRANSACTION;
+                        "#,
                             slug
                         ))
                         .await?;
@@ -147,31 +158,35 @@ impl SchemaRepositoryTrait for SchemaService {
                     self.db
                         .query(
                             r#"
-                    CREATE singles CONTENT {
-	                    slug: $slug,
-	                    created_by: $auth_id,
-	                    updated_by: $auth_id
-                    };
-                    "#,
+                        CREATE singles CONTENT {
+	                        slug: $slug,
+	                        title: $title,
+	                        created_by: $auth_id,
+	                        updated_by: $auth_id
+                        };
+                        "#,
                         )
                         .bind(("auth_id", auth))
+                        .bind(("title", &model.title))
                         .bind(("slug", slug))
                         .await?;
                 }
-                self.db
-                    .query(format!(
-                        r#"
-                    BEGIN TRANSACTION;
+                if !model.is_public {
+                    self.db
+                        .query(format!(
+                            r#"
+                        BEGIN TRANSACTION;
 
-                    RELATE roles:administrator->role_permissions->permissions:{0}_read;
-                    RELATE roles:administrator->role_permissions->permissions:{0}_write;
-                    RELATE roles:administrator->role_permissions->permissions:{0}_delete;
+                        RELATE roles:administrator->role_permissions->permissions:{0}_read;
+                        RELATE roles:administrator->role_permissions->permissions:{0}_write;
+                        RELATE roles:administrator->role_permissions->permissions:{0}_delete;
 
-                    COMMIT TRANSACTION;
-                    "#,
-                        slug
-                    ))
-                    .await?;
+                        COMMIT TRANSACTION;
+                        "#,
+                            slug
+                        ))
+                        .await?;
+                }
                 Ok(value)
             }
             _ => Err(DbError::EntryAlreadyExists.into()),
@@ -286,5 +301,13 @@ impl SchemaRepositoryTrait for SchemaService {
             }),
             _ => Err(ApiError::from(DbError::EntryNotFound)),
         }
+    }
+
+    async fn get_all_collections(&self) -> Result<Vec<SchemaListItemModel>> {
+        Ok(self
+            .db
+            .query(r#"SELECT slug, title FROM schemas WHERE is_collection = true AND is_system = false;"#)
+            .await?
+            .take::<Vec<SchemaListItemModel>>(0)?)
     }
 }

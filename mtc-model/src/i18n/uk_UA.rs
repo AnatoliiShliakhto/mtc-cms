@@ -3,6 +3,9 @@ pub static UK_UA: &str = r#"{
     "texts": {
         "messages": {
             "not_found": "Сторінка відсутня",
+            "access": "доступ",
+            "access_public": "загальний",
+            "access_limited": "обмежений",
             "add": "Створити",
             "add_field": "Додати",
             "administrator": "Адміністратор",
@@ -27,6 +30,7 @@ pub static UK_UA: &str = r#"{
             "dashboard": "Користувач",
             "delete": "Видалити",
             "download": "зберегти",
+            "draft": "Чернетка",
             "external_data": "Зовнішні дані",
             "fields": "поля",
             "files": "Файли",
@@ -51,6 +55,7 @@ pub static UK_UA: &str = r#"{
             "password_old": "дійсний пароль", 
             "permissions": "Дозволи",
             "processing": "Опрацювання",
+            "published": "Опубліковано",
             "rank": "звання",
             "reload": "Перезавантажити",
             "roles": "Ролі",
@@ -98,8 +103,8 @@ pub static UK_UA: &str = r#"{
             "login": "логін повинен бути не меньше 5 символів",
             "confirm_password": "пароль та підтвердження повинні співпадати",
             "password": "пароль повинен бути не меньше 6 символів",
-            "slug": "повинно бути не меньше 5 символів",
-            "title": "повинно бути не меньше 5 символів"
+            "slug": "повинно бути не меньше 4 символів",
+            "title": "повинно бути не меньше 4 символів"
         },
         "fields": {
             "str": "Строка",

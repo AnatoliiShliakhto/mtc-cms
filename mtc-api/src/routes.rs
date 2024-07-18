@@ -41,7 +41,9 @@ pub fn routes(
     Router::new()
         .route("/:api/:slug", get(api_get_collection_item_handler).post(api_create_collection_item_handler).patch(api_update_collection_item_handler).delete(api_delete_collection_item_handler))
         .route("/:api/list/:page", get(api_collection_list_handler))
+        .route("/:api/list/all", get(api_get_all_collection_items_handler))
         .route("/:api/list", get(api_collection_list_handler))
+        .route("/all_api", get(api_get_all_single_items_handler))
         .route("/:slug", get(api_get_single_handler).patch(api_update_single_item_handler))
 
         .route("/protected/:path/:file", get(protected_store_get_handler).delete(protected_store_delete_handler))
@@ -51,6 +53,7 @@ pub fn routes(
         
         .route("/schema/:slug/fields", get(schema_get_fields_handler).post(schema_update_fields_handler))
         .route("/schema/:slug", post(schema_create_handler).get(schema_get_handler).patch(schema_update_handler).delete(schema_delete_handler))
+        .route("/schema/collections", get(schema_get_all_collections_handler))
         .route("/schema/list/:page", get(schema_list_handler))
         .route("/schema/list", get(schema_list_handler).delete(schema_list_delete_handler))
 

@@ -6,7 +6,8 @@ use tracing::error;
 
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 use mtc_model::schema_model::{
-    SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel, SchemasModel,
+    SchemaCreateModel, SchemaFieldsModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel,
+    SchemasModel,
 };
 
 use crate::handler::Result;
@@ -65,7 +66,7 @@ pub async fn schema_create_handler(
         .schema_service
         .create(&session.auth_id().await?, &slug, payload)
         .await?;
-    
+
     if !schema_model.is_collection {
         let single = state.api_service.find_by_slug("singles", &slug).await?;
         state.store_service.create_assets(&single.id).await?;
@@ -149,4 +150,13 @@ pub async fn schema_get_fields_handler(
     session.permission("schema::read").await?;
 
     state.schema_service.get_fields(&slug).await?.ok_model()
+}
+
+pub async fn schema_get_all_collections_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<Vec<SchemaListItemModel>> {
+    session.permission("schema::read").await?;
+
+    state.schema_service.get_all_collections().await?.ok_model()
 }

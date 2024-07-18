@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use tower_sessions::Session;
 
-use mtc_model::api_model::{ApiModel, ApiPostModel};
+use mtc_model::api_model::{ApiListItemModel, ApiModel, ApiPostModel};
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 
 use crate::error::api_error::ToApiError;
@@ -23,15 +23,18 @@ pub async fn api_collection_list_handler(
 ) -> Result<Vec<ApiModel>> {
     let api = api_page_request.api;
     let page = api_page_request.page.unwrap_or(1);
-
-    session.permission(&format!("{}::read", &api)).await?;
-    let is_admin = session.is_admin().await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
+
+    if !schema_model.is_public {
+        session
+            .permission(&[api.as_str(), "::read"].concat())
+            .await?;
+    }
+    let is_admin = session.is_admin().await?;
 
     let pagination = PaginationModel::new(
         state.api_service.get_total(&api, is_admin).await?,
@@ -51,13 +54,15 @@ pub async fn api_get_single_handler(
     session: Session,
     state: State<Arc<AppState>>,
 ) -> Result<ApiModel> {
-    session.permission(&format!("{}::read", &api)).await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
-    //todo: collection response (perhaps)
     if schema_model.is_system || schema_model.is_collection {
         Err("Isn't a single type api end-point".to_bad_request_error())?
+    }
+    if !schema_model.is_public {
+        session
+            .permission(&[api.as_str(), "::read"].concat())
+            .await?;
     }
 
     state
@@ -73,9 +78,15 @@ pub async fn api_update_single_item_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<ApiPostModel>,
 ) -> Result<ApiModel> {
-    session.permission(&format!("{}::write", &api)).await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
+
+    if schema_model.is_public {
+        session.permission("content::write").await?;
+    } else {
+        session
+            .permission(&[api.as_str(), "::write"].concat())
+            .await?;
+    }
 
     if schema_model.is_system || schema_model.is_collection {
         Err("Isn't a single type api end-point".to_bad_request_error())?
@@ -98,12 +109,16 @@ pub async fn api_get_collection_item_handler(
     session: Session,
     state: State<Arc<AppState>>,
 ) -> Result<ApiModel> {
-    session.permission(&format!("{}::read", &api)).await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
+    }
+
+    if !schema_model.is_public {
+        session
+            .permission(&[api.as_str(), "::read"].concat())
+            .await?;
     }
 
     state
@@ -119,12 +134,18 @@ pub async fn api_create_collection_item_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<ApiPostModel>,
 ) -> Result<ApiModel> {
-    session.permission(&format!("{}::write", &api)).await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
+    }
+
+    if schema_model.is_public {
+        session.permission("content::write").await?;
+    } else {
+        session
+            .permission(&[api.as_str(), "::write"].concat())
+            .await?;
     }
 
     let api_model = state
@@ -148,12 +169,18 @@ pub async fn api_update_collection_item_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<ApiPostModel>,
 ) -> Result<ApiModel> {
-    session.permission(&format!("{}::write", &api)).await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
+    }
+
+    if schema_model.is_public {
+        session.permission("content::write").await?;
+    } else {
+        session
+            .permission(&[api.as_str(), "::write"].concat())
+            .await?;
     }
 
     state
@@ -173,17 +200,46 @@ pub async fn api_delete_collection_item_handler(
     state: State<Arc<AppState>>,
     session: Session,
 ) -> Result<()> {
-    session.permission(&format!("{}::delete", &api)).await?;
-
     let schema_model = state.schema_service.find_by_slug(&api).await?;
 
     if schema_model.is_system || !schema_model.is_collection {
         Err("Isn't a collection type api end-point".to_bad_request_error())?
     }
 
+    if schema_model.is_public {
+        session.permission("content::write").await?;
+    } else {
+        session
+            .permission(&[api.as_str(), "::delete"].concat())
+            .await?;
+    }
+    
+    let api_model = state.api_service.find_by_slug(&schema_model.slug, &slug).await?;
+
+    state.store_service.delete_assets(&api_model.id).await?;
+    
     state
         .api_service
         .delete(&schema_model.slug, &slug)
         .await?
         .ok_ok()
+}
+
+pub async fn api_get_all_single_items_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<Vec<ApiListItemModel>> {
+    session.permission("administrator").await?;
+
+    state.api_service.get_all_items("singles").await?.ok_model()
+}
+
+pub async fn api_get_all_collection_items_handler(
+    Path(api): Path<String>,
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<Vec<ApiListItemModel>> {
+    session.permission("administrator").await?;
+
+    state.api_service.get_all_items(&api).await?.ok_model()
 }

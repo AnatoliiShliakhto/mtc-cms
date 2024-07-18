@@ -13,6 +13,7 @@ pub struct SchemaModel {
     pub title: String,
     pub is_system: bool,
     pub is_collection: bool,
+    pub is_public: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fields: Option<Vec<FieldModel>>,
     pub created_at: Datetime,
@@ -29,6 +30,7 @@ impl Default for SchemaModel{
             title: "".to_string(),
             is_system: false,
             is_collection: false,
+            is_public: false,
             fields: None,
             created_at: Default::default(),
             updated_at: Default::default(),
@@ -42,6 +44,7 @@ impl Default for SchemaModel{
 pub struct SchemaCreateModel {
     pub title: String,
     pub is_collection: bool,
+    pub is_public: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fields: Option<Vec<FieldModel>>,
 }
@@ -61,4 +64,10 @@ pub struct SchemaFieldsModel {
 #[derive(Default, Deserialize, Serialize, Validate)]
 pub struct SchemasModel {
     pub schemas: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct SchemaListItemModel {
+    pub slug: String,
+    pub title: String,
 }
