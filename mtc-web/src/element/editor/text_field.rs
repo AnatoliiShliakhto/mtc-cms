@@ -10,7 +10,7 @@ pub fn TextField(props: FieldProps) -> Element {
                 span { class: "label-text text-primary", { props.title } }
             }
             textarea {
-                class: "h-24 rounded textarea textarea-bordered",
+                class: "w-full h-24 rounded textarea textarea-bordered",
                 name: props.slug,
                 value: props.value,
             }

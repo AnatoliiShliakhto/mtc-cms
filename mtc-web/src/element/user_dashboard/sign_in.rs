@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
@@ -14,34 +12,19 @@ use crate::APP_STATE;
 pub fn SignIn() -> Element {
     let i18 = use_i18();
 
-    let mut credentials_submit = use_signal(HashMap::<String, FormValue>::new);
     let mut is_busy = use_signal(|| false);
 
-    let is_login_valid = use_memo(move || {
-        credentials_submit.is_field_empty("login") | credentials_submit.is_string_valid("login", 5)
-    });
-    let is_password_valid = use_memo(move || {
-        credentials_submit.is_field_empty("password")
-            | credentials_submit.is_string_valid("password", 6)
-    });
-
-    let sign_in_task = move |_| {
+    let sign_in_task = move |event: Event<FormData>| {
         is_busy.set(true);
-        if !credentials_submit.is_string_valid("login", 5)
-            || !credentials_submit.is_string_valid("password", 6)
-        {
-            is_busy.set(true);
-            if !credentials_submit.is_string_valid("login", 5)
-                || !credentials_submit.is_string_valid("password", 6)
-            {
-                APP_STATE
-                    .peek()
-                    .modal
-                    .signal()
-                    .set(ModalModel::Error(translate!(i18, "errors.fields")));
-                is_busy.set(false);
-                return;
-            }
+
+        if !event.is_login_valid() | !event.is_string_valid("password", 6) {
+            APP_STATE
+                .peek()
+                .modal
+                .signal()
+                .set(ModalModel::Error(translate!(i18, "errors.fields")));
+            is_busy.set(false);
+            return;
         }
 
         spawn(async move {
@@ -50,8 +33,8 @@ pub fn SignIn() -> Element {
             match app_state
                 .api
                 .sign_in(
-                    credentials_submit.get_string("login").to_uppercase(),
-                    credentials_submit.get_string("password"),
+                    event.get_string("login").to_uppercase(),
+                    event.get_string("password"),
                 )
                 .await
             {
@@ -64,53 +47,43 @@ pub fn SignIn() -> Element {
 
     rsx! {
         form { class: "flex grow flex-col items-center gap-3",
-            id: "credentials-form",
-            prevent_default: "onsubmit oninput",
             autocomplete: "off",
-            oninput: move |event| credentials_submit.set(event.values()),
+            onsubmit: sign_in_task,
             label { class: "w-full gap-2 form-control",
-                input { r#type: "text", name: "login",
-                    class: if is_login_valid() { "input input-bordered" } else { "input input-bordered input-error" },
+                input { class: "input input-bordered",
+                    r#type: "text",
+                    name: "login",
                     placeholder: translate!(i18, "messages.login"),
-                    autofocus: true,
-                }
-                if !is_login_valid() {
-                    div { class: "label",
-                         span { class: "label-text-alt text-error",
-                            { translate!(i18, "validate.login") }
-                         }
-                    }
+                    minlength: 5,
+                    maxlength: 15,
+                    required: true,
                 }
             }
             label { class: "w-full gap-2 form-control",
-                input { r#type: "password", name: "password",
-                    class: if is_password_valid() { "input input-bordered" } else { "input input-bordered input-error" },
-                    placeholder: translate!(i18, "messages.password")
+                input { class: "input input-bordered",
+                    r#type: "password",
+                    name: "password",
+                    placeholder: translate!(i18, "messages.password"),
+                    minlength: 6,
+                    maxlength: 20,
+                    required: true,
                 }
-                if !is_password_valid() {
-                    div { class: "label",
-                         span { class: "label-text-alt text-error",
-                            { translate!(i18, "validate.password") }
-                         }
+            }
+
+            if !is_busy() {
+                button { class: "mt-2 w-fit self-center btn btn-neutral btn-outline",
+                    r#type: "submit",
+                    Icon {
+                        width: 22,
+                        height: 22,
+                        icon: dioxus_free_icons::icons::md_action_icons::MdLogin
                     }
+                    { translate!(i18, "messages.sign_in") }
                 }
-                if !is_busy() {
-                    button { class: "mt-2 w-fit self-center btn btn-neutral btn-outline",
-                        r#type: "button",
-                        prevent_default: "onclick",
-                        onclick: sign_in_task,
-                        Icon {
-                            width: 22,
-                            height: 22,
-                            icon: dioxus_free_icons::icons::md_action_icons::MdLogin
-                        }
-                        { translate!(i18, "messages.sign_in") }
-                    }
-                } else {
-                    div { class: "flex w-fit flex-row gap-4 self-center py-3",
-                        span { class: "loading loading-spinner loading-md" }
-                        span { { translate!(i18, "messages.sign_in") } "..." }
-                    }
+            } else {
+                div { class: "flex w-fit flex-row gap-4 self-center py-3",
+                    span { class: "loading loading-spinner loading-md" }
+                    span { { translate!(i18, "messages.sign_in") } "..." }
                 }
             }
         }

@@ -16,20 +16,11 @@ pub fn ModalBoxComponent() -> Element {
     };
 
     rsx! {
-        input {
-            class: "modal-toggle",
-            r#type: "checkbox",
-            id: "modal_box",
-            checked: true,
-        }
         div {
-            class: "modal",
-            role: "dialog",
-            "open": "true",
+            class: "modal-page",
             div { class: "modal-box",
                 button {
                     class: "absolute top-2 right-2 btn btn-sm btn-circle btn-ghost",
-                    prevent_default: "onclick",
                     onclick: dialog_close,
                     "✕"
                 }
@@ -150,7 +141,6 @@ pub fn ModalBoxComponent() -> Element {
                     class: "modal-action",
                     label {
                         class: "btn btn-outline",
-                        prevent_default: "onclick",
                         onclick: dialog_close,
                         { translate!(i18, "messages.close") }
                     }

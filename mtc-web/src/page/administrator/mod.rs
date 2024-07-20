@@ -1,12 +1,12 @@
-use std::collections::BTreeMap;
-
 use dioxus::prelude::*;
+use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
-use futures_util::StreamExt;
 
 use mtc_model::auth_model::AuthModelTrait;
 
+use crate::component::loading_box::LoadingBoxComponent;
+use crate::element::editor::Editor;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::page::administrator::content::Content;
 use crate::page::administrator::dashboard::Dashboard;
@@ -33,18 +33,19 @@ pub enum AdministratorRouteModel {
     Roles,
     Users,
     Schema,
-    Content(String),
-}
-
-enum AdministratorActions {
-    Update,
+    Content,
+    ContentEditor,
 }
 
 #[component]
 pub fn AdministratorPage() -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
+    let is_busy = app_state.is_busy.signal();
     let i18 = use_i18();
+
+    let mut active_content_api = app_state.active_content_api.signal();
+    let active_content = app_state.active_content.signal();
 
     if !auth_state.is_permission("administrator") {
         return rsx! { NotFoundPage {} };
@@ -53,60 +54,39 @@ pub fn AdministratorPage() -> Element {
     let mut administrator_route =
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
-    let mut collection_list = use_signal(BTreeMap::<String, String>::new);
-    let mut is_updating = use_signal(|| false);
-    let admin_controller = use_coroutine(
-        |mut rx: UnboundedReceiver<AdministratorActions>| async move {
-            while let Some(msg) = rx.next().await {
-                match msg {
-                    AdministratorActions::Update => {
-                        if is_updating() {
-                            return;
-                        }
-                        is_updating.set(true);
-                        if let Ok(result) = APP_STATE.peek().api.get_all_collections().await {
-                            let mut list = BTreeMap::<String, String>::new();
-                            result.iter().for_each(|item| {
-                                list.insert(item.title.clone(), item.slug.clone());
-                            });
-                            collection_list.set(list);
-                        }
+    let mut collections_future = use_resource(move || async {
+        APP_STATE.peek().service.get_credentials();
 
-                        APP_STATE.peek().service.get_credentials();
-
-                        is_updating.set(false);
-                    }
-                }
-            }
-        },
-    );
-
-    let mut selected_schema = use_signal(|| Option::<String>::None);
-
-    use_hook(|| admin_controller.send(AdministratorActions::Update));
+        APP_STATE.peek().api.get_all_collections().await
+    });
 
     rsx! {
+        if is_busy() {
+            LoadingBoxComponent {}
+        }
         div { class: "flex w-full flex-row",
             aside { class: "shadow-lg bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
                     li {
                         a { class: "inline-flex justify-between",
-                            prevent_default: "onclick",
-                            onclick: move |_| admin_controller.send(AdministratorActions::Update),
-                            { translate!(i18, "messages.content") }
-                            if is_updating() {
-                                span { class: "loading loading-spinner loading-xs" }
-                            } else {
-                                span { class: "text-primary", "🗘" }
+                            onclick: move |_| collections_future.restart(),
+                            { translate!(i18, "messages.content") },
+                            Icon { class: "text-primary",
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_navigation_icons::MdRefresh
                             }
                         }
                         ul {
                             li {
                                 a {
-                                    prevent_default: "onclick",
-                                    class: if administrator_route.read().eq(&AdministratorRouteModel::Content("singles".to_string())) { "active" },
-                                    onclick: move |_|
-                                        administrator_route.set(AdministratorRouteModel::Content("singles".to_string())),
+                                    class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
+                                                active_content_api().is_empty() { "active" },
+                                    onclick: move |_| {
+                                        active_content_api.set(String::new());
+                                        administrator_route.set(AdministratorRouteModel::Content);
+                                    },
                                     { translate!(i18, "messages.singles") }
                                 }
                             }
@@ -114,20 +94,52 @@ pub fn AdministratorPage() -> Element {
                                 details {
                                     summary { { translate!(i18, "messages.collections") } }
                                     ul {
-                                        for (title, slug) in collection_list().iter() {{
-                                            let m_slug = slug.clone();
-                                            rsx! {
+                                        match &*collections_future.read() {
+                                            Some(Ok(response)) => rsx! {
+                                                for item in response.iter() {
+                                                    {
+                                                        let m_slug = item.slug.clone();
+                                                        rsx! {
+                                                            li  {
+                                                                a {
+                                                                    class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
+                                                                        active_content_api().eq(&m_slug) { "active" },
+                                                                    onclick: move |_| {
+                                                                        active_content_api.set(m_slug.clone());
+                                                                        administrator_route.set(AdministratorRouteModel::Content);
+                                                                    },
+                                                                    { item.title.clone() }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            Some(Err(_)) => rsx! {
                                                 li {
                                                     a {
-                                                        prevent_default: "onclick",
-                                                        class: if administrator_route.read().eq(&AdministratorRouteModel::Content(slug.clone())) { "active" },
-                                                        onclick: move |_|
-                                                            administrator_route.set(AdministratorRouteModel::Content(m_slug.clone())),
-                                                        { title.clone() }
+                                                        onclick: move |_| collections_future.restart(),
+                                                        div { class: "inline-flex items-center gap-3",
+                                                            Icon {
+                                                                width: 16,
+                                                                height: 16,
+                                                                fill: "currentColor",
+                                                                icon: dioxus_free_icons::icons::md_navigation_icons::MdRefresh
+                                                            }
+                                                            span { { translate!(i18, "messages.refresh") } }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            None => rsx! {
+                                                li {
+                                                    div { class: "inline-flex items-center gap-3",
+                                                        span { class: "loading loading-spinner loading-xs" }
+                                                        span { { translate!(i18, "messages.loading") } }
                                                     }
                                                 }
                                             }
-                                        }}
+                                        }
                                     }
                                 }
                             }
@@ -137,17 +149,20 @@ pub fn AdministratorPage() -> Element {
                     li { class: "pt-5",
                         a {
                             class: "inline-flex justify-between",
-                            prevent_default: "onclick",
                             class: if administrator_route.read().eq(&AdministratorRouteModel::Dashboard) { "active" },
                             onclick: move |_| administrator_route.set(AdministratorRouteModel::Dashboard),
                             { translate!(i18, "messages.administrator") }
-                            span { class: "text-primary",  "⌘" }
+                            Icon { class: "text-primary",
+                                width: 16,
+                                height: 16,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                            }
                         }
                         ul {
                             if auth_state.is_permission("schema::read") {
                                 li {
                                     a {
-                                        prevent_default: "onclick",
                                         class: match administrator_route() {
                                             AdministratorRouteModel::Schema => { "active" },
                                             _ => {""}
@@ -160,7 +175,6 @@ pub fn AdministratorPage() -> Element {
                             if auth_state.is_permission("group::read") {
                                 li {
                                     a {
-                                        prevent_default: "onclick",
                                         class: match administrator_route() {
                                             AdministratorRouteModel::Groups => { "active" },
                                             _ => {""}
@@ -173,7 +187,6 @@ pub fn AdministratorPage() -> Element {
                             if auth_state.is_permission("role::read") {
                                 li {
                                     a {
-                                        prevent_default: "onclick",
                                         class: match administrator_route() {
                                             AdministratorRouteModel::Roles => { "active" },
                                             _ => {""}
@@ -186,7 +199,6 @@ pub fn AdministratorPage() -> Element {
                             if auth_state.is_permission("user::read") {
                                 li {
                                     a {
-                                        prevent_default: "onclick",
                                         class: match administrator_route() {
                                             AdministratorRouteModel::Users => { "active" },
                                             _ => {""}
@@ -201,17 +213,8 @@ pub fn AdministratorPage() -> Element {
                 }
             }
             match administrator_route() {
-                AdministratorRouteModel::Content(slug) => {
-                    rsx! { Content { schema: selected_schema }
-                        {
-                            if slug.eq("singles") {
-                                selected_schema.set(None)
-                            } else {
-                                selected_schema.set(Some(slug))
-                            }
-                        }
-                    }
-                },
+                AdministratorRouteModel::ContentEditor => rsx! { Editor {} },
+                AdministratorRouteModel::Content => rsx! { Content {} },
                 AdministratorRouteModel::Groups => rsx! { Groups {} },
                 AdministratorRouteModel::Roles => rsx! { Roles {} },
                 AdministratorRouteModel::Users => rsx! { Users {} },

@@ -2,5 +2,5 @@
 pub enum PageAction {
     None,
     New,
-    Selected(usize),
+    Item(String),
 }

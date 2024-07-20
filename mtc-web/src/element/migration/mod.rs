@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use dioxus::prelude::*;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
@@ -14,24 +12,17 @@ use crate::service::validator_service::ValidatorService;
 pub fn Migration() -> Element {
     let i18 = use_i18();
 
-    let mut credentials_submit = use_signal(HashMap::<String, FormValue>::new);
     let mut is_busy = use_signal(|| false);
     let mut is_success = use_signal(|| false);
 
-    let is_login_valid = use_memo(move || {
-        credentials_submit.is_field_empty("login") | credentials_submit.is_string_valid("login", 5)
-    });
-    let is_password_valid = use_memo(move || {
-        credentials_submit.is_field_empty("password")
-            | credentials_submit.is_string_valid("password", 6)
-    });
-
-    let migrate_task = move |_| {
+    let migrate_task = move |event: Event<FormData>| {
         is_busy.set(true);
-        if !credentials_submit.is_string_valid("login", 5)
-            || !credentials_submit.is_string_valid("password", 6)
-        {
-            APP_STATE.peek().modal.signal().set(ModalModel::Error(translate!(i18, "errors.fields")));
+        if !event.is_login_valid() || !event.is_string_valid("password", 6) {
+            APP_STATE
+                .peek()
+                .modal
+                .signal()
+                .set(ModalModel::Error(translate!(i18, "errors.fields")));
             is_busy.set(false);
             return;
         }
@@ -42,8 +33,8 @@ pub fn Migration() -> Element {
             match app_state
                 .api
                 .migrate(
-                    credentials_submit.get_string("login").to_uppercase(),
-                    credentials_submit.get_string("password"),
+                    event.get_string("login").to_uppercase(),
+                    event.get_string("password"),
                 )
                 .await
             {
@@ -58,47 +49,35 @@ pub fn Migration() -> Element {
         return rsx! {
             div { class: "m-10",
                 MessageBoxComponent { kind: MessageBoxComponentKind::Success(translate!(i18, "messages.migration_success")) }
-            }    
+            }
         };
     }
 
     rsx! {
         form { class: "flex grow flex-col items-center gap-3",
             id: "migration-form",
-            prevent_default: "onsubmit oninput",
             autocomplete: "off",
-            oninput: move |event| credentials_submit.set(event.values()),
+            onsubmit: migrate_task,
             label { class: "w-full gap-2 form-control",
                 input { r#type: "text", name: "login",
-                    class: if is_login_valid() { "input input-bordered" } else { "input input-bordered input-error" },
+                    class: "input input-bordered",
                     placeholder: translate!(i18, "messages.login"),
-                    autofocus: true,
-                }
-                if !is_login_valid() {
-                    div { class: "label",
-                         span { class: "label-text-alt text-error",
-                            { translate!(i18, "validate.login") }
-                         }
-                    }
+                    minlength: 5,
+                    maxlength: 15,
+                    required: true,
                 }
             }
             label { class: "w-full gap-2 form-control",
                 input { r#type: "password", name: "password",
-                    class: if is_password_valid() { "input input-bordered" } else { "input input-bordered input-error" },
-                    placeholder: translate!(i18, "messages.password")
-                }
-                if !is_password_valid() {
-                    div { class: "label",
-                         span { class: "label-text-alt text-error",
-                            { translate!(i18, "validate.password") }
-                         }
-                    }
+                    class: "input input-bordered",
+                    placeholder: translate!(i18, "messages.password"),
+                    minlength: 5,
+                    maxlength: 15,
+                    required: true,
                 }
                 if !is_busy() {
                     button { class: "mt-2 w-fit self-center btn btn-neutral btn-outline",
-                        r#type: "button",
-                        prevent_default: "onclick",
-                        onclick: migrate_task,
+                        r#type: "submit",
                         { translate!(i18, "messages.migration") }
                     }
                 } else {

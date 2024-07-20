@@ -58,11 +58,13 @@ pub fn HtmlField(props: FieldProps) -> Element {
             'bulletedList',
             'numberedList',
             'blockQuote',
+            '-',
             '|',
             'mediaEmbed',
             'removeFormat', 'showBlocks', 'sourceEditing',
             'outdent', 'indent'
             ],
+            shouldNotGroupWhenFull: true,
         heading: {
             options: [
                 { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
@@ -89,7 +91,7 @@ pub fn HtmlField(props: FieldProps) -> Element {
                     name: props.slug,
                     dangerous_inner_html: props.value,
                 }
-            }    
+            }
         }
         script { r#type: "module", { script } }
     }

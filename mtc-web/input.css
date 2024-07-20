@@ -12,3 +12,34 @@
     --ck-color-base-text: var(--fallback-bc,oklch(var(--bc)/1));
     --ck-color-base-background: var(--fallback-b1,oklch(var(--b1)/1));
 }
+
+input:invalid {
+    --tw-border-opacity: 1;
+    border-color: var(--fallback-er, oklch(var(--er) / var(--tw-border-opacity)));
+}
+
+.modal-page {
+    background-color: #0006;
+    opacity: 1;
+    pointer-events: all;
+    position: fixed;
+    inset: 0px;
+    margin: 0px;
+    display: grid;
+    height: 100%;
+    max-height: none;
+    width: 100%;
+    max-width: none;
+    justify-items: center;
+    padding: 0px;
+    overscroll-behavior: contain;
+    z-index: 999;
+    color: inherit;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    transition-property: transform, opacity, visibility;
+    overflow: hidden;
+    visibility: visible;
+    align-items: center;
+    animation: modal-pop 0.2s ease-out;
+}

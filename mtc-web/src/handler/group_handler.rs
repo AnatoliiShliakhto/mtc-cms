@@ -4,15 +4,25 @@ use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait GroupHandler {
+    async fn get_group(&self, slug: &str) -> Result<GroupModel, ApiError>;
     async fn get_group_all(&self) -> Result<GroupsModel, ApiError>;
     async fn get_group_list(&self, page: usize) -> Result<ApiResponse<Vec<GroupModel>>, ApiError>;
     async fn delete_group(&self, slug: &str) -> Result<(), ApiError>;
-    async fn delete_group_list(&self, groups: GroupsModel) -> Result<(), ApiError>;
     async fn create_group(&self, slug: &str, group: &GroupCreateModel) -> Result<GroupModel, ApiError>;
     async fn update_group(&self, slug: &str, group: &GroupUpdateModel) -> Result<GroupModel, ApiError>;
 }
 
 impl GroupHandler for ApiHandler {
+    async fn get_group(&self, slug: &str) -> Result<GroupModel, ApiError> {
+        self
+            .api_client
+            .get([&self.api_url, "group", slug].join("/"))
+            .send()
+            .await
+            .consume_data()
+            .await
+    }
+
     async fn get_group_all(&self) -> Result<GroupsModel, ApiError> {
         self
             .api_client
@@ -37,17 +47,6 @@ impl GroupHandler for ApiHandler {
         self
             .api_client
             .delete([&self.api_url, "group", slug].join("/"))
-            .send()
-            .await
-            .consume()
-            .await
-    }
-
-    async fn delete_group_list(&self, groups: GroupsModel) -> Result<(), ApiError> {
-        self
-            .api_client
-            .delete([&self.api_url, "group", "list"].join("/"))
-            .json(&groups)
             .send()
             .await
             .consume()

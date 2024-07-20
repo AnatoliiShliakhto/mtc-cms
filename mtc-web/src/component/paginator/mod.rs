@@ -12,9 +12,10 @@ mod full;
 pub struct PaginatorComponentProps {
     pub mode: PaginatorComponentMode,
     pub page: Signal<usize>,
-    pub pagination: Signal<PaginationModel>,
+    pub pagination: PaginationModel,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, PartialEq)]
 pub enum PaginatorComponentMode {
     Compact,

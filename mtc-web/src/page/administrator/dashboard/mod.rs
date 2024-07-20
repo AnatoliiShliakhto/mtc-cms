@@ -140,10 +140,14 @@ pub fn Dashboard() -> Element {
                         for item in users(){
                             tr {
                                 td {
-                                    button { class: "btn btn-xs btn-ghost",
-                                        prevent_default: "onclick",
+                                    button { class: "btn btn-xs btn-ghost text-error",
                                         onclick: move |_| remove_user(item.0.clone()),
-                                        "❌"
+                                        Icon {
+                                            width: 16,
+                                            height: 16,
+                                            fill: "currentColor",
+                                            icon: dioxus_free_icons::icons::md_navigation_icons::MdClose
+                                        }
                                     }
                                 }
                                 td { { item.0.clone() } }
@@ -160,7 +164,6 @@ pub fn Dashboard() -> Element {
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
                         button {
                             class: "join-item btn btn-sm btn-ghost text-accent",
-                            prevent_default: "onclick",
                             onclick: users_from_clipboard,
                             Icon {
                                 width: 16,
@@ -173,7 +176,6 @@ pub fn Dashboard() -> Element {
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_copy"),
                         button {
                             class: "join-item btn btn-sm btn-ghost",
-                            prevent_default: "onclick",
                             onclick: move |_| { clipboard_write_eval.send(users().get_users_string()).unwrap(); },
                             Icon {
                                 width: 16,
@@ -193,7 +195,6 @@ pub fn Dashboard() -> Element {
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.upload"),
                         button {
                             class: "join-item btn btn-sm btn-ghost text-accent",
-                            prevent_default: "onclick",
                             "onclick": "document.getElementById('users-upload').click()",
                             Icon {
                                 width: 20,
@@ -206,7 +207,6 @@ pub fn Dashboard() -> Element {
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.download"),
                         button {
                             class: "join-item btn btn-sm btn-ghost",
-                            prevent_default: "onclick",
                             onclick: download_user_set,
                             Icon {
                                 width: 20,
@@ -219,7 +219,6 @@ pub fn Dashboard() -> Element {
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clear"),
                         button {
                             class: "join-item btn btn-sm btn-ghost text-error",
-                            prevent_default: "onclick",
                             onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
                             Icon {
                                 width: 18,

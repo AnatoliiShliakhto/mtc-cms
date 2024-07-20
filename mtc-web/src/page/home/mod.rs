@@ -28,7 +28,6 @@ pub fn HomePage() -> Element {
             }
             div { class: "flex gap-3 flex-inline",
                 button { class: "btn btn-outline btn-success",
-                    prevent_default: "onclick",
                     onclick: move |_| migrate.set(true),
                     { translate!(i18, "messages.migration") }
                 }

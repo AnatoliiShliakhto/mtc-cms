@@ -41,8 +41,8 @@ impl ContentHandler for ApiHandler {
             .await
     }
 
-    async fn get_content_list(&self, schema: &str) -> Result<Vec<ApiListItemModel>, ApiError> {
-        match schema {
+    async fn get_content_list(&self, api_end_point: &str) -> Result<Vec<ApiListItemModel>, ApiError> {
+        match api_end_point {
             "" => {
                 self.api_client
                     .get([&self.api_url, "all_api"].join("/"))

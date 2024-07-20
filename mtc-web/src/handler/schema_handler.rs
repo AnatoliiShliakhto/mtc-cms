@@ -1,5 +1,5 @@
 use mtc_model::schema_model::{
-    SchemaCreateModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel, SchemasModel,
+    SchemaCreateModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel,
 };
 
 use crate::error::api_error::ApiError;
@@ -11,7 +11,6 @@ pub trait SchemaHandler {
     async fn get_schema_list(&self, page: usize)
         -> Result<ApiResponse<Vec<SchemaModel>>, ApiError>;
     async fn delete_schema(&self, slug: &str) -> Result<(), ApiError>;
-    async fn delete_schema_list(&self, schemas: SchemasModel) -> Result<(), ApiError>;
     async fn create_schema(
         &self,
         slug: &str,
@@ -50,16 +49,6 @@ impl SchemaHandler for ApiHandler {
     async fn delete_schema(&self, slug: &str) -> Result<(), ApiError> {
         self.api_client
             .delete([&self.api_url, "schema", slug].join("/"))
-            .send()
-            .await
-            .consume()
-            .await
-    }
-
-    async fn delete_schema_list(&self, schemas: SchemasModel) -> Result<(), ApiError> {
-        self.api_client
-            .delete([&self.api_url, "schema", "list"].join("/"))
-            .json(&schemas)
             .send()
             .await
             .consume()

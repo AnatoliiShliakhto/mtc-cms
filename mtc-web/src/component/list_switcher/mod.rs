@@ -41,7 +41,6 @@ pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
                 div { class: "flex flex-wrap content-start gap-2 pt-3",
                     for item in items() {
                         div { class: "badge badge-outline text-success hover:cursor-pointer hover:text-error",
-                            prevent_default: "onclick",
                             onclick: move |_| item_remove(&item),
                             { item.clone() }
                         }
@@ -53,7 +52,6 @@ pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
                 div { class: "flex flex-wrap content-start gap-2",
                     for item in all() {
                         div { class: "badge badge-outline hover:cursor-pointer hover:text-success",
-                            prevent_default: "onclick",
                             onclick: move |_| item_add(&item),
                             { item.clone() }
                         }

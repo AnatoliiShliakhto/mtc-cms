@@ -6,10 +6,10 @@ use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait RoleHandler {
+    async fn get_role(&self, slug: &str) -> Result<RoleModel, ApiError>;
     async fn get_role_all(&self) -> Result<RolesModel, ApiError>;
     async fn get_role_list(&self, page: usize) -> Result<ApiResponse<Vec<RoleModel>>, ApiError>;
     async fn delete_role(&self, slug: &str) -> Result<(), ApiError>;
-    async fn delete_role_list(&self, roles: RolesModel) -> Result<(), ApiError>;
     async fn create_role(&self, slug: &str, group: &RoleCreateModel)
         -> Result<RoleModel, ApiError>;
     async fn update_role(&self, slug: &str, group: &RoleUpdateModel)
@@ -18,6 +18,15 @@ pub trait RoleHandler {
 }
 
 impl RoleHandler for ApiHandler {
+    async fn get_role(&self, slug: &str) -> Result<RoleModel, ApiError> {
+        self.api_client
+            .get([&self.api_url, "role", slug].join("/"))
+            .send()
+            .await
+            .consume_data()
+            .await
+    }
+
     async fn get_role_all(&self) -> Result<RolesModel, ApiError> {
         self.api_client
             .get([&self.api_url, "role", "all"].join("/"))
@@ -39,16 +48,6 @@ impl RoleHandler for ApiHandler {
     async fn delete_role(&self, slug: &str) -> Result<(), ApiError> {
         self.api_client
             .delete([&self.api_url, "role", slug].join("/"))
-            .send()
-            .await
-            .consume()
-            .await
-    }
-
-    async fn delete_role_list(&self, roles: RolesModel) -> Result<(), ApiError> {
-        self.api_client
-            .delete([&self.api_url, "role", "list"].join("/"))
-            .json(&roles)
             .send()
             .await
             .consume()
