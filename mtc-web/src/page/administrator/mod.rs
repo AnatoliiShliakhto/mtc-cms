@@ -8,6 +8,7 @@ use dashboard::Dashboard;
 use editor::Editor;
 use groups::Groups;
 use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::slug_title_model::SlugTitleModel;
 use personas::Personas;
 use roles::Roles;
 use schema::Schema;
@@ -15,7 +16,6 @@ use users::Users;
 
 use crate::handler::schema_handler::SchemaHandler;
 use crate::page::not_found::NotFoundPage;
-use crate::service::health_service::HealthService;
 use crate::APP_STATE;
 
 mod content;
@@ -57,8 +57,6 @@ pub fn AdministratorPage() -> Element {
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
     let mut collections_future = use_resource(move || async {
-        APP_STATE.peek().service.get_credentials();
-
         APP_STATE.peek().api.get_all_collections().await
     });
 
@@ -97,9 +95,9 @@ pub fn AdministratorPage() -> Element {
                             li {
                                 a {
                                     class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
-                                                active_content_api().is_empty() { "active" },
+                                                active_content_api().slug.is_empty() { "active" },
                                     onclick: move |_| {
-                                        active_content_api.set(String::new());
+                                        active_content_api.set(SlugTitleModel::default());
                                         administrator_route.set(AdministratorRouteModel::Content);
                                     },
                                     { translate!(i18, "messages.singles") }
@@ -113,14 +111,15 @@ pub fn AdministratorPage() -> Element {
                                             Some(Ok(response)) => rsx! {
                                                 for item in response.iter() {
                                                     {
-                                                        let m_slug = item.slug.clone();
+                                                        let m_item = SlugTitleModel{ slug: item.slug.clone(), title: item.title.clone() };
+
                                                         rsx! {
                                                             li  {
                                                                 a {
                                                                     class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
-                                                                        active_content_api().eq(&m_slug) { "active" },
+                                                                        active_content_api().eq(&m_item) { "active" },
                                                                     onclick: move |_| {
-                                                                        active_content_api.set(m_slug.clone());
+                                                                        active_content_api.set(m_item.clone());
                                                                         administrator_route.set(AdministratorRouteModel::Content);
                                                                     },
                                                                     { item.title.clone() }

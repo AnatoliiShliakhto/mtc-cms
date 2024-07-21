@@ -46,7 +46,7 @@ pub fn Editor() -> Element {
     
     let active_content_api = app_state.active_content_api.signal();
     let active_content = app_state.active_content.signal();
-    let is_new = use_memo(move || active_content().is_empty());
+    let is_new = use_memo(move || active_content().slug.is_empty());
 
     let mut schema = use_signal(SchemaModel::default);
     let mut content = use_signal(ApiModel::default);
@@ -55,9 +55,9 @@ pub fn Editor() -> Element {
     use_hook(|| {
         let app_state = APP_STATE.peek();
 
-        let mut api_schema = active_content();
-        if !active_content_api().is_empty() {
-            api_schema = active_content_api();
+        let mut api_schema = active_content().slug;
+        if !active_content_api().slug.is_empty() {
+            api_schema = active_content_api().slug;
         }
 
         spawn(async move {
@@ -69,7 +69,7 @@ pub fn Editor() -> Element {
                 }
             }
 
-            if active_content().is_empty() {
+            if active_content().slug.is_empty() {
                 is_busy.set(false);
                 return;
             }
@@ -77,7 +77,7 @@ pub fn Editor() -> Element {
             if schema().is_collection {
                 match app_state
                     .api
-                    .get_collection_content(&schema().slug, &active_content())
+                    .get_collection_content(&schema().slug, &active_content().slug)
                     .await
                 {
                     Ok(value) => {
@@ -218,7 +218,7 @@ pub fn Editor() -> Element {
                 onsubmit: submit_task,
                 div { class: "p-1 self-start",
                     Breadcrumb { title:
-                        if active_content_api().is_empty() {
+                        if active_content_api().slug.is_empty() {
                             translate!(i18, "messages.singles")
                         } else {    
                             schema().title

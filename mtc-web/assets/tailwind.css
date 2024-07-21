@@ -4199,10 +4199,6 @@ details.collapse summary::-webkit-details-marker {
   align-self: flex-start;
 }
 
-.self-end {
-  align-self: flex-end;
-}
-
 .self-center {
   align-self: center;
 }

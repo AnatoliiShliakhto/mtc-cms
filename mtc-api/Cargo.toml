@@ -33,4 +33,4 @@ uuid = { version = "1.10.0", features = ["v4"] }
 mime_guess = { version = "2.0.5" }
 
 [target.'cfg(unix)'.dependencies]
-openssl = { version = "0.10.64", features = ["vendored"] }
+openssl = { version = "0.10.66", features = ["vendored"] }

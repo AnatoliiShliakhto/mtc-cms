@@ -1,7 +1,6 @@
 use axum::async_trait;
-
 use mtc_model::group_model::*;
-
+use mtc_model::slug_title_model::SlugTitleModel;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::repository::RepositoryPaginate;
@@ -13,6 +12,7 @@ repository_paginate!(GroupService, GroupModel, "groups");
 #[async_trait]
 pub trait GroupRepositoryTrait {
     async fn all(&self) -> Result<GroupsModel>;
+    async fn all_title(&self) -> Result<GroupsWithTitleModel>;
     async fn find_by_slug(&self, slug: &str) -> Result<GroupModel>;
     async fn find_by_user(&self, login: &str) -> Result<GroupsModel>;
     async fn create(&self, auth: &str, slug: &str, model: GroupCreateModel) -> Result<GroupModel>;
@@ -33,6 +33,20 @@ impl GroupRepositoryTrait for GroupService {
                 )
                 .await?
                 .take::<Vec<String>>(0)?,
+        })
+    }
+
+    async fn all_title(&self) -> Result<GroupsWithTitleModel> {
+        Ok(GroupsWithTitleModel {
+            groups: self
+                .db
+                .query(
+                    r#"
+                    SELECT slug, title from groups;
+                    "#,
+                )
+                .await?
+                .take::<Vec<SlugTitleModel>>(0)?
         })
     }
 

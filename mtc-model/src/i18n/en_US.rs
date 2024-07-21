@@ -63,7 +63,7 @@ pub static EN_US: &str = r#"{
             "reload": "Reload",
             "roles": "Roles",
             "save": "Save",
-            "schema": "Schema",
+            "schema": "Schemas",
             "schema_type": "schema type",
             "settings": "Settings",
             "sign_in": "Sign In",

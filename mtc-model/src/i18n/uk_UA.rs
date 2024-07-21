@@ -63,7 +63,7 @@ pub static UK_UA: &str = r#"{
             "reload": "Перезавантажити",
             "roles": "Ролі",
             "save": "Зберегти",
-            "schema": "Схема",
+            "schema": "Схеми",
             "schema_type": "тип схеми",
             "settings": "Налаштування",
             "sign_in": "Вхід",

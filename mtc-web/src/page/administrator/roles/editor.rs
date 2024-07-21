@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
@@ -39,6 +39,8 @@ pub fn RoleEditor() -> Element {
     let is_new_role = use_memo(move || page_action().eq(&PageAction::New) | role_slug().is_empty());
     let mut role_permissions = use_signal(BTreeSet::<String>::new);
     let mut all_permissions = use_signal(BTreeSet::<String>::new);
+    
+    let dummy_permissions_title = use_signal(BTreeMap::<String, String>::new);
 
     use_hook(|| {
         spawn(async move {
@@ -205,7 +207,12 @@ pub fn RoleEditor() -> Element {
                         oninput: move |event| form_title.set(event.value()) 
                     }
                 }
-                ListSwitcherComponent { title: translate!(i18, "messages.permissions"), items: role_permissions, all: all_permissions }
+                ListSwitcherComponent { 
+                    title: translate!(i18, "messages.permissions"), 
+                    items: role_permissions, 
+                    all: all_permissions,
+                    items_title: dummy_permissions_title
+                }
             }
 
             aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",

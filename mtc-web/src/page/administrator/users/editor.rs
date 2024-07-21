@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
@@ -45,6 +45,8 @@ pub fn UserEditor() -> Element {
     let mut all_roles = use_signal(BTreeSet::<String>::new);
     let mut user_groups = use_signal(BTreeSet::<String>::new);
     let mut all_groups = use_signal(BTreeSet::<String>::new);
+    let mut roles_title = use_signal(BTreeMap::<String, String>::new);
+    let mut groups_title = use_signal(BTreeMap::<String, String>::new);
 
     use_hook(|| {
         spawn(async move {
@@ -52,6 +54,27 @@ pub fn UserEditor() -> Element {
             let mut groups_user = BTreeSet::<String>::new();
             let mut roles_list = BTreeSet::<String>::new();
             let mut roles_user = BTreeSet::<String>::new();
+            
+            let mut groups_title_list = BTreeMap::<String, String>::new();
+            let mut roles_title_list = BTreeMap::<String, String>::new();
+
+            if let Ok(groups_title_model) = APP_STATE.peek().api.get_group_all_title().await {
+                groups_title_list = groups_title_model
+                    .groups
+                    .iter()
+                    .cloned()
+                    .map(|item| (item.slug, item.title))
+                    .collect::<BTreeMap<String, String>>();
+            }
+
+            if let Ok(roles_title_model) = APP_STATE.peek().api.get_role_all_title().await {
+                roles_title_list = roles_title_model
+                    .roles
+                    .iter()
+                    .cloned()
+                    .map(|item| (item.slug, item.title))
+                    .collect::<BTreeMap<String, String>>();
+            }
 
             if let Ok(groups_model) = APP_STATE.peek().api.get_group_all().await {
                 groups_list = groups_model
@@ -111,6 +134,9 @@ pub fn UserEditor() -> Element {
                 roles_list.remove(role);
             });
 
+            roles_title.set(roles_title_list);
+            groups_title.set(groups_title_list);
+            
             all_groups.set(groups_list);
             user_groups.set(groups_user);
 
@@ -250,8 +276,8 @@ pub fn UserEditor() -> Element {
                         maxlength: 15,
                     }
                 }
-                ListSwitcherComponent { title: translate!(i18, "messages.roles"), items: user_roles, all: all_roles }
-                ListSwitcherComponent { title: translate!(i18, "messages.groups"), items: user_groups, all: all_groups }
+                ListSwitcherComponent { title: translate!(i18, "messages.roles"), items: user_roles, all: all_roles, items_title: roles_title }
+                ListSwitcherComponent { title: translate!(i18, "messages.groups"), items: user_groups, all: all_groups, items_title: groups_title }
             }
 
             //todo blocked

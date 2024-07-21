@@ -3,6 +3,7 @@ use surrealdb_sql::Datetime;
 use validator::Validate;
 
 use crate::from_thing;
+use crate::slug_title_model::SlugTitleModel;
 
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct RoleModel {
@@ -50,4 +51,9 @@ pub struct RoleUpdateModel {
 #[derive(Default, Deserialize, Serialize, Validate)]
 pub struct RolesModel {
     pub roles: Vec<String>,
+}
+
+#[derive(Default, Deserialize, Serialize, Validate)]
+pub struct RolesWithTitleModel {
+    pub roles: Vec<SlugTitleModel>,
 }
