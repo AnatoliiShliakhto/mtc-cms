@@ -70,7 +70,7 @@ impl UserSession for Session {
             permissions: state.permissions_service
                 .find_by_user("anonymous")
                 .await
-                .unwrap_or(PermissionsModel { permissions: vec![] })
+                .unwrap_or(PermissionsModel { permissions: vec!["content::read".to_string()] } )
                 .permissions,
         })
     }

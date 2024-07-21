@@ -16,6 +16,7 @@ use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn RoleEditor() -> Element {
@@ -26,6 +27,9 @@ pub fn RoleEditor() -> Element {
     let mut is_busy = use_signal(|| true);
 
     let mut page_action = use_context::<Signal<PageAction>>();
+
+    let mut form_slug = use_signal(String::new);
+    let mut form_title = use_signal(String::new);
 
     let mut role = use_signal(RoleModel::default);
     let role_slug = use_memo(move || match page_action() {
@@ -51,7 +55,12 @@ pub fn RoleEditor() -> Element {
 
             if !is_new_role() {
                 match APP_STATE.peek().api.get_role(&role_slug()).await {
-                    Ok(value) => role.set(value),
+                    Ok(value) => {
+                        form_slug.set(value.slug.clone());
+                        form_title.set(value.title.clone());
+                        
+                        role.set(value)
+                    },
                     Err(e) => {
                         APP_STATE
                             .peek()
@@ -162,18 +171,23 @@ pub fn RoleEditor() -> Element {
                 id: "role-form",
                 autocomplete: "off",
                 onsubmit: role_submit,
+                div { class: "p-1 self-start",
+                    Breadcrumb { title: translate!(i18, "messages.roles") }
+                }                 
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",
                             { translate!(i18, "messages.slug") }
                         }
                     }
-                    input { r#type: "text", name: "slug", value: role().slug,
+                    input { r#type: "text", name: "slug",
                         class: "input input-bordered",
                         disabled: !is_new_role(),
                         minlength: 4,
                         maxlength: 30,
                         required: true,
+                        value: form_slug(),
+                        oninput: move |event| form_slug.set(event.value()) 
                     }
                 }
                 label { class: "w-full form-control",
@@ -182,11 +196,13 @@ pub fn RoleEditor() -> Element {
                             { translate!(i18, "messages.title") }
                         }
                     }
-                    input { r#type: "text", name: "title", value: role().title,
+                    input { r#type: "text", name: "title",
                         class: "input input-bordered",
                         minlength: 4,
                         maxlength: 50,
                         required: true,
+                        value: form_title(),
+                        oninput: move |event| form_title.set(event.value()) 
                     }
                 }
                 ListSwitcherComponent { title: translate!(i18, "messages.permissions"), items: role_permissions, all: all_permissions }

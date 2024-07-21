@@ -3,6 +3,7 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
+use editor::SchemaEditor;
 use mtc_model::pagination_model::PaginationModel;
 
 use crate::component::loading_box::LoadingBoxComponent;
@@ -10,8 +11,8 @@ use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::page_action::PageAction;
-use crate::page::administrator::schema::editor::SchemaEditor;
 use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 
 mod editor;
 
@@ -41,7 +42,11 @@ pub fn Schema() -> Element {
     rsx! {
         match &*schemas_future.read() {
             Some(Ok(response)) => rsx! {
-                section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
+                section { class: "flex w-full flex-col items-center gap-3 p-1 body-scroll",
+                    div { class: "inline-flex w-full flex-nowrap p-1 justify-between gap-5",
+                        Breadcrumb { title: translate!(i18, "messages.schema") }
+                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    }
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -54,9 +59,14 @@ pub fn Schema() -> Element {
                             for item in response.data.iter(){
                                 {
                                     let m_slug = item.slug.clone();
+                                    let m_can_view = !item.is_system;
                                     rsx! {
                                         tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
-                                            onclick: move |_| page_action.set(PageAction::Item(m_slug.clone())),
+                                            onclick: move |_| {
+                                                if m_can_view {
+                                                    page_action.set(PageAction::Item(m_slug.clone()))
+                                                }
+                                            },
                                             td { class: "text-primary",
                                                 if item.is_system {
                                                     Icon {
@@ -106,56 +116,3 @@ pub fn Schema() -> Element {
         }
     }
 }
-/*
-    let app_state = APP_STATE.peek();
-    let auth_state = app_state.auth.read_unchecked();
-
-    if !auth_state.is_permission("schema::read") {
-        return rsx! { NotFoundPage {} };
-    }
-
-    let page = use_signal(|| 1usize);
-    let schema_selected = use_context_provider(|| Signal::new(PageAction::None));
-
-    let mut schemas = use_context_provider(|| Signal::new(BTreeMap::<usize, SchemaModel>::new()));
-    let mut pagination = use_context_provider(|| Signal::new(PaginationModel::new(0, 10)));
-    let mut schema_future =
-        use_resource(move || async move { APP_STATE.peek().api.get_schema_list(page()).await });
-
-    use_effect(move || {
-        if schema_selected() == PageAction::None {
-            schema_future.restart()
-        }
-    });
-
-    if schema_selected() == PageAction::None {
-        match &*schema_future.read_unchecked() {
-            Some(Ok(response)) => {
-                let mut schema_list = BTreeMap::<usize, SchemaModel>::new();
-
-                for (count, item) in response.data.iter().enumerate() {
-                    schema_list.insert(count, item.clone());
-                }
-
-                schemas.set(schema_list);
-                pagination.set(
-                    response
-                        .pagination
-                        .clone()
-                        .unwrap_or(PaginationModel::new(0, 10)),
-                );
-
-                rsx! { SchemaList { page } }
-            }
-            Some(Err(e)) => {
-                rsx! { ReloadingBoxComponent { message: e.message(), resource: schema_future } }
-            }
-            None => rsx! { LoadingBoxComponent {} },
-        }
-    } else {
-        rsx! { SchemaSingle {} }
-    }
-}
-
-
- */
