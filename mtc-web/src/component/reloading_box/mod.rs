@@ -31,26 +31,21 @@ pub fn ReloadingBoxComponent<T: 'static>(
 
     rsx! {
         div { class: "grid w-full place-items-center body-scroll",
-            div { class: "flex w-fit flex-col gap-3",
-                div { role: "alert", class: "flex flex-row gap-2 rounded border p-4 border-error text-error",
-                    svg {
-                        "xmlns": "http://www.w3.org/2000/svg",
-                        "fill": "none",
-                        "viewBox": "0 0 24 24",
-                        class: "h-6 w-6 shrink-0 stroke-current",
-                        path {
-                            "stroke-linecap": "round",
-                            "stroke-width": "2",
-                            "d": "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
-                            "stroke-linejoin": "round"
+            div { class: "card bg-base-100 min-w-96 shadow-xl",
+                div { class: "card-body",
+                    p { class: "card-title text-lg text-error", { translate!(i18, "messages.oops") } }
+                    p { class: "card-title text-lg text-error", { translate!(i18, "messages.something_wrong") } }
+                    div { class: "divider m-0" }
+                    p { { props.message } }
+                    div { class: "card-actions justify-end",
+                        button {
+                            class: "btn btn-outline btn-accent",
+                            onclick: move |_| props.resource.restart(),
+                            { translate!(i18, "messages.try_again") }
                         }
                     }
-                    span { { props.message } }
-                }
-                button { class: "self-center link link-hover",
-                    onclick: move |_| props.resource.restart(), { translate!(i18, "messages.reload") }
                 }
             }
-        }
+        }        
     }
 }

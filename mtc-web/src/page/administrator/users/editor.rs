@@ -18,6 +18,7 @@ use crate::model::page_action::PageAction;
 use crate::service::user_service::UserService;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn UserEditor() -> Element {
@@ -28,6 +29,9 @@ pub fn UserEditor() -> Element {
     let mut is_busy = use_signal(|| true);
 
     let mut page_action = use_context::<Signal<PageAction>>();
+
+    let mut form_login = use_signal(String::new);
+    let mut form_blocked = use_signal(|| false);
 
     let mut user = use_signal(UserModel::default);
     let user_login = use_memo(move || match page_action() {
@@ -66,7 +70,12 @@ pub fn UserEditor() -> Element {
 
             if !is_new_user() {
                 match APP_STATE.peek().api.get_user(&user_login()).await {
-                    Ok(value) => user.set(value),
+                    Ok(value) => {
+                        form_login.set(value.login.clone());
+                        form_blocked.set(value.blocked);
+
+                        user.set(value)
+                    },
                     Err(e) => {
                         APP_STATE
                             .peek()
@@ -143,6 +152,7 @@ pub fn UserEditor() -> Element {
                         .update_user(
                             &user_login(),
                             &UserUpdateModel {
+                                blocked: event.get_string_option("blocked").is_some(),
                                 password: event.get_string_option("password"),
                                 roles,
                                 groups,
@@ -157,6 +167,7 @@ pub fn UserEditor() -> Element {
                         .create_user(
                             &event.get_string("login"),
                             &UserCreateModel {
+                                blocked: event.get_string_option("blocked").is_some(),
                                 password: event.get_string("password"),
                                 roles,
                                 groups,
@@ -196,18 +207,23 @@ pub fn UserEditor() -> Element {
                 id: "user-form",
                 autocomplete: "off",
                 onsubmit: user_submit,
+                div { class: "p-1 self-start",
+                    Breadcrumb { title: translate!(i18, "messages.users") }
+                }                   
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",
                             { translate!(i18, "messages.login") }
                         }
                     }
-                    input { r#type: "text", name: "login", value: user().login,
+                    input { r#type: "text", name: "login",
                         class: "input input-bordered",
                         disabled: !is_new_user(),
                         minlength: 5,
                         maxlength: 15,
                         required: true,
+                        value: form_login(),
+                        oninput: move |event| form_login.set(event.value())
                     }
                 }
                 if users_details().contains_key(&user().login) {
@@ -257,6 +273,39 @@ pub fn UserEditor() -> Element {
                     span { { user().updated_by } }
                     span { class: "label-text-alt", { user().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
                 }
+
+                label { class:
+                    if form_blocked() {
+                        "items-center rounded border p-3 swap border-error text-error"
+                    } else {
+                        "items-center rounded border p-3 swap border-success text-success"
+                    },
+                    input { r#type: "checkbox",
+                        name: "blocked",
+                        form: "user-form",
+                        checked: form_blocked(),
+                        onchange: move |event| form_blocked.set(event.checked())
+                    }
+                    div { class: "inline-flex gap-3 swap-on",
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_content_icons::MdBlock
+                        }
+                        { translate!(i18, "messages.user_blocked") }
+                    }
+                    div { class: "inline-flex gap-3 swap-off",
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_action_icons::MdVerifiedUser
+                        }
+                        { translate!(i18, "messages.user_active") }
+                    }
+                }
+
 
                 if auth_state.is_permission("user::write") {
                     button { class: "btn btn-outline btn-accent",

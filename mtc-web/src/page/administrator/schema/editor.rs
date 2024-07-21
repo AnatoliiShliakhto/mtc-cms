@@ -16,6 +16,7 @@ use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn SchemaEditor() -> Element {
@@ -26,6 +27,11 @@ pub fn SchemaEditor() -> Element {
     let mut is_busy = use_signal(|| true);
 
     let mut page_action = use_context::<Signal<PageAction>>();
+
+    let mut form_slug = use_signal(String::new);
+    let mut form_title = use_signal(String::new);
+    let mut form_is_collection = use_signal(|| false);
+    let mut form_is_public = use_signal(|| false);
 
     let mut schema = use_signal(SchemaModel::default);
     let schema_slug = use_memo(move || match page_action() {
@@ -45,7 +51,14 @@ pub fn SchemaEditor() -> Element {
 
         spawn(async move {
             match APP_STATE.peek().api.get_schema(&schema_slug()).await {
-                Ok(value) => schema.set(value),
+                Ok(value) => {
+                    form_slug.set(value.slug.clone());
+                    form_title.set(value.title.clone());
+                    form_is_collection.set(value.is_collection);
+                    form_is_public.set(value.is_public);
+                    
+                    schema.set(value)
+                },
                 Err(e) => {
                     APP_STATE
                         .peek()
@@ -116,8 +129,8 @@ pub fn SchemaEditor() -> Element {
         };
 
         spawn(async move {
-            let is_collection = !event.is_field_empty("is_collection");
-            let is_public = !event.is_field_empty("is_public");
+            let is_collection = event.get_string_option("is_collection").is_some();
+            let is_public = event.get_string_option("is_public").is_some();
             let field_set = match fields().is_empty() {
                 true => None,
                 false => Some(fields().values().cloned().collect::<Vec<FieldModel>>()),
@@ -179,6 +192,9 @@ pub fn SchemaEditor() -> Element {
     rsx! {
         section { class: "flex grow select-none flex-row",
             div { class: "flex grow flex-col items-center p-2 body-scroll",
+                div { class: "p-1 self-start",
+                    Breadcrumb { title: translate!(i18, "messages.schema") }
+                }    
                 form { class: "w-full",
                     id: "schema-form",
                     autocomplete: "off",
@@ -190,7 +206,12 @@ pub fn SchemaEditor() -> Element {
                                     span { class: "label-text text-primary", { translate!(i18, "messages.schema_type") } }
                                 }
                                 label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
-                                    input { r#type: "checkbox", name: "is_collection", value: true }
+                                    input { 
+                                        r#type: "checkbox", 
+                                        name: "is_collection",
+                                        checked: form_is_collection(),
+                                        onchange: move |event| form_is_collection.set(event.checked())
+                                    }
                                     div { class: "swap-on",
                                         span { class: "inline-flex flex-nowrap gap-3 items-center",
                                             Icon {
@@ -220,7 +241,12 @@ pub fn SchemaEditor() -> Element {
                                     span { class: "label-text text-primary", { translate!(i18, "messages.access") } }
                                 }
                                 label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
-                                    input { r#type: "checkbox", name: "is_public", value: true }
+                                    input { 
+                                        r#type: "checkbox", 
+                                        name: "is_public", 
+                                        checked: form_is_public(),
+                                        onchange: move |event| form_is_public.set(event.checked())
+                                    }
                                     div { class: "swap-on",
                                         span { class: "inline-flex flex-nowrap gap-3 items-center",
                                             Icon {
@@ -253,12 +279,14 @@ pub fn SchemaEditor() -> Element {
                                 { translate!(i18, "messages.slug") }
                             }
                         }
-                        input { r#type: "text", name: "slug", value: schema().slug,
+                        input { r#type: "text", name: "slug",
                             class: "input input-bordered",
                             disabled: !is_new_schema(),
                             minlength: 4,
                             maxlength: 30,
                             required: true,
+                            value: form_slug(),
+                            oninput: move |event| form_slug.set(event.value())                             
                         }
                     }
                     label { class: "w-full form-control",
@@ -267,11 +295,13 @@ pub fn SchemaEditor() -> Element {
                                 { translate!(i18, "messages.title") }
                             }
                         }
-                        input { r#type: "text", name: "title", value: schema().title,
+                        input { r#type: "text", name: "title",
                             class: "input input-bordered",
                             minlength: 4,
                             maxlength: 50,
                             required: true,
+                            value: form_title(),
+                            oninput: move |event| form_title.set(event.value())                             
                         }
                     }
                 }
