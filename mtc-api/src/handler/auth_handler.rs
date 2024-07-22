@@ -81,9 +81,6 @@ pub async fn sign_in_handler(
             state.cfg.session_expiration,
         ))));
     }
-    
-    state.user_service.update_access(&user_model.login, user_model.access_count + 1).await?;
-    
     session.sign_in(auth_model.clone()).await?;
 
     auth_model.ok_model()

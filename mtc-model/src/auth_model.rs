@@ -15,7 +15,7 @@ impl Default for AuthModel {
             id: "anonymous".to_string(),
             roles: vec!["anonymous".to_string()],
             groups: vec![],
-            permissions: vec!["content::read".to_string()],
+            permissions: vec![],
         }
     }
 }

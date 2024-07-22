@@ -3,7 +3,6 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use editor::GroupEditor;
 use mtc_model::pagination_model::PaginationModel;
 
 use crate::component::loading_box::LoadingBoxComponent;
@@ -11,8 +10,8 @@ use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
 use crate::model::page_action::PageAction;
+use crate::page::administrator::groups::editor::GroupEditor;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 mod editor;
 
@@ -43,10 +42,6 @@ pub fn Groups() -> Element {
         match &*groups_future.read() {
             Some(Ok(response)) => rsx! {
                 section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                    div { class: "inline-flex w-full flex-nowrap p-1 justify-between gap-5",
-                        Breadcrumb { title: translate!(i18, "messages.groups") }
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
-                    }
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -69,6 +64,7 @@ pub fn Groups() -> Element {
                             }
                         }
                     }
+                    //todo something wrong
                     PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
                 }
                 button {

@@ -13,8 +13,6 @@ pub struct UserModel {
     #[serde(skip_serializing, default)]
     pub password: String,
     pub blocked: bool,
-    pub access_count: i32,
-    pub last_access: Option<Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fields: Option<Value>,
     pub created_at: Datetime,
@@ -30,8 +28,6 @@ impl Default for UserModel {
             login: "".to_string(),
             password: "".to_string(),
             blocked: false,
-            access_count: 0,
-            last_access: None,
             fields: None,
             created_at: Default::default(),
             updated_at: Default::default(),
@@ -43,7 +39,6 @@ impl Default for UserModel {
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct UserCreateModel {
-    pub blocked: bool,
     pub password: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub roles: Option<Vec<String>>,
@@ -53,7 +48,6 @@ pub struct UserCreateModel {
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct UserUpdateModel {
-    pub blocked: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub password: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

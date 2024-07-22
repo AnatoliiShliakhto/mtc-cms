@@ -12,7 +12,6 @@ use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn GroupEditor() -> Element {
@@ -24,9 +23,6 @@ pub fn GroupEditor() -> Element {
 
     let mut page_action = use_context::<Signal<PageAction>>();
 
-    let mut form_slug = use_signal(String::new);
-    let mut form_title = use_signal(String::new);
-    
     let mut group = use_signal(GroupModel::default);
     let group_slug = use_memo(move || match page_action() {
         PageAction::Item(value) => value,
@@ -43,12 +39,7 @@ pub fn GroupEditor() -> Element {
 
         spawn(async move {
             match APP_STATE.peek().api.get_group(&group_slug()).await {
-                Ok(value) => {
-                    form_slug.set(value.slug.clone());
-                    form_title.set(value.title.clone());
-                    
-                    group.set(value)
-                },
+                Ok(value) => group.set(value),
                 Err(e) => {
                     APP_STATE
                         .peek()
@@ -132,23 +123,18 @@ pub fn GroupEditor() -> Element {
                 id: "group-form",
                 autocomplete: "off",
                 onsubmit: group_submit,
-                div { class: "p-1 self-start",
-                    Breadcrumb { title: translate!(i18, "messages.groups") }
-                }                 
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary", 
                             { translate!(i18, "messages.slug") } 
                         }
                     }
-                    input { r#type: "text", name: "slug",
+                    input { r#type: "text", name: "slug", value: group().slug,
                         class: "input input-bordered",
                         disabled: !is_new_group(),
                         minlength: 4,
                         maxlength: 30,
                         required: true,
-                        value: form_slug(),
-                        oninput: move |event| form_slug.set(event.value()) 
                     }
                 }
                 label { class: "w-full form-control",
@@ -157,13 +143,11 @@ pub fn GroupEditor() -> Element {
                             { translate!(i18, "messages.title") } 
                         }
                     }
-                    input { r#type: "text", name: "title",
+                    input { r#type: "text", name: "title", value: group().title,
                         class: "input input-bordered",
                         minlength: 4,
                         maxlength: 50,
                         required: true,
-                        value: form_title(),
-                        oninput: move |event| form_title.set(event.value()) 
                     }
                 }
             }
