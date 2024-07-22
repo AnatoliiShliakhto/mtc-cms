@@ -1,18 +1,18 @@
 use dioxus::prelude::*;
 
-use crate::page::administrator::editor::FieldProps;
+use crate::element::editor::FieldProps;
 
 #[component]
-pub fn StringField(props: FieldProps) -> Element {
+pub fn TextField(props: FieldProps) -> Element {
     rsx! {
         label { class: "w-full form-control",
             div { class: "label",
                 span { class: "label-text text-primary", { props.title } }
             }
-            input { r#type: "text",
+            textarea {
+                class: "w-full h-24 rounded textarea textarea-bordered",
                 name: props.slug,
                 value: props.value,
-                class: "input input-bordered",
             }
         }
     }

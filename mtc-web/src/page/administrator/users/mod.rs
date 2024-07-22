@@ -3,17 +3,16 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use editor::UserEditor;
 use mtc_model::pagination_model::PaginationModel;
 
-use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::user_handler::UserHandler;
 use crate::model::page_action::PageAction;
+use crate::page::administrator::users::editor::UserEditor;
 use crate::service::user_service::UserService;
+use crate::APP_STATE;
 
 mod editor;
 
@@ -46,10 +45,6 @@ pub fn Users() -> Element {
         match &*users_future.read() {
             Some(Ok(response)) => rsx! {
                 section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                    div { class: "inline-flex w-full flex-nowrap p-1 justify-between gap-5",
-                        Breadcrumb { title: translate!(i18, "messages.users") }
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
-                    }                    
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -106,3 +101,44 @@ pub fn Users() -> Element {
         }
     }
 }
+
+/*
+    let app_state = APP_STATE.peek();
+    let auth_state = app_state.auth.read_unchecked();
+
+    if !auth_state.is_permission("user::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
+    let page = use_signal(|| 1usize);
+    let user_selected = use_context_provider(|| Signal::new(PageAction::None));
+
+    let mut users = use_context_provider(|| Signal::new(BTreeMap::<usize, UserModel>::new()));
+    let mut pagination = use_context_provider(|| Signal::new(PaginationModel::new(0, 10)));
+    let mut users_future = use_resource(move || async move { APP_STATE.peek().api.get_user_list(page()).await });
+
+    use_effect(move || if user_selected() == PageAction::None { users_future.restart() });
+
+    if user_selected() == PageAction::None {
+        match &*users_future.read_unchecked() {
+            Some(Ok(response)) => {
+                let mut user_list = BTreeMap::<usize, UserModel>::new();
+
+                for (count, item) in response.data.iter().enumerate() {
+                    user_list.insert(count, item.clone());
+                }
+
+                users.set(user_list);
+                pagination.set(response.pagination.clone().unwrap_or(PaginationModel::new(0, 10)));
+
+                rsx! { UserList { page } }
+            }
+            Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), resource: users_future } },
+            None => rsx! { LoadingBoxComponent {} },
+        }
+    } else {
+        rsx! { UserSingle {} }
+    }
+}
+
+ */

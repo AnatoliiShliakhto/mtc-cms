@@ -8,7 +8,6 @@ use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::content_handler::ContentHandler;
 use crate::page::administrator::AdministratorRouteModel;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn Content() -> Element {
@@ -30,15 +29,6 @@ pub fn Content() -> Element {
              Some(Ok(response)) => rsx! {
                  section { class: "flex grow flex-row",
                      div { class: "flex grow flex-col items-center gap-3 p-5 body-scroll",
-                         div { class: "p-1 self-start",
-                            Breadcrumb { title:
-                                if active_content_api().is_empty() {
-                                    translate!(i18, "messages.singles")
-                                } else {    
-                                    active_content_api()
-                                }
-                            }
-                         }  
                          table { class: "table w-full",
                              thead {
                                  tr {

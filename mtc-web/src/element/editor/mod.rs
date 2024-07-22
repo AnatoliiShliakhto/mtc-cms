@@ -3,16 +3,15 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 use serde_json::{Map, Value};
-
-use html_field::HtmlField;
 use mtc_model::api_model::{ApiModel, ApiPostModel};
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::field_model::FieldTypeModel;
 use mtc_model::schema_model::SchemaModel;
-use string_field::StringField;
-use text_field::TextField;
 
 use crate::component::loading_box::LoadingBoxComponent;
+use crate::element::editor::html_field::HtmlField;
+use crate::element::editor::string_field::StringField;
+use crate::element::editor::text_field::TextField;
 use crate::handler::content_handler::ContentHandler;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
@@ -20,7 +19,6 @@ use crate::page::administrator::AdministratorRouteModel;
 use crate::service::content_service::ContentService;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 mod html_field;
 mod string_field;
@@ -41,16 +39,14 @@ pub fn Editor() -> Element {
 
     let mut administrator_route = use_context::<Signal<AdministratorRouteModel>>();
 
-    let mut form_slug = use_signal(String::new);
-    let mut form_title = use_signal(String::new);
-    
     let active_content_api = app_state.active_content_api.signal();
     let active_content = app_state.active_content.signal();
     let is_new = use_memo(move || active_content().is_empty());
 
     let mut schema = use_signal(SchemaModel::default);
     let mut content = use_signal(ApiModel::default);
-    let mut form_published = use_signal(|| false);
+
+    let mut content_published = use_signal(|| false);
 
     use_hook(|| {
         let app_state = APP_STATE.peek();
@@ -81,10 +77,7 @@ pub fn Editor() -> Element {
                     .await
                 {
                     Ok(value) => {
-                        form_slug.set(value.slug.clone());
-                        form_title.set(value.title.clone());
-                        form_published.set(value.published);
-                        
+                        content_published.set(value.published);
                         content.set(value)
                     }
                     Err(e) => {
@@ -95,10 +88,7 @@ pub fn Editor() -> Element {
             } else {
                 match app_state.api.get_single_content(&schema().slug).await {
                     Ok(value) => {
-                        form_slug.set(value.slug.clone());
-                        form_title.set(value.title.clone());
-                        
-                        form_published.set(value.published);
+                        content_published.set(value.published);
                         content.set(value)
                     }
                     Err(e) => {
@@ -157,7 +147,11 @@ pub fn Editor() -> Element {
                     APP_STATE
                         .peek()
                         .api
-                        .create_content(&schema().slug, &event.get_string("slug"), &submit_form)
+                        .create_content(
+                            &schema().slug,
+                            &event.get_string("slug"),
+                            &submit_form,
+                        )
                         .await
                 }
                 false => {
@@ -209,47 +203,35 @@ pub fn Editor() -> Element {
             LoadingBoxComponent {}
         };
     }
-    
+
     rsx! {
         section { class: "flex grow select-none flex-row",
             form { class: "flex grow flex-col items-center p-3 px-10 body-scroll",
                 id: "content-form",
                 autocomplete: "off",
                 onsubmit: submit_task,
-                div { class: "p-1 self-start",
-                    Breadcrumb { title:
-                        if active_content_api().is_empty() {
-                            translate!(i18, "messages.singles")
-                        } else {    
-                            schema().title
-                        }
-                    }
-                }  
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary", { translate!(i18, "messages.slug") } }
                     }
-                    input { r#type: "text", name: "slug",
+                    input { r#type: "text", name: "slug", value: content.read().slug.clone(),
                         class: "input input-bordered",
                         disabled: !is_new(),
                         minlength: 4,
                         maxlength: 30,
                         required: true,
-                        value: form_slug(),
-                        oninput: move |event| form_slug.set(event.value()) 
                     }
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary", { translate!(i18, "messages.title") } }
                     }
-                    input { r#type: "text", name: "title", 
+                    input { r#type: "text", name: "title", value: content.read().title.clone(),
                         class: "input input-bordered",
                         minlength: 4,
                         maxlength: 50,
                         required: true,
-                        value: form_title(),
-                        oninput: move |event| form_title.set(event.value()) 
                     }
                 }
 
@@ -288,7 +270,7 @@ pub fn Editor() -> Element {
                 span { class: "label-text-alt", { content.read().updated_at.clone().format("%H:%M %d/%m/%Y").to_string() } }
             }
             label { class:
-                if form_published() {
+                if content_published() {
                     "items-center rounded border p-3 swap border-success text-success"
                 } else {
                     "items-center rounded border p-3 swap border-warning text-warning"
@@ -296,8 +278,8 @@ pub fn Editor() -> Element {
                 input { r#type: "checkbox",
                     name: "published",
                     form: "content-form",
-                    checked: form_published(),
-                    onchange: move |event| form_published.set(event.checked())
+                    checked: content.read().published,
+                    onchange: move |event| content_published.set(event.checked())
                 }
                 div { class: "inline-flex gap-3 swap-on",
                     Icon {

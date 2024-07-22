@@ -1,7 +1,7 @@
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHasher};
 use axum::async_trait;
-use surrealdb::sql::Datetime;
+
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
 use crate::error::api_error::ApiError;
@@ -28,7 +28,6 @@ pub trait UserRepositoryTrait {
     async fn unblock(&self, auth: &str, login: &str) -> Result<()>;
     async fn block_toggle(&self, auth: &str, login: &str) -> Result<()>;
     async fn change_password(&self, login: &str, password: &str) -> Result<UserModel>;
-    async fn update_access(&self, login: &str, access_count: i32) -> Result<()>;
 }
 
 #[async_trait]
@@ -66,7 +65,6 @@ impl UserRepositoryTrait for UserService {
                 CREATE users CONTENT {
 	                login: $login,
 	                password: $password,
-	                blocked: $blocked,
 	                created_by: $auth_id,
 	                updated_by: $auth_id
                 };
@@ -75,7 +73,6 @@ impl UserRepositoryTrait for UserService {
             .bind(("auth_id", auth))
             .bind(("login", login.to_uppercase()))
             .bind(("password", password_hash))
-            .bind(("blocked", model.blocked))
             .await?
             .take(0)?;
 
@@ -114,7 +111,6 @@ impl UserRepositoryTrait for UserService {
                         r#"
                         UPDATE users MERGE {
                             password: $password,
-                            blocked: $blocked,
 	                        fields: $fields,
 	                        updated_by: $auth_id
                         } WHERE login=$login;
@@ -123,7 +119,6 @@ impl UserRepositoryTrait for UserService {
                     .bind(("auth_id", auth))
                     .bind(("login", login))
                     .bind(("password", password_hash))
-                    .bind(("blocked", model.blocked))
                     .bind(("fields", model.fields.clone()))
                     .await?
                     .take::<Option<UserModel>>(0)?
@@ -134,7 +129,6 @@ impl UserRepositoryTrait for UserService {
                 .query(
                     r#"
                     UPDATE users MERGE {
-                        blocked: $blocked,
 	                    fields: $fields,
 	                    updated_by: $auth_id
                     } WHERE login=$login;
@@ -142,7 +136,6 @@ impl UserRepositoryTrait for UserService {
                 )
                 .bind(("auth_id", auth))
                 .bind(("login", login))
-                .bind(("blocked", model.blocked))
                 .bind(("fields", model.fields.clone()))
                 .await?
                 .take::<Option<UserModel>>(0)?
@@ -305,23 +298,5 @@ impl UserRepositoryTrait for UserService {
             .await?
             .take::<Option<UserModel>>(0)?
             .ok_or(DbError::EntryNotFound.into())
-    }
-
-    async fn update_access(&self, login: &str, access_count: i32) -> Result<()> {
-        self.db
-            .query(
-                r#"
-                UPDATE users MERGE {
-                    access_count: $access_count,
-                    last_access: $last_access,
-                } WHERE login=$login;
-            "#,
-            )
-            .bind(("login", login))
-            .bind(("access_count", access_count))
-            .bind(("last_access", Datetime::default()))
-            .await?;
-        
-        Ok(())
     }
 }

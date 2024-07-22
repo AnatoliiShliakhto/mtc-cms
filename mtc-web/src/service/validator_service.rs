@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 pub trait ValidatorService {
+    fn is_field_empty(&self, field: &str) -> bool;
     fn is_slug_valid(&self) -> bool;
     fn is_title_valid(&self) -> bool;
     fn is_login_valid(&self) -> bool;
@@ -10,6 +11,13 @@ pub trait ValidatorService {
 }
 
 impl ValidatorService for Event<FormData> {
+    fn is_field_empty(&self, field: &str) -> bool {
+        match self.values().get(field) {
+            Some(value) => value.0[0].is_empty(),
+            _ => false,
+        }
+    }
+
     fn is_slug_valid(&self) -> bool {
         match self.values().get("slug") {
             Some(value) => value.0[0].len().ge(&4),
@@ -46,6 +54,9 @@ impl ValidatorService for Event<FormData> {
     }
 
     fn get_string_option(&self, field: &str) -> Option<String> {
-        self.values().get(field).map(|value| value.0[0].clone())
+        match self.values().get(field) {
+            Some(value) => Some(value.0[0].clone()),
+            _ => None,
+        }
     }
 }
