@@ -6,7 +6,9 @@ use tracing::{error, warn};
 
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 use mtc_model::permission_model::PermissionsModel;
-use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel};
+use mtc_model::role_model::{
+    RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel, RolesWithTitleModel,
+};
 
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
@@ -21,6 +23,15 @@ pub async fn role_all_handler(state: State<Arc<AppState>>, session: Session) -> 
     session.permission("role::read").await?;
 
     state.role_service.all().await?.ok_model()
+}
+
+pub async fn role_all_title_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<RolesWithTitleModel> {
+    session.permission("role::read").await?;
+
+    state.role_service.all_title().await?.ok_model()
 }
 
 pub async fn role_list_handler(

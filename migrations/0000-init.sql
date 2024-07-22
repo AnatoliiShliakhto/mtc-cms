@@ -48,6 +48,8 @@ CREATE schemas CONTENT {
 DEFINE FIELD login ON TABLE users TYPE string;
 DEFINE FIELD password ON TABLE users TYPE string;
 DEFINE FIELD blocked ON TABLE users TYPE bool DEFAULT false;
+DEFINE FIELD access_count ON TABLE users TYPE int DEFAULT 0;
+DEFINE FIELD last_access ON TABLE users TYPE option<datetime>;
 DEFINE FIELD fields ON TABLE users FLEXIBLE TYPE option<object>;
 DEFINE FIELD created_at ON TABLE users TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE users TYPE datetime VALUE time::now();

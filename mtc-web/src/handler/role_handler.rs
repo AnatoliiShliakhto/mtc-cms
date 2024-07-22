@@ -1,5 +1,7 @@
 use mtc_model::permission_model::PermissionsModel;
-use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel};
+use mtc_model::role_model::{
+    RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel, RolesWithTitleModel,
+};
 
 use crate::error::api_error::ApiError;
 use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
@@ -8,6 +10,7 @@ use crate::model::response_model::ApiResponse;
 pub trait RoleHandler {
     async fn get_role(&self, slug: &str) -> Result<RoleModel, ApiError>;
     async fn get_role_all(&self) -> Result<RolesModel, ApiError>;
+    async fn get_role_all_title(&self) -> Result<RolesWithTitleModel, ApiError>;
     async fn get_role_list(&self, page: usize) -> Result<ApiResponse<Vec<RoleModel>>, ApiError>;
     async fn delete_role(&self, slug: &str) -> Result<(), ApiError>;
     async fn create_role(&self, slug: &str, group: &RoleCreateModel)
@@ -30,6 +33,15 @@ impl RoleHandler for ApiHandler {
     async fn get_role_all(&self) -> Result<RolesModel, ApiError> {
         self.api_client
             .get([&self.api_url, "role", "all"].join("/"))
+            .send()
+            .await
+            .consume_data()
+            .await
+    }
+
+    async fn get_role_all_title(&self) -> Result<RolesWithTitleModel, ApiError> {
+        self.api_client
+            .get([&self.api_url, "role", "all_title"].join("/"))
             .send()
             .await
             .consume_data()

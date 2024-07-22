@@ -4,7 +4,7 @@ use axum::extract::{Path, State};
 use tower_sessions::Session;
 use tracing::error;
 
-use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel, GroupsModel};
+use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel, GroupsModel, GroupsWithTitleModel};
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 
 use crate::handler::Result;
@@ -22,6 +22,15 @@ pub async fn group_all_handler(
     session.permission("group::read").await?;
 
     state.group_service.all().await?.ok_model()
+}
+
+pub async fn group_all_title_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<GroupsWithTitleModel> {
+    session.permission("group::read").await?;
+
+    state.group_service.all_title().await?.ok_model()
 }
 
 pub async fn group_list_handler(

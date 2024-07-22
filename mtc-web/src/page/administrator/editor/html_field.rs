@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use crate::element::editor::FieldProps;
+use crate::page::administrator::editor::FieldProps;
 
 #[component]
 pub fn HtmlField(props: FieldProps) -> Element {

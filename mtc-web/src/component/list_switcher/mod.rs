@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use dioxus::prelude::*;
 
@@ -7,6 +7,7 @@ pub struct ListSwitcherComponentProps {
     pub title: String,
     pub items: Signal<BTreeSet<String>>,
     pub all: Signal<BTreeSet<String>>,
+    pub items_title: Signal<BTreeMap<String, String>>,
 }
 
 impl Clone for ListSwitcherComponentProps {
@@ -15,6 +16,7 @@ impl Clone for ListSwitcherComponentProps {
             title: self.title.clone(),
             items: self.items,
             all: self.all,
+            items_title: self.items_title
         }
     }
 }
@@ -23,6 +25,7 @@ impl Clone for ListSwitcherComponentProps {
 pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
     let mut items = props.items;
     let mut all = props.all;
+    let titles = props.items_title;
 
     let mut item_add = move |item: &String| {
         all.try_write().unwrap().remove(item);
@@ -33,6 +36,13 @@ pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
         all.try_write().unwrap().insert(item.clone());
     };
 
+    let get_title = move |slug: &str| {
+        match titles().get(slug) {
+            Some(value) => value.clone(),
+            _ => String::from(slug),
+        }        
+    };
+    
     rsx! {
         div { class: "mt-4 rounded border p-3 collapse bg-base-100 input-bordered",
             tabindex: 0,
@@ -42,7 +52,7 @@ pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
                     for item in items() {
                         div { class: "badge badge-outline text-success hover:cursor-pointer hover:text-error",
                             onclick: move |_| item_remove(&item),
-                            { item.clone() }
+                            { get_title(&item) }
                         }
                     }
                 }
@@ -53,7 +63,7 @@ pub fn ListSwitcherComponent(props: ListSwitcherComponentProps) -> Element {
                     for item in all() {
                         div { class: "badge badge-outline hover:cursor-pointer hover:text-success",
                             onclick: move |_| item_add(&item),
-                            { item.clone() }
+                            { get_title(&item) }
                         }
                     }
                 }

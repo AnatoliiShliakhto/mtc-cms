@@ -1,6 +1,9 @@
 use axum::async_trait;
 
-use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel};
+use mtc_model::role_model::{
+    RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel, RolesWithTitleModel,
+};
+use mtc_model::slug_title_model::SlugTitleModel;
 
 use crate::error::db_error::DbError;
 use crate::error::Result;
@@ -13,6 +16,7 @@ repository_paginate!(RoleService, RoleModel, "roles");
 #[async_trait]
 pub trait RoleRepositoryTrait {
     async fn all(&self) -> Result<RolesModel>;
+    async fn all_title(&self) -> Result<RolesWithTitleModel>;
     async fn find_by_slug(&self, slug: &str) -> Result<RoleModel>;
     async fn find_by_user(&self, login: &str) -> Result<RolesModel>;
     async fn create(&self, auth: &str, slug: &str, model: &RoleCreateModel) -> Result<RoleModel>;
@@ -35,6 +39,20 @@ impl RoleRepositoryTrait for RoleService {
                 )
                 .await?
                 .take::<Vec<String>>(0)?,
+        })
+    }
+
+    async fn all_title(&self) -> Result<RolesWithTitleModel> {
+        Ok(RolesWithTitleModel {
+            roles: self
+                .db
+                .query(
+                    r#"
+                    SELECT slug, title from roles;
+                    "#,
+                )
+                .await?
+                .take::<Vec<SlugTitleModel>>(0)?,
         })
     }
 

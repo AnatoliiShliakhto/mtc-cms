@@ -3,24 +3,26 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
+use content::Content;
+use dashboard::Dashboard;
+use editor::Editor;
+use groups::Groups;
 use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::slug_title_model::SlugTitleModel;
+use personas::Personas;
+use roles::Roles;
+use schema::Schema;
+use users::Users;
 
-use crate::component::loading_box::LoadingBoxComponent;
-use crate::element::editor::Editor;
 use crate::handler::schema_handler::SchemaHandler;
-use crate::page::administrator::content::Content;
-use crate::page::administrator::dashboard::Dashboard;
-use crate::page::administrator::groups::Groups;
-use crate::page::administrator::roles::Roles;
-use crate::page::administrator::schema::Schema;
-use crate::page::administrator::users::Users;
 use crate::page::not_found::NotFoundPage;
-use crate::service::health_service::HealthService;
 use crate::APP_STATE;
 
 mod content;
 mod dashboard;
+mod editor;
 mod groups;
+mod personas;
 mod roles;
 mod schema;
 mod users;
@@ -29,6 +31,7 @@ mod users;
 #[derive(Clone, Debug, PartialEq)]
 pub enum AdministratorRouteModel {
     Dashboard,
+    Personas,
     Groups,
     Roles,
     Users,
@@ -41,7 +44,6 @@ pub enum AdministratorRouteModel {
 pub fn AdministratorPage() -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
-    let is_busy = app_state.is_busy.signal();
     let i18 = use_i18();
 
     let mut active_content_api = app_state.active_content_api.signal();
@@ -55,18 +57,29 @@ pub fn AdministratorPage() -> Element {
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
     let mut collections_future = use_resource(move || async {
-        APP_STATE.peek().service.get_credentials();
-
         APP_STATE.peek().api.get_all_collections().await
     });
 
     rsx! {
-        if is_busy() {
-            LoadingBoxComponent {}
-        }
         div { class: "flex w-full flex-row",
             aside { class: "shadow-lg bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
+                    if auth_state.is_permission("user::read") {
+                        li {
+                            a {
+                                class: "inline-flex justify-between",
+                                class: if administrator_route.read().eq(&AdministratorRouteModel::Personas) { "active" },
+                                onclick: move |_| administrator_route.set(AdministratorRouteModel::Personas),
+                                { translate!(i18, "messages.personas") }
+                                Icon { class: "text-primary",
+                                    width: 16,
+                                    height: 16,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                                }
+                            }
+                        }
+                    }
                     li {
                         a { class: "inline-flex justify-between",
                             onclick: move |_| collections_future.restart(),
@@ -82,9 +95,9 @@ pub fn AdministratorPage() -> Element {
                             li {
                                 a {
                                     class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
-                                                active_content_api().is_empty() { "active" },
+                                                active_content_api().slug.is_empty() { "active" },
                                     onclick: move |_| {
-                                        active_content_api.set(String::new());
+                                        active_content_api.set(SlugTitleModel::default());
                                         administrator_route.set(AdministratorRouteModel::Content);
                                     },
                                     { translate!(i18, "messages.singles") }
@@ -98,14 +111,15 @@ pub fn AdministratorPage() -> Element {
                                             Some(Ok(response)) => rsx! {
                                                 for item in response.iter() {
                                                     {
-                                                        let m_slug = item.slug.clone();
+                                                        let m_item = SlugTitleModel{ slug: item.slug.clone(), title: item.title.clone() };
+
                                                         rsx! {
                                                             li  {
                                                                 a {
                                                                     class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
-                                                                        active_content_api().eq(&m_slug) { "active" },
+                                                                        active_content_api().eq(&m_item) { "active" },
                                                                     onclick: move |_| {
-                                                                        active_content_api.set(m_slug.clone());
+                                                                        active_content_api.set(m_item.clone());
                                                                         administrator_route.set(AdministratorRouteModel::Content);
                                                                     },
                                                                     { item.title.clone() }
@@ -156,7 +170,7 @@ pub fn AdministratorPage() -> Element {
                                 width: 16,
                                 height: 16,
                                 fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                                icon: dioxus_free_icons::icons::md_action_icons::MdAdminPanelSettings
                             }
                         }
                         ul {
@@ -219,6 +233,7 @@ pub fn AdministratorPage() -> Element {
                 AdministratorRouteModel::Roles => rsx! { Roles {} },
                 AdministratorRouteModel::Users => rsx! { Users {} },
                 AdministratorRouteModel::Schema => rsx! { Schema {} },
+                AdministratorRouteModel::Personas => rsx! { Personas {} },
                 _ => rsx! { Dashboard {} },
             }
         }
