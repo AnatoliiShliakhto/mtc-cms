@@ -233,7 +233,7 @@ pub fn UserEditor() -> Element {
                 id: "user-form",
                 autocomplete: "off",
                 onsubmit: user_submit,
-                div { class: "p-1 self-start",
+                div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.users") }
                 }                   
                 label { class: "w-full form-control",

@@ -132,7 +132,7 @@ pub fn GroupEditor() -> Element {
                 id: "group-form",
                 autocomplete: "off",
                 onsubmit: group_submit,
-                div { class: "p-1 self-start",
+                div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.groups") }
                 }                 
                 label { class: "w-full form-control",

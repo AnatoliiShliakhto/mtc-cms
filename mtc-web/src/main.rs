@@ -13,6 +13,7 @@ use crate::router::Route;
 use crate::service::health_service::HealthService;
 use crate::state::AppState;
 
+//todo refactor to .env
 static API_URL: &str = "https://localhost/api";
 
 mod component;

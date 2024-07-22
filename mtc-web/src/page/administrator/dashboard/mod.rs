@@ -10,7 +10,7 @@ pub fn Dashboard() -> Element {
     rsx! {
         section { class: "flex grow flex-row",
             div { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                div { class: "p-1 self-start",
+                div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.administrator") }
                 } 
             }
