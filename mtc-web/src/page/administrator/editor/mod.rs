@@ -212,11 +212,11 @@ pub fn Editor() -> Element {
     
     rsx! {
         section { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center p-3 px-10 body-scroll",
+            form { class: "flex grow flex-col items-center p-2 body-scroll",
                 id: "content-form",
                 autocomplete: "off",
                 onsubmit: submit_task,
-                div { class: "p-1 self-start",
+                div { class: "self-start",
                     Breadcrumb { title:
                         if active_content_api().slug.is_empty() {
                             translate!(i18, "messages.singles")

@@ -29,8 +29,8 @@ pub fn Content() -> Element {
          match &*content_future.read() {
              Some(Ok(response)) => rsx! {
                  section { class: "flex grow flex-row",
-                     div { class: "flex grow flex-col items-center gap-3 p-5 body-scroll",
-                         div { class: "p-1 self-start",
+                     div { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
+                         div { class: "self-start",
                             Breadcrumb { title:
                                 if active_content_api().slug.is_empty() {
                                     translate!(i18, "messages.singles")

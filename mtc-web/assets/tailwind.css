@@ -4313,6 +4313,11 @@ details.collapse summary::-webkit-details-marker {
   padding-bottom: 0.75rem;
 }
 
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .pt-3 {
   padding-top: 0.75rem;
 }

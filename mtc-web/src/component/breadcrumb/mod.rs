@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
+use crate::router::Route::HomePage;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct BreadcrumbProps {
@@ -9,20 +10,27 @@ pub struct BreadcrumbProps {
 //todo Breadcrumb
 pub fn Breadcrumb(props: BreadcrumbProps) -> Element {
     rsx! {
-        div { class: "inline-flex flex-nowrap items-center",
-            Icon {
-                width: 22,
-                height: 22,
-                fill: "currentColor",
-                icon: dioxus_free_icons::icons::md_action_icons::MdHome
+        div { class: "flex flex-wrap items-center",
+            Link { class: "btn btn-ghost btn-sm px-1",
+                to: HomePage {},
+                Icon {
+                    width: 22,
+                    height: 22,
+                    fill: "currentColor",
+                    icon: dioxus_free_icons::icons::md_action_icons::MdHome
+                }
             }
-            Icon {
-                width: 22,
-                height: 22,
-                fill: "currentColor",
-                icon: dioxus_free_icons::icons::md_navigation_icons::MdChevronRight
+            span { class: "inline-flex flex-nowrap items-center",
+                Icon {
+                    width: 22,
+                    height: 22,
+                    fill: "currentColor",
+                    icon: dioxus_free_icons::icons::md_navigation_icons::MdChevronRight
+                }
+                button { class: "btn btn-ghost btn-sm px-1", 
+                    { props.title }
+                }
             }
-            span { class: "text-xl", { props.title } }
         }
     }
 }

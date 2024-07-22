@@ -173,7 +173,7 @@ pub fn RoleEditor() -> Element {
                 id: "role-form",
                 autocomplete: "off",
                 onsubmit: role_submit,
-                div { class: "p-1 self-start",
+                div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.roles") }
                 }                 
                 label { class: "w-full form-control",

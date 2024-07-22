@@ -7,10 +7,12 @@ use crate::handler::auth_handler::AuthHandler;
 use crate::model::modal_model::ModalModel;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
+use crate::router::Route::HomePage;
 
 #[component]
 pub fn SignIn() -> Element {
     let i18 = use_i18();
+    let navigato = use_navigator();
 
     let mut is_busy = use_signal(|| false);
 
@@ -38,7 +40,11 @@ pub fn SignIn() -> Element {
                 )
                 .await
             {
-                Ok(auth_model) => app_state.auth.signal().set(auth_model),
+                Ok(auth_model) => {
+                    app_state.auth.signal().set(auth_model);
+                    
+                    navigator().push(HomePage {});
+                },
                 Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);

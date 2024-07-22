@@ -43,7 +43,7 @@ pub fn Groups() -> Element {
         match &*groups_future.read() {
             Some(Ok(response)) => rsx! {
                 section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                    div { class: "inline-flex w-full flex-nowrap p-1 justify-between gap-5",
+                    div { class: "inline-flex w-full justify-between gap-5",
                         Breadcrumb { title: translate!(i18, "messages.groups") }
                         PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
                     }
