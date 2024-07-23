@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use chrono::Local;
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
@@ -8,6 +9,8 @@ use dioxus_std::translate;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 
+use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::permissions_handler::PermissionsHandler;
@@ -15,8 +18,6 @@ use crate::handler::role_handler::RoleHandler;
 use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn RoleEditor() -> Element {
@@ -28,9 +29,6 @@ pub fn RoleEditor() -> Element {
 
     let mut page_action = use_context::<Signal<PageAction>>();
 
-    let mut form_slug = use_signal(String::new);
-    let mut form_title = use_signal(String::new);
-
     let mut role = use_signal(RoleModel::default);
     let role_slug = use_memo(move || match page_action() {
         PageAction::Item(value) => value,
@@ -39,7 +37,7 @@ pub fn RoleEditor() -> Element {
     let is_new_role = use_memo(move || page_action().eq(&PageAction::New) | role_slug().is_empty());
     let mut role_permissions = use_signal(BTreeSet::<String>::new);
     let mut all_permissions = use_signal(BTreeSet::<String>::new);
-    
+
     let dummy_permissions_title = use_signal(BTreeMap::<String, String>::new);
 
     use_hook(|| {
@@ -57,12 +55,7 @@ pub fn RoleEditor() -> Element {
 
             if !is_new_role() {
                 match APP_STATE.peek().api.get_role(&role_slug()).await {
-                    Ok(value) => {
-                        form_slug.set(value.slug.clone());
-                        form_title.set(value.title.clone());
-                        
-                        role.set(value)
-                    },
+                    Ok(value) => role.set(value),
                     Err(e) => {
                         APP_STATE
                             .peek()
@@ -175,7 +168,7 @@ pub fn RoleEditor() -> Element {
                 onsubmit: role_submit,
                 div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.roles") }
-                }                 
+                }
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",
@@ -188,8 +181,7 @@ pub fn RoleEditor() -> Element {
                         minlength: 4,
                         maxlength: 30,
                         required: true,
-                        value: form_slug(),
-                        oninput: move |event| form_slug.set(event.value()) 
+                        initial_value: role().slug
                     }
                 }
                 label { class: "w-full form-control",
@@ -203,13 +195,12 @@ pub fn RoleEditor() -> Element {
                         minlength: 4,
                         maxlength: 50,
                         required: true,
-                        value: form_title(),
-                        oninput: move |event| form_title.set(event.value()) 
+                        initial_value: role().title
                     }
                 }
-                ListSwitcherComponent { 
-                    title: translate!(i18, "messages.permissions"), 
-                    items: role_permissions, 
+                ListSwitcherComponent {
+                    title: translate!(i18, "messages.permissions"),
+                    items: role_permissions,
                     all: all_permissions,
                     items_title: dummy_permissions_title
                 }
@@ -228,10 +219,10 @@ pub fn RoleEditor() -> Element {
                 div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
                     span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
                     span { { role().created_by } }
-                    span { class: "label-text-alt", { role().created_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { role().created_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                     span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
                     span { { role().updated_by } }
-                    span { class: "label-text-alt", { role().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { role().updated_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                 }
 
                 if auth_state.is_permission("role::write") {

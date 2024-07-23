@@ -20,7 +20,7 @@ pub fn HomePage() -> Element {
             }
         };
     }
-
+    
     rsx! {
         div { class: "flex grow flex-col items-center justify-center gap-10 p-10",
             p { class: "text-4xl",

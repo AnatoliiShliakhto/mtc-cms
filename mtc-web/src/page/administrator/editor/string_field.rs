@@ -11,7 +11,7 @@ pub fn StringField(props: FieldProps) -> Element {
             }
             input { r#type: "text",
                 name: props.slug,
-                value: props.value,
+                initial_value: props.value,
                 class: "input input-bordered",
             }
         }

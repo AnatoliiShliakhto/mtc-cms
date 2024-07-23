@@ -4269,10 +4269,6 @@ details.collapse summary::-webkit-details-marker {
   padding: 0px;
 }
 
-.p-1 {
-  padding: 0.25rem;
-}
-
 .p-10 {
   padding: 2.5rem;
 }
@@ -4293,9 +4289,9 @@ details.collapse summary::-webkit-details-marker {
   padding: 1.25rem;
 }
 
-.px-10 {
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .px-2 {
@@ -4303,19 +4299,9 @@ details.collapse summary::-webkit-details-marker {
   padding-right: 0.5rem;
 }
 
-.py-10 {
-  padding-top: 2.5rem;
-  padding-bottom: 2.5rem;
-}
-
 .py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
-}
-
-.px-1 {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
 }
 
 .pt-3 {
@@ -4326,6 +4312,10 @@ details.collapse summary::-webkit-details-marker {
   padding-top: 1.25rem;
 }
 
+.pt-4 {
+  padding-top: 1rem;
+}
+
 .indent-14 {
   text-indent: 3.5rem;
 }
@@ -4333,6 +4323,11 @@ details.collapse summary::-webkit-details-marker {
 .text-4xl {
   font-size: 2.25rem;
   line-height: 2.5rem;
+}
+
+.text-9xl {
+  font-size: 8rem;
+  line-height: 1;
 }
 
 .text-lg {
@@ -4390,6 +4385,21 @@ details.collapse summary::-webkit-details-marker {
 .text-warning {
   --tw-text-opacity: 1;
   color: var(--fallback-wa,oklch(var(--wa)/var(--tw-text-opacity)));
+}
+
+.text-base-300 {
+  --tw-text-opacity: 1;
+  color: var(--fallback-b3,oklch(var(--b3)/var(--tw-text-opacity)));
+}
+
+.text-base-200 {
+  --tw-text-opacity: 1;
+  color: var(--fallback-b2,oklch(var(--b2)/var(--tw-text-opacity)));
+}
+
+.text-neutral {
+  --tw-text-opacity: 1;
+  color: var(--fallback-n,oklch(var(--n)/var(--tw-text-opacity)));
 }
 
 .antialiased {

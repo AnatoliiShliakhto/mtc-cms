@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
+use chrono::Local;
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
@@ -10,13 +11,13 @@ use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::field_model::{FieldModel, FieldTypeModel};
 use mtc_model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel};
 
+use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn SchemaEditor() -> Element {
@@ -28,8 +29,6 @@ pub fn SchemaEditor() -> Element {
 
     let mut page_action = use_context::<Signal<PageAction>>();
 
-    let mut form_slug = use_signal(String::new);
-    let mut form_title = use_signal(String::new);
     let mut form_is_collection = use_signal(|| false);
     let mut form_is_public = use_signal(|| false);
 
@@ -52,13 +51,11 @@ pub fn SchemaEditor() -> Element {
         spawn(async move {
             match APP_STATE.peek().api.get_schema(&schema_slug()).await {
                 Ok(value) => {
-                    form_slug.set(value.slug.clone());
-                    form_title.set(value.title.clone());
                     form_is_collection.set(value.is_collection);
                     form_is_public.set(value.is_public);
-                    
+
                     schema.set(value)
-                },
+                }
                 Err(e) => {
                     APP_STATE
                         .peek()
@@ -194,7 +191,7 @@ pub fn SchemaEditor() -> Element {
             div { class: "flex grow flex-col items-center p-2 body-scroll",
                 div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.schema") }
-                }    
+                }
                 form { class: "w-full",
                     id: "schema-form",
                     autocomplete: "off",
@@ -206,8 +203,8 @@ pub fn SchemaEditor() -> Element {
                                     span { class: "label-text text-primary", { translate!(i18, "messages.schema_type") } }
                                 }
                                 label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
-                                    input { 
-                                        r#type: "checkbox", 
+                                    input {
+                                        r#type: "checkbox",
                                         name: "is_collection",
                                         checked: form_is_collection(),
                                         onchange: move |event| form_is_collection.set(event.checked())
@@ -241,9 +238,9 @@ pub fn SchemaEditor() -> Element {
                                     span { class: "label-text text-primary", { translate!(i18, "messages.access") } }
                                 }
                                 label { class: "w-fit rounded border p-3 swap text-warning input-bordered",
-                                    input { 
-                                        r#type: "checkbox", 
-                                        name: "is_public", 
+                                    input {
+                                        r#type: "checkbox",
+                                        name: "is_public",
                                         checked: form_is_public(),
                                         onchange: move |event| form_is_public.set(event.checked())
                                     }
@@ -285,8 +282,7 @@ pub fn SchemaEditor() -> Element {
                             minlength: 4,
                             maxlength: 30,
                             required: true,
-                            value: form_slug(),
-                            oninput: move |event| form_slug.set(event.value())                             
+                            initial_value: schema().slug
                         }
                     }
                     label { class: "w-full form-control",
@@ -300,8 +296,7 @@ pub fn SchemaEditor() -> Element {
                             minlength: 4,
                             maxlength: 50,
                             required: true,
-                            value: form_title(),
-                            oninput: move |event| form_title.set(event.value())                             
+                            initial_value: schema().title
                         }
                     }
                 }
@@ -393,10 +388,10 @@ pub fn SchemaEditor() -> Element {
                 div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
                     span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
                     span { { schema().created_by } }
-                    span { class: "label-text-alt", { schema().created_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { schema().created_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                     span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
                     span { { schema().updated_by } }
-                    span { class: "label-text-alt", { schema().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { schema().updated_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                 }
 
                 if auth_state.is_permission("schema::write") {
