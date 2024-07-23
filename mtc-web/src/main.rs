@@ -7,7 +7,6 @@ use tracing::Level;
 
 use mtc_model::i18n::en_US::EN_US;
 use mtc_model::i18n::uk_UA::UK_UA;
-
 use crate::repository::storage::use_persistent;
 use crate::router::Route;
 use crate::service::health_service::HealthService;
@@ -73,6 +72,7 @@ pub fn App() -> Element {
             }
         })
     });
+
 
     rsx! {
         Router::<Route> {}

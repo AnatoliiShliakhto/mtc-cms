@@ -12,7 +12,6 @@ use crate::router::Route::HomePage;
 #[component]
 pub fn SignIn() -> Element {
     let i18 = use_i18();
-    let navigato = use_navigator();
 
     let mut is_busy = use_signal(|| false);
 

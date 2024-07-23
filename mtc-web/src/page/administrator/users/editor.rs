@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use chrono::Local;
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
@@ -8,6 +9,8 @@ use dioxus_std::translate;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
+use crate::APP_STATE;
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
@@ -17,8 +20,6 @@ use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::user_service::UserService;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn UserEditor() -> Element {
@@ -30,7 +31,6 @@ pub fn UserEditor() -> Element {
 
     let mut page_action = use_context::<Signal<PageAction>>();
 
-    let mut form_login = use_signal(String::new);
     let mut form_blocked = use_signal(|| false);
 
     let mut user = use_signal(UserModel::default);
@@ -94,7 +94,6 @@ pub fn UserEditor() -> Element {
             if !is_new_user() {
                 match APP_STATE.peek().api.get_user(&user_login()).await {
                     Ok(value) => {
-                        form_login.set(value.login.clone());
                         form_blocked.set(value.blocked);
 
                         user.set(value)
@@ -248,8 +247,7 @@ pub fn UserEditor() -> Element {
                         minlength: 5,
                         maxlength: 15,
                         required: true,
-                        value: form_login(),
-                        oninput: move |event| form_login.set(event.value())
+                        initial_value: user().login
                     }
                 }
                 if users_details().contains_key(&user().login) {
@@ -294,10 +292,10 @@ pub fn UserEditor() -> Element {
                 div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
                     span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
                     span { { user().created_by } }
-                    span { class: "label-text-alt", { user().created_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { user().created_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                     span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
                     span { { user().updated_by } }
-                    span { class: "label-text-alt", { user().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { user().updated_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                 }
 
                 label { class:

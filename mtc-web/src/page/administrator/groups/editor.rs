@@ -1,3 +1,4 @@
+use chrono::Local;
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
@@ -6,13 +7,13 @@ use dioxus_std::translate;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
 
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
 use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn GroupEditor() -> Element {
@@ -24,9 +25,6 @@ pub fn GroupEditor() -> Element {
 
     let mut page_action = use_context::<Signal<PageAction>>();
 
-    let mut form_slug = use_signal(String::new);
-    let mut form_title = use_signal(String::new);
-    
     let mut group = use_signal(GroupModel::default);
     let group_slug = use_memo(move || match page_action() {
         PageAction::Item(value) => value,
@@ -43,12 +41,7 @@ pub fn GroupEditor() -> Element {
 
         spawn(async move {
             match APP_STATE.peek().api.get_group(&group_slug()).await {
-                Ok(value) => {
-                    form_slug.set(value.slug.clone());
-                    form_title.set(value.title.clone());
-                    
-                    group.set(value)
-                },
+                Ok(value) => group.set(value),
                 Err(e) => {
                     APP_STATE
                         .peek()
@@ -58,7 +51,7 @@ pub fn GroupEditor() -> Element {
                     page_action.set(PageAction::None)
                 }
             }
-            
+
             is_busy.set(false);
         });
     });
@@ -66,7 +59,7 @@ pub fn GroupEditor() -> Element {
     let group_submit = move |event: Event<FormData>| {
         let app_state = APP_STATE.peek();
         is_busy.set(true);
-        
+
         if !event.is_title_valid() | (is_new_group() & !event.is_slug_valid()) {
             app_state
                 .modal
@@ -134,11 +127,11 @@ pub fn GroupEditor() -> Element {
                 onsubmit: group_submit,
                 div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.groups") }
-                }                 
+                }
                 label { class: "w-full form-control",
                     div { class: "label",
-                        span { class: "label-text text-primary", 
-                            { translate!(i18, "messages.slug") } 
+                        span { class: "label-text text-primary",
+                            { translate!(i18, "messages.slug") }
                         }
                     }
                     input { r#type: "text", name: "slug",
@@ -147,14 +140,13 @@ pub fn GroupEditor() -> Element {
                         minlength: 4,
                         maxlength: 30,
                         required: true,
-                        value: form_slug(),
-                        oninput: move |event| form_slug.set(event.value()) 
+                        initial_value: group().slug
                     }
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
-                        span { class: "label-text text-primary", 
-                            { translate!(i18, "messages.title") } 
+                        span { class: "label-text text-primary",
+                            { translate!(i18, "messages.title") }
                         }
                     }
                     input { r#type: "text", name: "title",
@@ -162,8 +154,7 @@ pub fn GroupEditor() -> Element {
                         minlength: 4,
                         maxlength: 50,
                         required: true,
-                        value: form_title(),
-                        oninput: move |event| form_title.set(event.value()) 
+                        initial_value: group().title
                     }
                 }
             }
@@ -181,10 +172,10 @@ pub fn GroupEditor() -> Element {
                 div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
                     span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
                     span { { group().created_by } }
-                    span { class: "label-text-alt", { group().created_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { group().created_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                     span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
                     span { { group().updated_by } }
-                    span { class: "label-text-alt", { group().updated_at.format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "label-text-alt", { group().updated_at.with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                 }
 
                 if auth_state.is_permission("group::write") {
