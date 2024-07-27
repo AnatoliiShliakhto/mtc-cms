@@ -4,6 +4,7 @@ use axum::body::{Body, Bytes};
 use axum::extract::{Multipart, Path, State};
 use axum::http::header;
 use axum::response::{AppendHeaders, IntoResponse, Response};
+use serde::{Deserialize, Serialize};
 use tower_sessions::Session;
 
 use mtc_model::store_model::StoresModel;
@@ -14,6 +15,9 @@ use crate::middleware::auth_middleware::UserSession;
 use crate::model::response_model::{ApiResponse, HandlerResult};
 use crate::service::store_service::StoreTrait;
 use crate::state::AppState;
+
+#[derive(Deserialize, Serialize)]
+pub struct FileResult { pub filename: String }
 
 pub async fn store_get_dir_handler(
     Path(path): Path<String>,
@@ -48,20 +52,23 @@ pub async fn store_upload_handler(
     state: State<Arc<AppState>>,
     session: Session,
     mut multipart: Multipart,
-) -> Result<()> {
+) -> Result<FileResult> {
     session.permission("store::write").await?;
 
     let path = state.store_service.get_dir_path(&path);
+    let mut filename:String = "".to_string();
 
     state.store_service.is_dir_exists_or_create(&path).await?;
 
     while let Some(field) = multipart.next_field().await? {
         if Some("file") == field.name() && field.file_name().is_some() {
-            state.store_service.save_file(&path, field).await?
+            let name = state.store_service.save_file(&path, field).await?;
+            filename = name.as_str().parse()?;
         }
     }
+    // println!("{}", &filename);
 
-    Ok(ApiResponse::Ok)
+    Ok(ApiResponse::Data(FileResult { filename }))
 }
 
 pub async fn protected_store_upload_handler(
@@ -76,9 +83,10 @@ pub async fn protected_store_upload_handler(
 
     state.store_service.is_dir_exists_or_create(&path).await?;
 
+    // todo
     while let Some(field) = multipart.next_field().await? {
         if Some("file") == field.name() && field.file_name().is_some() {
-            state.store_service.save_file(&path, field).await?
+            state.store_service.save_file(&path, field).await;
         }
     }
 

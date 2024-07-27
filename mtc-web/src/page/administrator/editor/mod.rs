@@ -32,6 +32,7 @@ pub struct FieldProps {
     pub slug: String,
     pub title: String,
     pub value: String,
+    pub schema_slug: String,
 }
 
 pub fn Editor() -> Element {
@@ -246,13 +247,13 @@ pub fn Editor() -> Element {
                 for field in schema().fields.unwrap_or(vec![]).iter() {
                     match field.field_type {
                         FieldTypeModel::Html => rsx! {
-                            HtmlField { slug: field.slug.clone(), title: field.title.clone(), value: content.extract_string(&field.slug) }
+                            HtmlField { slug: field.slug.clone(), title: field.title.clone(), value: content.extract_string(&field.slug), schema_slug: content.read().slug.clone() }
                         },
                         FieldTypeModel::Text => rsx! {
-                            TextField { slug: field.slug.clone(), title: field.title.clone(), value: content.extract_string(&field.slug) }
+                            TextField { slug: field.slug.clone(), title: field.title.clone(), value: content.extract_string(&field.slug), schema_slug: "" }
                         },
                         _ => rsx! {
-                            StringField { slug: field.slug.clone(), title: field.title.clone(), value: content.extract_string(&field.slug) }
+                            StringField { slug: field.slug.clone(), title: field.title.clone(), value: content.extract_string(&field.slug), schema_slug: "" }
                         }
                     }
                 }
