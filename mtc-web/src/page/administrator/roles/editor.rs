@@ -34,6 +34,7 @@ pub fn RoleEditor() -> Element {
         PageAction::Item(value) => value,
         _ => String::new(),
     });
+    let mut user_access_all = use_signal(|| false);
     let is_new_role = use_memo(move || page_action().eq(&PageAction::New) | role_slug().is_empty());
     let mut role_permissions = use_signal(BTreeSet::<String>::new);
     let mut all_permissions = use_signal(BTreeSet::<String>::new);
@@ -47,15 +48,19 @@ pub fn RoleEditor() -> Element {
 
             if let Ok(permissions_model) = APP_STATE.peek().api.get_permissions().await {
                 permissions_list = permissions_model
-                    .permissions
+                    .list
                     .iter()
                     .cloned()
+                    .map(|value| value.slug)
                     .collect::<BTreeSet<String>>();
             }
 
             if !is_new_role() {
                 match APP_STATE.peek().api.get_role(&role_slug()).await {
-                    Ok(value) => role.set(value),
+                    Ok(value) => {
+                        user_access_all.set(value.user_access_all);
+                        role.set(value)
+                    },
                     Err(e) => {
                         APP_STATE
                             .peek()
@@ -73,7 +78,7 @@ pub fn RoleEditor() -> Element {
                     .await
                 {
                     permissions_role = permissions_model
-                        .permissions
+                        .list
                         .iter()
                         .cloned()
                         .collect::<BTreeSet<String>>();
@@ -117,6 +122,8 @@ pub fn RoleEditor() -> Element {
                             &role_slug(),
                             &RoleUpdateModel {
                                 title: event.get_string("title"),
+                                user_access_level: event.get_int_option("user_access_level").unwrap_or(999),
+                                user_access_all: user_access_all(),
                                 permissions,
                             },
                         )
@@ -129,6 +136,8 @@ pub fn RoleEditor() -> Element {
                             &event.get_string("slug"),
                             &RoleCreateModel {
                                 title: event.get_string("title"),
+                                user_access_level: event.get_int_option("user_access_level").unwrap_or(999),
+                                user_access_all: user_access_all(),
                                 permissions,
                             },
                         )
@@ -157,7 +166,11 @@ pub fn RoleEditor() -> Element {
     };
 
     if is_busy() {
-        return rsx! { LoadingBoxComponent {} };
+        return rsx! {
+            div { class: "grid w-full place-items-center body-scroll",
+                LoadingBoxComponent {} 
+            }    
+        };
     }
 
     rsx! {
@@ -198,6 +211,57 @@ pub fn RoleEditor() -> Element {
                         initial_value: role().title
                     }
                 }
+                div { class: "inline-flex w-full gap-5",
+                    label { class: "w-fit form-control",
+                        div { class: "label",
+                            span { class: "label-text text-primary",
+                                { translate!(i18, "messages.access_level") }
+                            }
+                        }
+                        input { r#type: "number", name: "user_access_level",
+                            class: "input input-bordered",
+                            min: 1,
+                            max: 999,
+                            step: 1,
+                            initial_value: role().user_access_level.to_string()
+                        }
+                    }
+                    label { class: "w-fit form-control",
+                        div { class: "label",
+                            span { class: "label-text text-primary lowercase", { translate!(i18, "messages.users") } }
+                        }
+                        label { class: "w-fit rounded border px-3 py-2 swap text-warning input-bordered",
+                            input {
+                                r#type: "checkbox",
+                                name: "is_collection",
+                                checked: user_access_all(),
+                                onchange: move |event| user_access_all.set(event.checked())
+                            }
+                            div { class: "swap-on",
+                                span { class: "inline-flex flex-nowrap gap-3 items-center",
+                                    Icon {
+                                        width: 22,
+                                        height: 22,
+                                        fill: "currentColor",
+                                        icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                                    }
+                                    { translate!(i18, "messages.access_all") }
+                                }
+                            }
+                            div { class: "swap-off",
+                                span { class: "inline-flex flex-nowrap gap-3 items-center",
+                                    Icon {
+                                        width: 22,
+                                        height: 22,
+                                        fill: "currentColor",
+                                        icon: dioxus_free_icons::icons::md_social_icons::MdMilitaryTech
+                                    }
+                                    { translate!(i18, "messages.access_active") }
+                                }
+                            }
+                        }
+                    }    
+                }    
                 ListSwitcherComponent {
                     title: translate!(i18, "messages.permissions"),
                     items: role_permissions,

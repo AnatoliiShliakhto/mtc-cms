@@ -3,7 +3,6 @@ use surrealdb_sql::Datetime;
 use validator::Validate;
 
 use crate::from_thing;
-use crate::slug_title_model::SlugTitleModel;
 
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct RoleModel {
@@ -11,12 +10,14 @@ pub struct RoleModel {
     pub id: String,
     pub slug: String,
     pub title: String,
+    pub user_access_level: i32,
+    pub user_access_all: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Vec<String>>,
     pub created_at: Datetime,
     pub updated_at: Datetime,
     pub created_by: String,
-    pub updated_by: String,    
+    pub updated_by: String,
 }
 
 impl Default for RoleModel {
@@ -25,7 +26,9 @@ impl Default for RoleModel {
             id: "".to_string(),
             slug: "".to_string(),
             title: "".to_string(),
-            permissions: None,
+            user_access_level: 999,
+            user_access_all: false,
+            permissions: Some(vec!["content:read".to_string()]),
             created_at: Default::default(),
             updated_at: Default::default(),
             created_by: "".to_string(),
@@ -37,6 +40,8 @@ impl Default for RoleModel {
 #[derive(Deserialize, Serialize, Validate, Clone)]
 pub struct RoleCreateModel {
     pub title: String,
+    pub user_access_level: i32,
+    pub user_access_all: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Vec<String>>,
 }
@@ -44,16 +49,8 @@ pub struct RoleCreateModel {
 #[derive(Deserialize, Serialize, Validate)]
 pub struct RoleUpdateModel {
     pub title: String,
+    pub user_access_level: i32,
+    pub user_access_all: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Vec<String>>,
-}
-
-#[derive(Default, Deserialize, Serialize, Validate)]
-pub struct RolesModel {
-    pub roles: Vec<String>,
-}
-
-#[derive(Default, Deserialize, Serialize, Validate)]
-pub struct RolesWithTitleModel {
-    pub roles: Vec<SlugTitleModel>,
 }

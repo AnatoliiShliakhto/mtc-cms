@@ -1,7 +1,5 @@
-use mtc_model::permission_model::PermissionsModel;
-use mtc_model::role_model::{
-    RoleCreateModel, RoleModel, RoleUpdateModel, RolesModel, RolesWithTitleModel,
-};
+use mtc_model::list_model::{RecordListModel, StringListModel};
+use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 
 use crate::error::api_error::ApiError;
 use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
@@ -9,15 +7,14 @@ use crate::model::response_model::ApiResponse;
 
 pub trait RoleHandler {
     async fn get_role(&self, slug: &str) -> Result<RoleModel, ApiError>;
-    async fn get_role_all(&self) -> Result<RolesModel, ApiError>;
-    async fn get_role_all_title(&self) -> Result<RolesWithTitleModel, ApiError>;
+    async fn get_role_all(&self) -> Result<RecordListModel, ApiError>;
     async fn get_role_list(&self, page: usize) -> Result<ApiResponse<Vec<RoleModel>>, ApiError>;
     async fn delete_role(&self, slug: &str) -> Result<(), ApiError>;
     async fn create_role(&self, slug: &str, group: &RoleCreateModel)
         -> Result<RoleModel, ApiError>;
     async fn update_role(&self, slug: &str, group: &RoleUpdateModel)
         -> Result<RoleModel, ApiError>;
-    async fn get_role_permissions(&self, slug: &str) -> Result<PermissionsModel, ApiError>;
+    async fn get_role_permissions(&self, slug: &str) -> Result<StringListModel, ApiError>;
 }
 
 impl RoleHandler for ApiHandler {
@@ -30,18 +27,9 @@ impl RoleHandler for ApiHandler {
             .await
     }
 
-    async fn get_role_all(&self) -> Result<RolesModel, ApiError> {
+    async fn get_role_all(&self) -> Result<RecordListModel, ApiError> {
         self.api_client
             .get([&self.api_url, "role", "all"].join("/"))
-            .send()
-            .await
-            .consume_data()
-            .await
-    }
-
-    async fn get_role_all_title(&self) -> Result<RolesWithTitleModel, ApiError> {
-        self.api_client
-            .get([&self.api_url, "role", "all_title"].join("/"))
             .send()
             .await
             .consume_data()
@@ -86,7 +74,7 @@ impl RoleHandler for ApiHandler {
             .await
     }
 
-    async fn get_role_permissions(&self, slug: &str) -> Result<PermissionsModel, ApiError> {
+    async fn get_role_permissions(&self, slug: &str) -> Result<StringListModel, ApiError> {
         self.api_client
             .get([&self.api_url, "role", slug, "permissions"].join("/"))
             .send()

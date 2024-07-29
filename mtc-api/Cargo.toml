@@ -12,15 +12,15 @@ resolver = "2"
 mtc-model = { path = "../mtc-model" }
 axum = { version = "0.7.5", features = ["multipart", "macros"] }
 serde = { version = "1.0.204", features = ["derive"] }
-tokio = { version = "1.38.1", features = ["macros", "rt-multi-thread", "fs"] }
+tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread", "fs"] }
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tower-http = { version = "0.5.2", features = ["fs", "cors"] }
 dotenvy = { version = "0.15.7" }
 axum-extra = { version = "0.9.3", features = ["cookie", "cookie-signed"] }
 tower = { version = "0.4.13" }
-argon2 = { version = "0.6.0-pre.0" }
-serde_json = { version = "1.0.120" }
+argon2 = { version = "0.6.0-pre.1" }
+serde_json = { version = "1.0.121" }
 surrealdb = { version = "1.5.4", features = ["sql2", "kv-speedb"] }
 chrono = { version = "0.4.38" }
 tower-sessions = { version = "0.12.2", features = ["signed", "private"] }

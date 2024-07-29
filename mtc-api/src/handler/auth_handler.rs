@@ -6,15 +6,14 @@ use tower_sessions::cookie::time::Duration;
 use tower_sessions::{Expiry, Session};
 
 use mtc_model::auth_model::{AuthModel, SignInModel};
-use mtc_model::group_model::GroupsModel;
-use mtc_model::permission_model::PermissionsModel;
-use mtc_model::role_model::RolesModel;
+use mtc_model::list_model::StringListModel;
 use mtc_model::user_model::UserChangePasswordModel;
 
 use crate::error::api_error::ApiError;
 use crate::error::session_error::SessionError;
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
+use crate::model::access_model::AccessModel;
 use crate::model::request_model::ValidatedPayload;
 use crate::model::response_model::HandlerResult;
 use crate::repository::group_repository::GroupRepositoryTrait;
@@ -28,7 +27,17 @@ pub async fn sign_in_handler(
     session: Session,
     ValidatedPayload(payload): ValidatedPayload<SignInModel>,
 ) -> Result<AuthModel> {
-    let user_model = match state.user_service.find_by_login(&payload.login).await {
+    let user_model = match state
+        .user_service
+        .find_by_login(
+            &payload.login,
+            &AccessModel {
+                users_level: 0,
+                users_all: true,
+            },
+        )
+        .await
+    {
         Ok(value) => value,
         _ => Err(ApiError::from(SessionError::InvalidCredentials))?,
     };
@@ -56,24 +65,22 @@ pub async fn sign_in_handler(
             .role_service
             .find_by_user(&user_model.login)
             .await
-            .unwrap_or(RolesModel {
-                roles: vec!["anonymous".to_string()],
-            })
-            .roles,
+            .unwrap_or_default()
+            .list,
         groups: state
             .group_service
             .find_by_user(&user_model.login)
             .await
-            .unwrap_or(GroupsModel { groups: vec![] })
-            .groups,
+            .unwrap_or_default()
+            .list,
         permissions: state
             .permissions_service
             .find_by_user(&user_model.login)
             .await
-            .unwrap_or(PermissionsModel {
-                permissions: vec![],
+            .unwrap_or(StringListModel {
+                list: vec!["content::read".to_string()],
             })
-            .permissions,
+            .list,
     };
 
     if &auth_model.id != "anonymous" {
@@ -81,9 +88,25 @@ pub async fn sign_in_handler(
             state.cfg.session_expiration,
         ))));
     }
-    
-    state.user_service.update_access(&user_model.login, user_model.access_count + 1).await?;
-    
+
+    state
+        .user_service
+        .update_access(&user_model.login, user_model.access_count + 1)
+        .await?;
+
+    let access_model = AccessModel {
+        users_level: state
+            .user_service
+            .get_roles_min_access_level(&user_model.login)
+            .await
+            .unwrap_or(999),
+        users_all: state
+            .user_service
+            .get_roles_access_all(&user_model.login)
+            .await
+            .unwrap_or(false),
+    };
+    session.set_access(access_model).await?;
     session.sign_in(auth_model.clone()).await?;
 
     auth_model.ok_model()
@@ -106,7 +129,13 @@ pub async fn change_password_handler(
 ) -> Result<()> {
     let user_model = match state
         .user_service
-        .find_by_login(&session.auth_id().await?)
+        .find_by_login(
+            &session.auth_id().await?,
+            &AccessModel {
+                users_level: 0,
+                users_all: true,
+            },
+        )
         .await
     {
         Ok(value) => value,

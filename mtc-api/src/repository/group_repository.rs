@@ -1,6 +1,9 @@
 use axum::async_trait;
+
 use mtc_model::group_model::*;
-use mtc_model::slug_title_model::SlugTitleModel;
+use mtc_model::list_model::{RecordListModel, StringListModel};
+use mtc_model::record_model::RecordModel;
+
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::repository::RepositoryPaginate;
@@ -11,10 +14,9 @@ repository_paginate!(GroupService, GroupModel, "groups");
 
 #[async_trait]
 pub trait GroupRepositoryTrait {
-    async fn all(&self) -> Result<GroupsModel>;
-    async fn all_title(&self) -> Result<GroupsWithTitleModel>;
+    async fn all(&self) -> Result<RecordListModel>;
     async fn find_by_slug(&self, slug: &str) -> Result<GroupModel>;
-    async fn find_by_user(&self, login: &str) -> Result<GroupsModel>;
+    async fn find_by_user(&self, login: &str) -> Result<StringListModel>;
     async fn create(&self, auth: &str, slug: &str, model: GroupCreateModel) -> Result<GroupModel>;
     async fn update(&self, auth: &str, slug: &str, model: GroupUpdateModel) -> Result<GroupModel>;
     async fn delete(&self, slug: &str) -> Result<()>;
@@ -22,23 +24,9 @@ pub trait GroupRepositoryTrait {
 
 #[async_trait]
 impl GroupRepositoryTrait for GroupService {
-    async fn all(&self) -> Result<GroupsModel> {
-        Ok(GroupsModel {
-            groups: self
-                .db
-                .query(
-                    r#"
-                    SELECT VALUE slug from groups;
-                    "#,
-                )
-                .await?
-                .take::<Vec<String>>(0)?,
-        })
-    }
-
-    async fn all_title(&self) -> Result<GroupsWithTitleModel> {
-        Ok(GroupsWithTitleModel {
-            groups: self
+    async fn all(&self) -> Result<RecordListModel> {
+        Ok(RecordListModel {
+            list: self
                 .db
                 .query(
                     r#"
@@ -46,7 +34,7 @@ impl GroupRepositoryTrait for GroupService {
                     "#,
                 )
                 .await?
-                .take::<Vec<SlugTitleModel>>(0)?
+                .take::<Vec<RecordModel>>(0)?,
         })
     }
 
@@ -63,13 +51,13 @@ impl GroupRepositoryTrait for GroupService {
             .ok_or(DbError::EntryNotFound.into())
     }
 
-    async fn find_by_user(&self, login: &str) -> Result<GroupsModel> {
+    async fn find_by_user(&self, login: &str) -> Result<StringListModel> {
         self.db.query(r#"
-            SELECT array::sort(array::distinct(->user_groups->groups.slug)) as groups FROM users WHERE login=$login
+            SELECT array::sort(array::distinct(->user_groups->groups.slug)) as list FROM users WHERE login=$login
             "#)
             .bind(("login", login))
             .await?
-            .take::<Option<GroupsModel>>(0)?
+            .take::<Option<StringListModel>>(0)?
             .ok_or(DbError::EntryNotFound.into())
     }
 

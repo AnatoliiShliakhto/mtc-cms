@@ -7,12 +7,13 @@ use axum::response::IntoResponse;
 use tower_sessions::Session;
 
 use mtc_model::auth_model::{AuthModel, AuthModelTrait};
-use mtc_model::permission_model::PermissionsModel;
+use mtc_model::list_model::StringListModel;
 
 use crate::error::api_error::ApiError;
-use crate::error::Result;
 use crate::error::session_error::SessionError;
-use crate::provider::config_provider::SESSION_USER_KEY;
+use crate::error::Result;
+use crate::model::access_model::AccessModel;
+use crate::provider::config_provider::{SESSION_ACCESS_KEY, SESSION_USER_KEY};
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::state::AppState;
 
@@ -27,7 +28,7 @@ pub async fn middleware_auth_handler(
 
         match session.insert(SESSION_USER_KEY, anon_user).await {
             Ok(_) => (),
-            _ => Err(ApiError::from(SessionError::InvalidSession))?
+            _ => Err(ApiError::from(SessionError::InvalidSession))?,
         };
     }
 
@@ -44,20 +45,18 @@ pub trait UserSession {
     async fn permission(&self, slug: &str) -> Result<()>;
     async fn auth_id(&self) -> Result<String>;
     async fn is_admin(&self) -> Result<bool>;
+    async fn set_access(&self, access: AccessModel) -> Result<()>;
+    async fn get_access(&self) -> Result<AccessModel>;
 }
 
 #[async_trait]
 impl UserSession for Session {
-    async fn sign_in(
-        &self,
-        auth: AuthModel,
-    ) -> Result<()> {
+    async fn sign_in(&self, auth: AuthModel) -> Result<()> {
         Ok(self.insert(SESSION_USER_KEY, auth).await?)
     }
 
     async fn credentials(&self) -> Result<AuthModel> {
-        self
-            .get::<AuthModel>(SESSION_USER_KEY)
+        self.get::<AuthModel>(SESSION_USER_KEY)
             .await?
             .ok_or(SessionError::InvalidSession.into())
     }
@@ -67,53 +66,50 @@ impl UserSession for Session {
             id: "anonymous".to_string(),
             roles: vec!["anonymous".to_string()],
             groups: vec![],
-            permissions: state.permissions_service
+            permissions: state
+                .permissions_service
                 .find_by_user("anonymous")
                 .await
-                .unwrap_or(PermissionsModel { permissions: vec!["content::read".to_string()] } )
-                .permissions,
+                .unwrap_or(StringListModel {
+                    list: vec!["content::read".to_string()],
+                })
+                .list,
         })
     }
 
-    async fn role(
-        &self,
-        slug: &str,
-    ) -> Result<()> {
+    async fn role(&self, slug: &str) -> Result<()> {
         match self
             .get::<AuthModel>(SESSION_USER_KEY)
             .await?
             .ok_or(ApiError::from(SessionError::InvalidSession))?
-            .is_role(slug) {
+            .is_role(slug)
+        {
             true => Ok(()),
-            _ => Err(ApiError::from(SessionError::AccessForbidden))
+            _ => Err(ApiError::from(SessionError::AccessForbidden)),
         }
     }
 
-    async fn group(
-        &self,
-        slug: &str,
-    ) -> Result<()> {
+    async fn group(&self, slug: &str) -> Result<()> {
         match self
             .get::<AuthModel>(SESSION_USER_KEY)
             .await?
             .ok_or(ApiError::from(SessionError::InvalidSession))?
-            .is_group(slug) {
+            .is_group(slug)
+        {
             true => Ok(()),
-            _ => Err(ApiError::from(SessionError::AccessForbidden))
+            _ => Err(ApiError::from(SessionError::AccessForbidden)),
         }
     }
 
-    async fn permission(
-        &self,
-        slug: &str,
-    ) -> Result<()> {
+    async fn permission(&self, slug: &str) -> Result<()> {
         match self
             .get::<AuthModel>(SESSION_USER_KEY)
             .await?
             .ok_or(ApiError::from(SessionError::InvalidSession))?
-            .is_permission(slug) {
+            .is_permission(slug)
+        {
             true => Ok(()),
-            _ => Err(ApiError::from(SessionError::AccessForbidden))
+            _ => Err(ApiError::from(SessionError::AccessForbidden)),
         }
     }
 
@@ -131,5 +127,16 @@ impl UserSession for Session {
             .await?
             .ok_or(ApiError::from(SessionError::InvalidSession))?
             .is_admin())
+    }
+
+    async fn set_access(&self, access: AccessModel) -> Result<()> {
+        Ok(self.insert(SESSION_ACCESS_KEY, access).await?)
+    }
+
+    async fn get_access(&self) -> Result<AccessModel> {
+        Ok(self
+            .get::<AccessModel>(SESSION_ACCESS_KEY)
+            .await?
+            .ok_or(ApiError::from(SessionError::InvalidSession))?)
     }
 }

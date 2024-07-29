@@ -13,8 +13,8 @@ pub struct Config {
     pub password_salt: String,
 
     pub public_path: String,
-    pub store_path: String,
-    pub protected_path: String,
+    pub storage_path: String,
+    pub private_storage_path: String,
     pub cert_path: String,
     pub log_path: String,
     pub db_path: String,
@@ -37,6 +37,7 @@ pub static RUNTIME_STACK_SIZE: usize = 10 * 1024 * 1024; // 10MiB in release mod
 pub static RUNTIME_MAX_BLOCKING_THREADS: usize = 512;
 
 pub const SESSION_USER_KEY: &str = "user";
+pub const SESSION_ACCESS_KEY: &str = "access";
 
 impl Config {
     pub fn init() -> Config {
@@ -65,8 +66,8 @@ impl Config {
                 .parse::<usize>()
                 .unwrap_or(10),
             public_path: get_env("PUBLIC_PATH"),
-            store_path: get_env("STORE_PATH"),
-            protected_path: get_env("PROTECTED_PATH"),
+            storage_path: get_env("STORAGE_PATH"),
+            private_storage_path: get_env("PRIVATE_STORAGE_PATH"),
             cert_path: get_env("CERT_PATH"),
             log_path: get_env("LOG_PATH"),
             migration_path: get_env("MIGRATION_PATH"),

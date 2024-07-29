@@ -14,6 +14,7 @@ pub mod user_handler;
 pub mod schema_handler;
 pub mod migration_handler;
 pub mod content_handler;
+pub mod storage_handler;
 
 pub struct ApiHandler {
     pub api_url: String,

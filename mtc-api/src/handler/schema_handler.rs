@@ -4,10 +4,10 @@ use axum::extract::{Path, State};
 use tower_sessions::Session;
 use tracing::error;
 
+use mtc_model::list_model::{RecordListModel, StringListModel};
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 use mtc_model::schema_model::{
-    SchemaCreateModel, SchemaFieldsModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel,
-    SchemasModel,
+    SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel,
 };
 
 use crate::handler::Result;
@@ -17,7 +17,7 @@ use crate::model::response_model::{ApiResponse, HandlerResult};
 use crate::repository::api_repository::ApiRepositoryTrait;
 use crate::repository::schema_repository::SchemaRepositoryTrait;
 use crate::repository::RepositoryPaginate;
-use crate::service::store_service::StoreTrait;
+use crate::service::storage_service::StorageTrait;
 use crate::state::AppState;
 
 pub async fn schema_list_handler(
@@ -69,7 +69,7 @@ pub async fn schema_create_handler(
 
     if !schema_model.is_collection {
         let single = state.api_service.find_by_slug("singles", &slug).await?;
-        state.store_service.create_assets(&single.id).await?;
+        state.storage_service.create_assets(&single.id).await?;
     }
 
     schema_model.ok_model()
@@ -86,7 +86,7 @@ pub async fn schema_delete_handler(
 
     if !schema_model.is_collection {
         let single = state.api_service.find_by_slug("singles", &slug).await?;
-        state.store_service.delete_assets(&single.id).await?;
+        state.storage_service.delete_assets(&single.id).await?;
     }
     state.schema_service.delete(&schema_model.slug).await?;
 
@@ -96,11 +96,11 @@ pub async fn schema_delete_handler(
 pub async fn schema_list_delete_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<SchemasModel>,
+    ValidatedPayload(payload): ValidatedPayload<StringListModel>,
 ) -> Result<()> {
     session.permission("schema::delete").await?;
 
-    for item in payload.schemas {
+    for item in payload.list {
         match state.schema_service.delete(&item).await {
             Ok(_) => (),
             Err(e) => error!("Schema delete: {}", e.to_string()),
@@ -155,7 +155,7 @@ pub async fn schema_get_fields_handler(
 pub async fn schema_get_all_collections_handler(
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<Vec<SchemaListItemModel>> {
+) -> Result<RecordListModel> {
     session.permission("schema::read").await?;
 
     state.schema_service.get_all_collections().await?.ok_model()

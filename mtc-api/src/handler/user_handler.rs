@@ -4,11 +4,9 @@ use axum::extract::{Path, State};
 use tower_sessions::Session;
 use tracing::{error, warn};
 
-use mtc_model::group_model::GroupsModel;
+use mtc_model::list_model::StringListModel;
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
-use mtc_model::permission_model::PermissionsModel;
-use mtc_model::role_model::RolesModel;
-use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel, UsersModel};
+use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
 use crate::handler::Result;
 use crate::middleware::auth_middleware::UserSession;
@@ -18,7 +16,6 @@ use crate::repository::group_repository::GroupRepositoryTrait;
 use crate::repository::permissions_repository::PermissionsRepositoryTrait;
 use crate::repository::role_repository::RoleRepositoryTrait;
 use crate::repository::user_repository::UserRepositoryTrait;
-use crate::repository::RepositoryPaginate;
 use crate::state::AppState;
 
 pub async fn user_list_handler(
@@ -27,6 +24,7 @@ pub async fn user_list_handler(
     session: Session,
 ) -> Result<Vec<UserModel>> {
     session.permission("user::read").await?;
+    let access = session.get_access().await?;
 
     let page: usize = match page {
         Some(Path(value)) => value,
@@ -34,14 +32,14 @@ pub async fn user_list_handler(
     };
 
     let pagination = PaginationModel::new(
-        state.user_service.get_total().await?,
+        state.user_service.get_total(&access).await?,
         state.cfg.rows_per_page,
     )
     .page(page);
 
     state
         .user_service
-        .get_page(pagination.from, pagination.per_page)
+        .get_page(pagination.from, pagination.per_page, &access)
         .await?
         .ok_page(pagination)
 }
@@ -52,8 +50,13 @@ pub async fn user_get_handler(
     session: Session,
 ) -> Result<UserModel> {
     session.permission("user::read").await?;
+    let access = session.get_access().await?;
 
-    state.user_service.find_by_login(&login).await?.ok_model()
+    state
+        .user_service
+        .find_by_login(&login, &access)
+        .await?
+        .ok_model()
 }
 
 pub async fn user_create_handler(
@@ -76,6 +79,16 @@ pub async fn user_create_handler(
     if let Some(groups) = payload.groups {
         set_groups(&state, &user_model.id, groups).await?;
     }
+
+    let access_level = state
+        .user_service
+        .get_roles_max_access_level(&user_model.login)
+        .await
+        .unwrap_or(999);
+    state
+        .user_service
+        .update_access_level(&user_model.login, access_level)
+        .await?;
 
     user_model.ok_model()
 }
@@ -103,6 +116,16 @@ pub async fn user_update_handler(
         set_groups(&state, &user_model.id, groups).await?;
     }
 
+    let access_level = state
+        .user_service
+        .get_roles_max_access_level(&user_model.login)
+        .await
+        .unwrap_or(999);
+    state
+        .user_service
+        .update_access_level(&user_model.login, access_level)
+        .await?;
+
     user_model.ok_model()
 }
 
@@ -119,11 +142,11 @@ pub async fn user_delete_handler(
 pub async fn user_list_delete_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<UsersModel>,
+    ValidatedPayload(payload): ValidatedPayload<StringListModel>,
 ) -> Result<()> {
     session.permission("user::delete").await?;
 
-    for item in payload.users {
+    for item in payload.list {
         match state.user_service.delete(&item).await {
             Ok(_) => (),
             Err(e) => error!("User delete: {}", e.to_string()),
@@ -136,7 +159,7 @@ pub async fn user_get_roles_handler(
     Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<RolesModel> {
+) -> Result<StringListModel> {
     session.permission("user::read").await?;
 
     state.role_service.find_by_user(&login).await?.ok_model()
@@ -146,24 +169,39 @@ pub async fn user_set_roles_handler(
     Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<RolesModel>,
-) -> Result<RolesModel> {
+    ValidatedPayload(payload): ValidatedPayload<StringListModel>,
+) -> Result<StringListModel> {
     session.permission("user::write").await?;
+    let access = session.get_access().await?;
 
-    let user_model = state.user_service.find_by_login(&login).await?;
+    let user_model = state.user_service.find_by_login(&login, &access).await?;
 
     state.user_service.roles_drop(&user_model.id).await?;
 
-    set_roles(&state, &user_model.id, payload.roles).await?;
+    set_roles(&state, &user_model.id, payload.list).await?;
 
-    state.role_service.find_by_user(&login).await?.ok_model()
+    let access_level = state
+        .user_service
+        .get_roles_max_access_level(&user_model.login)
+        .await
+        .unwrap_or(999);
+    state
+        .user_service
+        .update_access_level(&user_model.login, access_level)
+        .await?;
+
+    state
+        .role_service
+        .find_by_user(&user_model.login)
+        .await?
+        .ok_model()
 }
 
 pub async fn user_get_permissions_handler(
     Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<PermissionsModel> {
+) -> Result<StringListModel> {
     session.permission("user::read").await?;
 
     state
@@ -177,7 +215,7 @@ pub async fn user_get_groups_handler(
     Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<GroupsModel> {
+) -> Result<StringListModel> {
     session.permission("user::read").await?;
 
     state.group_service.find_by_user(&login).await?.ok_model()
@@ -187,15 +225,16 @@ pub async fn user_set_groups_handler(
     Path(login): Path<String>,
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<GroupsModel>,
-) -> Result<GroupsModel> {
+    ValidatedPayload(payload): ValidatedPayload<StringListModel>,
+) -> Result<StringListModel> {
     session.permission("user::write").await?;
+    let access = session.get_access().await?;
 
-    let user_model = state.user_service.find_by_login(&login).await?;
+    let user_model = state.user_service.find_by_login(&login, &access).await?;
 
     state.user_service.groups_drop(&user_model.id).await?;
 
-    set_groups(&state, &user_model.id, payload.groups).await?;
+    set_groups(&state, &user_model.id, payload.list).await?;
 
     state.group_service.find_by_user(&login).await?.ok_model()
 }
@@ -222,18 +261,4 @@ async fn set_groups(state: &Arc<AppState>, user_id: &str, groups: Vec<String>) -
     }
 
     Ok(ApiResponse::Ok)
-}
-
-pub async fn user_block_toggle_handler(
-    Path(login): Path<String>,
-    state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<()> {
-    session.permission("user::write").await?;
-
-    state
-        .user_service
-        .block_toggle(&session.auth_id().await?, &login)
-        .await?
-        .ok_ok()
 }

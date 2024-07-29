@@ -60,14 +60,3 @@ pub struct SchemaUpdateModel {
 pub struct SchemaFieldsModel {
     pub fields: Option<Vec<FieldModel>>,
 }
-
-#[derive(Default, Deserialize, Serialize, Validate)]
-pub struct SchemasModel {
-    pub schemas: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize, Clone)]
-pub struct SchemaListItemModel {
-    pub slug: String,
-    pub title: String,
-}
