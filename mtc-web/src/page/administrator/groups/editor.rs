@@ -116,7 +116,11 @@ pub fn GroupEditor() -> Element {
     };
 
     if is_busy() {
-        return rsx! { LoadingBoxComponent {} };
+        return rsx! { 
+            div { class: "grid w-full place-items-center body-scroll",
+                LoadingBoxComponent {} 
+            }    
+        };
     }
 
     rsx! {

@@ -88,9 +88,11 @@ docker compose up --build
 - [x] Core REST API end-points
 - [x] Custom API service
 - [x] File manager API
-- [x] Protected file store
+- [x] Private file store
 - [x] SQL Migrations API 
-- [ ] Front-end admin panel
-- [ ] Quiz API (tests, exams etc.)
+- [x] Front-end admin panel
+- [ ] Schedule module
+- [ ] Learning module
+- [ ] Quiz module
+- [ ] Instructor utils module
 - [ ] Cross-platform `Tauri App` for semi-offline using *Windows, Android, iOS*
-- [ ] `OPTIONAL` GraphQL API

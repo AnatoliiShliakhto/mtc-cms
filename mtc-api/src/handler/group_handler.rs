@@ -4,7 +4,8 @@ use axum::extract::{Path, State};
 use tower_sessions::Session;
 use tracing::error;
 
-use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel, GroupsModel, GroupsWithTitleModel};
+use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
+use mtc_model::list_model::{RecordListModel, StringListModel};
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
 
 use crate::handler::Result;
@@ -18,19 +19,10 @@ use crate::state::AppState;
 pub async fn group_all_handler(
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<GroupsModel> {
+) -> Result<RecordListModel> {
     session.permission("group::read").await?;
 
     state.group_service.all().await?.ok_model()
-}
-
-pub async fn group_all_title_handler(
-    state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<GroupsWithTitleModel> {
-    session.permission("group::read").await?;
-
-    state.group_service.all_title().await?.ok_model()
 }
 
 pub async fn group_list_handler(
@@ -111,11 +103,11 @@ pub async fn group_delete_handler(
 pub async fn group_list_delete_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    ValidatedPayload(payload): ValidatedPayload<GroupsModel>,
+    ValidatedPayload(payload): ValidatedPayload<StringListModel>,
 ) -> Result<()> {
     session.permission("group::delete").await?;
 
-    for item in payload.groups {
+    for item in payload.list {
         match state.group_service.delete(&item).await {
             Ok(_) => (),
             Err(e) => error!("Group delete: {}", e.to_string()),

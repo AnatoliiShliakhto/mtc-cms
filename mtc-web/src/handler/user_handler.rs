@@ -1,5 +1,4 @@
-use mtc_model::group_model::GroupsModel;
-use mtc_model::role_model::RolesModel;
+use mtc_model::list_model::StringListModel;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
 use crate::error::api_error::ApiError;
@@ -9,8 +8,8 @@ use crate::model::response_model::ApiResponse;
 pub trait UserHandler {
     async fn get_user(&self, login: &str) -> Result<UserModel, ApiError>;
     async fn get_user_list(&self, page: usize) -> Result<ApiResponse<Vec<UserModel>>, ApiError>;
-    async fn get_user_groups(&self, login: &str) -> Result<GroupsModel, ApiError>;
-    async fn get_user_roles(&self, login: &str) -> Result<RolesModel, ApiError>;
+    async fn get_user_groups(&self, login: &str) -> Result<StringListModel, ApiError>;
+    async fn get_user_roles(&self, login: &str) -> Result<StringListModel, ApiError>;
     async fn delete_user(&self, login: &str) -> Result<(), ApiError>;
     async fn create_user(&self, login: &str, user: &UserCreateModel)
         -> Result<UserModel, ApiError>;
@@ -37,9 +36,8 @@ impl UserHandler for ApiHandler {
             .await
     }
 
-    async fn get_user_groups(&self, login: &str) -> Result<GroupsModel, ApiError> {
-        self
-            .api_client
+    async fn get_user_groups(&self, login: &str) -> Result<StringListModel, ApiError> {
+        self.api_client
             .get([&self.api_url, "user", login, "groups"].join("/"))
             .send()
             .await
@@ -47,9 +45,8 @@ impl UserHandler for ApiHandler {
             .await
     }
 
-    async fn get_user_roles(&self, login: &str) -> Result<RolesModel, ApiError> {
-        self
-            .api_client
+    async fn get_user_roles(&self, login: &str) -> Result<StringListModel, ApiError> {
+        self.api_client
             .get([&self.api_url, "user", login, "roles"].join("/"))
             .send()
             .await

@@ -101,8 +101,16 @@ pub fn Users() -> Element {
                     }
                 }
             },
-            Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), resource: users_future } },
-            None => rsx! { LoadingBoxComponent {} },
+            Some(Err(e)) => rsx! {
+                div { class: "grid w-full place-items-center body-scroll",
+                    ReloadingBoxComponent { message: e.message(), resource: users_future }
+                }    
+            },
+            None => rsx! {
+                div { class: "grid w-full place-items-center body-scroll",
+                    LoadingBoxComponent {}
+                }    
+            },
         }
     }
 }

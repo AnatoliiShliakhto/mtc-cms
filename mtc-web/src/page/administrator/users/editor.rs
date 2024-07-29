@@ -58,18 +58,18 @@ pub fn UserEditor() -> Element {
             let mut groups_title_list = BTreeMap::<String, String>::new();
             let mut roles_title_list = BTreeMap::<String, String>::new();
 
-            if let Ok(groups_title_model) = APP_STATE.peek().api.get_group_all_title().await {
+            if let Ok(groups_title_model) = APP_STATE.peek().api.get_group_all().await {
                 groups_title_list = groups_title_model
-                    .groups
+                    .list
                     .iter()
                     .cloned()
                     .map(|item| (item.slug, item.title))
                     .collect::<BTreeMap<String, String>>();
             }
 
-            if let Ok(roles_title_model) = APP_STATE.peek().api.get_role_all_title().await {
+            if let Ok(roles_title_model) = APP_STATE.peek().api.get_role_all().await {
                 roles_title_list = roles_title_model
-                    .roles
+                    .list
                     .iter()
                     .cloned()
                     .map(|item| (item.slug, item.title))
@@ -78,16 +78,18 @@ pub fn UserEditor() -> Element {
 
             if let Ok(groups_model) = APP_STATE.peek().api.get_group_all().await {
                 groups_list = groups_model
-                    .groups
+                    .list
                     .iter()
                     .cloned()
+                    .map(|value| value.slug)
                     .collect::<BTreeSet<String>>();
             }
             if let Ok(roles_model) = APP_STATE.peek().api.get_role_all().await {
                 roles_list = roles_model
-                    .roles
+                    .list
                     .iter()
                     .cloned()
+                    .map(|value| value.slug)
                     .collect::<BTreeSet<String>>();
             }
 
@@ -111,7 +113,7 @@ pub fn UserEditor() -> Element {
                 if let Ok(groups_model) = APP_STATE.peek().api.get_user_groups(&user_login()).await
                 {
                     groups_user = groups_model
-                        .groups
+                        .list
                         .iter()
                         .cloned()
                         .collect::<BTreeSet<String>>();
@@ -119,7 +121,7 @@ pub fn UserEditor() -> Element {
 
                 if let Ok(roles_model) = APP_STATE.peek().api.get_user_roles(&user_login()).await {
                     roles_user = roles_model
-                        .roles
+                        .list
                         .iter()
                         .cloned()
                         .collect::<BTreeSet<String>>();
@@ -223,7 +225,11 @@ pub fn UserEditor() -> Element {
     };
 
     if is_busy() {
-        return rsx! { LoadingBoxComponent {} };
+        return rsx! {
+            div { class: "grid w-full place-items-center body-scroll",
+                LoadingBoxComponent {}
+            }    
+        };
     }
 
     rsx! {

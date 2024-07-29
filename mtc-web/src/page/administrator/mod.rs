@@ -8,7 +8,7 @@ use dashboard::Dashboard;
 use editor::Editor;
 use groups::Groups;
 use mtc_model::auth_model::AuthModelTrait;
-use mtc_model::slug_title_model::SlugTitleModel;
+use mtc_model::record_model::RecordModel;
 use personas::Personas;
 use roles::Roles;
 use schema::Schema;
@@ -97,7 +97,7 @@ pub fn AdministratorPage() -> Element {
                                     class: if administrator_route.read().eq(&AdministratorRouteModel::Content) &&
                                                 active_content_api().slug.is_empty() { "active" },
                                     onclick: move |_| {
-                                        active_content_api.set(SlugTitleModel::default());
+                                        active_content_api.set(RecordModel::default());
                                         administrator_route.set(AdministratorRouteModel::Content);
                                     },
                                     { translate!(i18, "messages.singles") }
@@ -109,9 +109,9 @@ pub fn AdministratorPage() -> Element {
                                     ul {
                                         match &*collections_future.read() {
                                             Some(Ok(response)) => rsx! {
-                                                for item in response.iter() {
+                                                for item in response.list.iter() {
                                                     {
-                                                        let m_item = SlugTitleModel{ slug: item.slug.clone(), title: item.title.clone() };
+                                                        let m_item = RecordModel{ slug: item.slug.clone(), title: item.title.clone() };
 
                                                         rsx! {
                                                             li  {

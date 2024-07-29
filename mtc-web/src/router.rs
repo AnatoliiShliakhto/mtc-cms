@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 use crate::component::modal_box::ModalBoxComponent;
 use crate::element::header::Header;
 use crate::page::administrator::AdministratorPage;
+use crate::page::instructor::InstructorPage;
 use crate::page::dashboard::DashboardPage;
 use crate::page::home::HomePage;
 
@@ -16,6 +17,8 @@ pub enum Route {
     HomePage {},
     #[route("/administrator")]
     AdministratorPage {},
+    #[route("/instructor")]
+    InstructorPage {},
     #[route("/dashboard")]
     DashboardPage {},
 }

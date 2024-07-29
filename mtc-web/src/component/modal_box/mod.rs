@@ -16,9 +16,11 @@ pub fn ModalBoxComponent() -> Element {
     };
 
     rsx! {
-        div {
+        section {
             class: "modal-page",
+            onclick: dialog_close,
             div { class: "modal-box",
+                onclick: |event| event.stop_propagation(),
                 button {
                     class: "absolute top-2 right-2 btn btn-sm btn-circle btn-ghost",
                     onclick: dialog_close,
@@ -136,14 +138,6 @@ pub fn ModalBoxComponent() -> Element {
                         }
                         p { class: "indent-14", { message } }                         
                     },
-                }
-                div {
-                    class: "modal-action",
-                    label {
-                        class: "btn btn-outline",
-                        onclick: dialog_close,
-                        { translate!(i18, "messages.close") }
-                    }
                 }
             }
         }        

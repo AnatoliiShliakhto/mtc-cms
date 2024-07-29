@@ -1,15 +1,14 @@
 use mtc_model::group_model::{
-    GroupCreateModel, GroupModel, GroupUpdateModel, GroupsModel, GroupsWithTitleModel,
+    GroupCreateModel, GroupModel, GroupUpdateModel
 };
-
+use mtc_model::list_model::RecordListModel;
 use crate::error::api_error::ApiError;
 use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
 use crate::model::response_model::ApiResponse;
 
 pub trait GroupHandler {
     async fn get_group(&self, slug: &str) -> Result<GroupModel, ApiError>;
-    async fn get_group_all(&self) -> Result<GroupsModel, ApiError>;
-    async fn get_group_all_title(&self) -> Result<GroupsWithTitleModel, ApiError>;
+    async fn get_group_all(&self) -> Result<RecordListModel, ApiError>;
     async fn get_group_list(&self, page: usize) -> Result<ApiResponse<Vec<GroupModel>>, ApiError>;
     async fn delete_group(&self, slug: &str) -> Result<(), ApiError>;
     async fn create_group(
@@ -34,18 +33,9 @@ impl GroupHandler for ApiHandler {
             .await
     }
 
-    async fn get_group_all(&self) -> Result<GroupsModel, ApiError> {
+    async fn get_group_all(&self) -> Result<RecordListModel, ApiError> {
         self.api_client
             .get([&self.api_url, "group", "all"].join("/"))
-            .send()
-            .await
-            .consume_data()
-            .await
-    }
-
-    async fn get_group_all_title(&self) -> Result<GroupsWithTitleModel, ApiError> {
-        self.api_client
-            .get([&self.api_url, "group", "all_title"].join("/"))
             .send()
             .await
             .consume_data()

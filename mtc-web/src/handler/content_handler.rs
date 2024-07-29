@@ -45,7 +45,7 @@ impl ContentHandler for ApiHandler {
         match api_end_point {
             "" => {
                 self.api_client
-                    .get([&self.api_url, "all_api"].join("/"))
+                    .get([&self.api_url, "all"].join("/"))
                     .send()
                     .await
                     .consume_data()

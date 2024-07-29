@@ -48,6 +48,7 @@ CREATE schemas CONTENT {
 DEFINE FIELD login ON TABLE users TYPE string;
 DEFINE FIELD password ON TABLE users TYPE string;
 DEFINE FIELD blocked ON TABLE users TYPE bool DEFAULT false;
+DEFINE FIELD access_level ON TABLE users TYPE int DEFAULT 999;
 DEFINE FIELD access_count ON TABLE users TYPE int DEFAULT 0;
 DEFINE FIELD last_access ON TABLE users TYPE option<datetime>;
 DEFINE FIELD fields ON TABLE users FLEXIBLE TYPE option<object>;
@@ -62,6 +63,7 @@ CREATE users CONTENT {
     id: 'sa',
     login: $login,
     password: $password,
+    access_level: 0,
     created_by: $login,
     updated_by: $login
 };
@@ -79,6 +81,8 @@ CREATE schemas CONTENT {
 
 DEFINE FIELD slug ON TABLE roles TYPE string;
 DEFINE FIELD title ON TABLE roles TYPE string;
+DEFINE FIELD user_access_level ON TABLE roles TYPE int DEFAULT 999;
+DEFINE FIELD user_access_all ON TABLE roles TYPE bool DEFAULT false;
 DEFINE FIELD created_at ON TABLE roles TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE roles TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE roles TYPE string;
@@ -90,6 +94,8 @@ CREATE roles CONTENT {
     id: 'administrator',
     slug: 'administrator',
     title: 'Administrator',
+    user_access_level: 0,
+    user_access_all: true,
     created_by: $login,
     updated_by: $login
 };
@@ -98,6 +104,8 @@ CREATE roles CONTENT {
     id: 'anonymous',
     slug: 'anonymous',
     title: 'Anonymous',
+    user_access_level: 999,
+    user_access_all: false,
     created_by: $login,
     updated_by: $login
 };
@@ -123,6 +131,10 @@ CREATE permissions CONTENT {
     slug: 'administrator'
 };
 CREATE permissions CONTENT {
+    id: 'instructor',
+    slug: 'instructor'
+};
+CREATE permissions CONTENT {
     id: 'content_read',
     slug: 'content::read'
 };
@@ -135,28 +147,28 @@ CREATE permissions CONTENT {
     slug: 'content::delete'
 };
 CREATE permissions CONTENT {
-    id: 'store_read',
-    slug: 'store::read'
+    id: 'storage_read',
+    slug: 'storage::read'
 };
 CREATE permissions CONTENT {
-    id: 'store_write',
-    slug: 'store::write'
+    id: 'storage_write',
+    slug: 'storage::write'
 };
 CREATE permissions CONTENT {
-    id: 'store_delete',
-    slug: 'store::delete'
+    id: 'storage_delete',
+    slug: 'storage::delete'
 };
 CREATE permissions CONTENT {
-    id: 'protected_read',
-    slug: 'protected::read'
+    id: 'private_storage_read',
+    slug: 'private_storage::read'
 };
 CREATE permissions CONTENT {
-    id: 'protected_write',
-    slug: 'protected::write'
+    id: 'private_storage_write',
+    slug: 'private_storage::write'
 };
 CREATE permissions CONTENT {
-    id: 'protected_delete',
-    slug: 'protected::delete'
+    id: 'private_storage_delete',
+    slug: 'private_storage::delete'
 };
 CREATE permissions CONTENT {
     id: 'role_read',
@@ -223,15 +235,16 @@ DEFINE INDEX idx_role_permissions ON TABLE role_permissions COLUMNS in, out UNIQ
 
 RELATE roles:anonymous->role_permissions->permissions:content_read;
 RELATE roles:administrator->role_permissions->permissions:administrator;
+RELATE roles:administrator->role_permissions->permissions:instructor;
 RELATE roles:administrator->role_permissions->permissions:content_read;
 RELATE roles:administrator->role_permissions->permissions:content_write;
 RELATE roles:administrator->role_permissions->permissions:content_delete;
-RELATE roles:administrator->role_permissions->permissions:store_read;
-RELATE roles:administrator->role_permissions->permissions:store_write;
-RELATE roles:administrator->role_permissions->permissions:store_delete;
-RELATE roles:administrator->role_permissions->permissions:protected_read;
-RELATE roles:administrator->role_permissions->permissions:protected_write;
-RELATE roles:administrator->role_permissions->permissions:protected_delete;
+RELATE roles:administrator->role_permissions->permissions:storage_read;
+RELATE roles:administrator->role_permissions->permissions:storage_write;
+RELATE roles:administrator->role_permissions->permissions:storage_delete;
+RELATE roles:administrator->role_permissions->permissions:private_storage_read;
+RELATE roles:administrator->role_permissions->permissions:private_storage_write;
+RELATE roles:administrator->role_permissions->permissions:private_storage_delete;
 RELATE roles:administrator->role_permissions->permissions:role_read;
 RELATE roles:administrator->role_permissions->permissions:role_write;
 RELATE roles:administrator->role_permissions->permissions:role_delete;

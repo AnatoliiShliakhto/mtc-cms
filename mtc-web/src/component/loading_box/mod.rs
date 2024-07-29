@@ -7,11 +7,10 @@ pub fn LoadingBoxComponent() -> Element {
     let i18 = use_i18();
 
     rsx! {
-        section { class: "grid w-full place-items-center body-scroll",
-            div { class: "inline-flex items-center gap-3",
-                span { class: "loading loading-bars loading-lg" }
-                span { { translate!(i18, "messages.loading") } }
-            }
+        div { class: "inline-flex items-center gap-3",
+            span { class: "loading loading-bars loading-lg" }
+            span { { translate!(i18, "messages.loading") } }
+        }
 
             /*
             div { class: "flex w-72 flex-col gap-4",
@@ -27,6 +26,5 @@ pub fn LoadingBoxComponent() -> Element {
 
             }
             */
-        }
     }
 }

@@ -13,6 +13,7 @@ pub struct UserModel {
     #[serde(skip_serializing, default)]
     pub password: String,
     pub blocked: bool,
+    pub access_level: i32,
     pub access_count: i32,
     pub last_access: Option<Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,6 +31,7 @@ impl Default for UserModel {
             login: "".to_string(),
             password: "".to_string(),
             blocked: false,
+            access_level: 999,
             access_count: 0,
             last_access: None,
             fields: None,
@@ -70,19 +72,4 @@ pub struct UserChangePasswordModel {
     pub old_password: String,
     #[validate(length(min = 6, message = "Password must be 6 characters at least"))]
     pub new_password: String,
-}
-
-#[derive(Deserialize, Serialize, Validate)]
-pub struct UsersModel {
-    pub users: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize, Validate)]
-pub struct UserAssignRolesModel {
-    pub roles: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize, Validate)]
-pub struct UserAssignGroupsModel {
-    pub groups: Vec<String>,
 }
