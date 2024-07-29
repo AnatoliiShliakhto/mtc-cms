@@ -14,6 +14,8 @@ use crate::state::AppState;
 
 //todo refactor to .env
 static API_URL: &str = "https://localhost/api";
+static PUBLIC_STORAGE_URL: &str = "/files";
+static PRIVATE_STORAGE_URL: &str = "/api/private_storage";
 
 mod component;
 mod element;

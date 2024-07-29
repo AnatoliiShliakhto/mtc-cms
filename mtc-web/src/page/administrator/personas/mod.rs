@@ -5,20 +5,61 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 use serde_json::Value;
+use tracing::error;
 
 use mtc_model::user_details_model::UserDetailsModel;
 
-use crate::model::modal_model::ModalModel;
-use crate::service::user_service::UserService;
 use crate::APP_STATE;
 use crate::component::breadcrumb::Breadcrumb;
+use crate::model::modal_model::ModalModel;
+use crate::service::user_service::UserService;
 
 #[component]
 pub fn Personas() -> Element {
     let i18 = use_i18();
 
-    let users_download_eval = eval(
-        r#"
+    let users_to_clipboard = move |_| {
+        let users = APP_STATE.peek().users.signal();
+
+        match eval(r#"
+            let msg = await dioxus.recv();
+            navigator.clipboard.write([new ClipboardItem({'text/plain': new Blob([msg], {type: 'text/plain;charset=utf-8'})})]);
+        "#).send(users().get_users_string()) {
+            Ok(_) => {}
+            Err(e) => error!("{:#?}", e),
+        }
+    };
+
+    let users_from_clipboard = move |_| {
+        let clipboard_read_eval = eval(
+            r#"
+            navigator.clipboard.readText().then((clipText) => (dioxus.send(clipText)));
+        "#,
+        );
+
+        spawn(async move {
+            to_owned![clipboard_read_eval];
+            match clipboard_read_eval.recv().await {
+                Ok(Value::String(value)) => {
+                    let users = APP_STATE.peek().users.signal();
+                    APP_STATE
+                        .peek()
+                        .users
+                        .signal()
+                        .set(users().import_str(value.as_str()))
+                }
+                _ => APP_STATE
+                    .peek()
+                    .modal
+                    .signal()
+                    .set(ModalModel::Error(translate!(i18, "errors.clipboard"))),
+            }
+        });
+    };
+
+    let download_user_set = move |_| {
+        let users_download_eval = eval(
+            r#"
             const toObject = (map = new Map()) =>
                 Object.fromEntries(Array.from(map.entries(), ([ k, v ]) =>
                     v instanceof Map ? [ k, toObject (v) ] : [ k, v ]
@@ -41,43 +82,8 @@ pub fn Personas() -> Element {
                 writable.close();
             } else { alert( "File save error" ); }
         "#,
-    );
+        );
 
-    let clipboard_write_eval = eval(
-        r#"
-        let msg = await dioxus.recv();
-        navigator.clipboard.write([new ClipboardItem({'text/plain': new Blob([msg], {type: 'text/plain;charset=utf-8'})})]);
-        "#,
-    );
-
-    let clipboard_read_eval = eval(
-        r#"
-        navigator.clipboard.readText().then((clipText) => (dioxus.send(clipText)));
-        "#,
-    );
-
-    let users_from_clipboard = move |_| {
-        spawn(async move {
-            to_owned![clipboard_read_eval];
-            match clipboard_read_eval.recv().await {
-                Ok(Value::String(value)) => {
-                    let users = APP_STATE.peek().users.signal();
-                    APP_STATE
-                        .peek()
-                        .users
-                        .signal()
-                        .set(users().import_str(value.as_str()))
-                }
-                _ => APP_STATE
-                    .peek()
-                    .modal
-                    .signal()
-                    .set(ModalModel::Error(translate!(i18, "errors.clipboard"))),
-            }
-        });
-    };
-
-    let download_user_set = move |_| {
         let users = APP_STATE.peek().users.signal();
         if users().is_empty() {
             return;
@@ -130,7 +136,7 @@ pub fn Personas() -> Element {
             div { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
                 div { class: "self-start",
                     Breadcrumb { title: translate!(i18, "messages.personas") }
-                }                  
+                }
                 table { class: "table w-full",
                     thead {
                         tr {
@@ -142,7 +148,7 @@ pub fn Personas() -> Element {
                     }
                     tbody {
                         for item in users(){
-                            tr {
+                            tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
                                 td {
                                     button { class: "btn btn-xs btn-ghost text-error",
                                         onclick: move |_| remove_user(item.0.clone()),
@@ -180,7 +186,7 @@ pub fn Personas() -> Element {
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_copy"),
                         button {
                             class: "join-item btn btn-sm btn-ghost",
-                            onclick: move |_| { clipboard_write_eval.send(users().get_users_string()).unwrap(); },
+                            onclick: users_to_clipboard,
                             Icon {
                                 width: 16,
                                 height: 16,

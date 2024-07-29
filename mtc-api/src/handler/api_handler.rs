@@ -13,7 +13,7 @@ use crate::model::request_model::{ApiPageRequest, ValidatedPayload};
 use crate::model::response_model::HandlerResult;
 use crate::repository::api_repository::ApiRepositoryTrait;
 use crate::repository::schema_repository::SchemaRepositoryTrait;
-use crate::service::store_service::StoreTrait;
+use crate::service::storage_service::StorageTrait;
 use crate::state::AppState;
 
 pub async fn api_collection_list_handler(
@@ -158,7 +158,7 @@ pub async fn api_create_collection_item_handler(
         )
         .await?;
 
-    state.store_service.create_assets(&api_model.id).await?;
+    state.storage_service.create_assets(&api_model.id).await?;
 
     api_model.ok_model()
 }
@@ -213,11 +213,14 @@ pub async fn api_delete_collection_item_handler(
             .permission(&[api.as_str(), "::delete"].concat())
             .await?;
     }
-    
-    let api_model = state.api_service.find_by_slug(&schema_model.slug, &slug).await?;
 
-    state.store_service.delete_assets(&api_model.id).await?;
-    
+    let api_model = state
+        .api_service
+        .find_by_slug(&schema_model.slug, &slug)
+        .await?;
+
+    state.storage_service.delete_assets(&api_model.id).await?;
+
     state
         .api_service
         .delete(&schema_model.slug, &slug)

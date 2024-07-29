@@ -2,13 +2,15 @@ use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
-use mtc_model::slug_title_model::SlugTitleModel;
+
+use mtc_model::record_model::RecordModel;
+
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::content_handler::ContentHandler;
 use crate::page::administrator::AdministratorRouteModel;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
 pub fn Content() -> Element {
@@ -22,7 +24,11 @@ pub fn Content() -> Element {
 
     let content_future = use_resource(move || async move {
         let active_api = active_content_api();
-        APP_STATE.peek().api.get_content_list(&active_api.slug).await
+        APP_STATE
+            .peek()
+            .api
+            .get_content_list(&active_api.slug)
+            .await
     });
 
     rsx! {
@@ -34,11 +40,11 @@ pub fn Content() -> Element {
                             Breadcrumb { title:
                                 if active_content_api().slug.is_empty() {
                                     translate!(i18, "messages.singles")
-                                } else {    
+                                } else {
                                     active_content_api().title.clone()
                                 }
                             }
-                         }  
+                         }
                          table { class: "table w-full",
                              thead {
                                  tr {
@@ -50,7 +56,7 @@ pub fn Content() -> Element {
                              tbody {
                                  for item in response.iter() {
                                      {
-                                         let m_item = SlugTitleModel{ slug: item.slug.clone(), title: item.title.clone() };
+                                         let m_item = RecordModel{ slug: item.slug.clone(), title: item.title.clone() };
 
                                          rsx! {
                                              tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
@@ -83,7 +89,7 @@ pub fn Content() -> Element {
                     button {
                         class: "absolute right-4 bottom-4 btn btn-circle btn-neutral",
                         onclick: move |_| {
-                            active_content.set(SlugTitleModel::default());
+                            active_content.set(RecordModel::default());
                             administrator_route.set(AdministratorRouteModel::ContentEditor);
                         },
                         Icon {
@@ -94,8 +100,16 @@ pub fn Content() -> Element {
                     }
                 }
              },
-             Some(Err(e)) => rsx! { ReloadingBoxComponent { message: e.message(), resource: content_future } },
-             None =>  rsx! { LoadingBoxComponent {} },
+             Some(Err(e)) => rsx! {
+                div { class: "grid w-full place-items-center body-scroll",
+                    ReloadingBoxComponent { message: e.message(), resource: content_future }
+                }
+             },
+             None =>  rsx! {
+                div { class: "grid w-full place-items-center body-scroll",
+                    LoadingBoxComponent {}
+                }
+             },
          }
     }
 }

@@ -6,7 +6,7 @@ pub mod auth_handler;
 pub mod group_handler;
 pub mod schema_handler;
 pub mod api_handler;
-pub mod store_handler;
+pub mod storage_handler;
 pub mod migration_handler;
 
 pub type Result<T> =

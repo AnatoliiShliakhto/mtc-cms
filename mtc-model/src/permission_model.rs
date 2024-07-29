@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use surrealdb_sql::Datetime;
-use validator::Validate;
 
 use crate::from_thing;
 
@@ -11,9 +10,4 @@ pub struct PermissionModel {
     pub slug: String,
     pub created_at: Option<Datetime>,
     pub updated_at: Option<Datetime>,
-}
-
-#[derive(Serialize, Deserialize, Validate)]
-pub struct PermissionsModel {
-    pub permissions: Vec<String>,
 }

@@ -3,7 +3,6 @@ use surrealdb_sql::Datetime;
 use validator::Validate;
 
 use crate::from_thing;
-use crate::slug_title_model::SlugTitleModel;
 
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct GroupModel {
@@ -39,14 +38,4 @@ pub struct GroupCreateModel {
 #[derive(Deserialize, Serialize, Validate)]
 pub struct GroupUpdateModel {
     pub title: String,
-}
-
-#[derive(Default, Deserialize, Serialize, Validate)]
-pub struct GroupsModel {
-    pub groups: Vec<String>,
-}
-
-#[derive(Default, Deserialize, Serialize, Validate)]
-pub struct GroupsWithTitleModel {
-    pub groups: Vec<SlugTitleModel>,
 }

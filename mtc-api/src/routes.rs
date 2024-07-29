@@ -17,7 +17,7 @@ use crate::handler::migration_handler::*;
 use crate::handler::permissions_handler::*;
 use crate::handler::role_handler::*;
 use crate::handler::schema_handler::*;
-use crate::handler::store_handler::*;
+use crate::handler::storage_handler::*;
 use crate::handler::user_handler::*;
 use crate::middleware::auth_middleware::middleware_auth_handler;
 use crate::state::AppState;
@@ -43,13 +43,13 @@ pub fn routes(
         .route("/:api/list/:page", get(api_collection_list_handler))
         .route("/:api/list/all", get(api_get_all_collection_items_handler))
         .route("/:api/list", get(api_collection_list_handler))
-        .route("/all_api", get(api_get_all_single_items_handler))
+        .route("/all", get(api_get_all_single_items_handler))
         .route("/:slug", get(api_get_single_handler).patch(api_update_single_item_handler))
 
-        .route("/protected/:path/:file", get(protected_store_get_handler).delete(protected_store_delete_handler))
-        .route("/protected/:path", get(protected_store_get_dir_handler).post(protected_store_upload_handler))
-        .route("/store/:path/:file", delete(store_delete_handler))
-        .route("/store/:path", get(store_get_dir_handler).post(store_upload_handler))
+        .route("/private_storage/:path/:file", get(private_storage_get_handler).delete(private_storage_delete_handler))
+        .route("/private_storage/:path", get(private_storage_get_dir_handler).post(private_storage_upload_handler))
+        .route("/storage/:path/:file", delete(storage_delete_handler))
+        .route("/storage/:path", get(storage_get_dir_handler).post(storage_upload_handler))
         
         .route("/schema/:slug/fields", get(schema_get_fields_handler).post(schema_update_fields_handler))
         .route("/schema/:slug", post(schema_create_handler).get(schema_get_handler).patch(schema_update_handler).delete(schema_delete_handler))
@@ -61,7 +61,6 @@ pub fn routes(
         .route("/user/:login/permissions", get(user_get_permissions_handler))
         .route("/user/:login/groups", get(user_get_groups_handler).post(user_set_groups_handler))
         .route("/user/:login/roles", get(user_get_roles_handler).post(user_set_roles_handler))
-        .route("/user/:login/block", post(user_block_toggle_handler))
         .route("/user/:login", post(user_create_handler).get(user_get_handler).patch(user_update_handler).delete(user_delete_handler))
         .route("/user/list/:page", get(user_list_handler))
         .route("/user/list", get(user_list_handler).delete(user_list_delete_handler))
@@ -69,14 +68,12 @@ pub fn routes(
         .route("/group/:slug", get(group_get_handler).post(group_create_handler).patch(group_update_handler).delete(group_delete_handler))
         .route("/group/list/:page", get(group_list_handler))
         .route("/group/list", get(group_list_handler).delete(group_list_delete_handler))
-        .route("/group/all_title", get(group_all_title_handler))
         .route("/group/all", get(group_all_handler))
 
         .route("/role/:slug/permissions", get(role_get_permissions).post(role_set_permissions))
         .route("/role/:slug", get(role_get_handler).post(role_create_handler).patch(role_update_handler).delete(role_delete_handler))
         .route("/role/list/:page", get(role_list_handler))
         .route("/role/list", get(role_list_handler).delete(role_list_delete_handler))
-        .route("/role/all_title", get(role_all_title_handler))
         .route("/role/all", get(role_all_handler))
 
         .route("/permissions", get(permissions_list_handler))

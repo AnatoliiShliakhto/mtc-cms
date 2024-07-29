@@ -1,6 +1,5 @@
-use mtc_model::schema_model::{
-    SchemaCreateModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel,
-};
+use mtc_model::list_model::RecordListModel;
+use mtc_model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel};
 
 use crate::error::api_error::ApiError;
 use crate::handler::{ApiHandler, HandlerNullResponse, HandlerResponse};
@@ -21,7 +20,7 @@ pub trait SchemaHandler {
         slug: &str,
         schema: &SchemaUpdateModel,
     ) -> Result<SchemaModel, ApiError>;
-    async fn get_all_collections(&self) -> Result<Vec<SchemaListItemModel>, ApiError>;
+    async fn get_all_collections(&self) -> Result<RecordListModel, ApiError>;
 }
 
 impl SchemaHandler for ApiHandler {
@@ -83,7 +82,7 @@ impl SchemaHandler for ApiHandler {
             .await
     }
 
-    async fn get_all_collections(&self) -> Result<Vec<SchemaListItemModel>, ApiError> {
+    async fn get_all_collections(&self) -> Result<RecordListModel, ApiError> {
         self.api_client
             .get([&self.api_url, "schema", "collections"].join("/"))
             .send()

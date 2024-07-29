@@ -15,6 +15,7 @@ use text_field::TextField;
 
 use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
+use crate::element::storage::StorageManager;
 use crate::handler::content_handler::ContentHandler;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
@@ -35,6 +36,7 @@ pub struct FieldProps {
     pub schema_slug: String,
 }
 
+#[component]
 pub fn Editor() -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
@@ -49,7 +51,11 @@ pub fn Editor() -> Element {
 
     let mut schema = use_signal(SchemaModel::default);
     let mut content = use_signal(ApiModel::default);
+    let api_id = use_memo(move || content.read().id.clone());
     let mut form_published = use_signal(|| false);
+
+    let mut is_public_storage_shown = use_signal(|| false);
+    let mut is_private_storage_shown = use_signal(|| false);
 
     use_hook(|| {
         let app_state = APP_STATE.peek();
@@ -199,17 +205,24 @@ pub fn Editor() -> Element {
 
     if is_busy() {
         return rsx! {
-            LoadingBoxComponent {}
+            div { class: "grid w-full place-items-center body-scroll",
+                LoadingBoxComponent {}
+            }    
         };
     }
 
     rsx! {
+        if is_public_storage_shown() {
+            StorageManager { dir: api_id, is_shown: is_public_storage_shown, private: false }
+        } else if is_private_storage_shown() {
+            StorageManager { dir: api_id, is_shown: is_private_storage_shown, private: true }
+        }
         section { class: "flex grow select-none flex-row",
             form { class: "flex grow flex-col items-center p-2 body-scroll",
                 id: "content-form",
                 autocomplete: "off",
                 onsubmit: submit_task,
-                div { class: "self-start",
+                div { class: "w-full",
                     Breadcrumb { title:
                         if active_content_api().slug.is_empty() {
                             translate!(i18, "messages.singles")
@@ -310,6 +323,58 @@ pub fn Editor() -> Element {
                 }
             }
 
+            div { class: "w-full join",
+                if auth_state.is_permission("storage::read") {
+                    button { class: "btn btn-outline join-item",
+                        onclick: move |_| is_public_storage_shown.set(true),
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                        }
+                    }
+                } else {
+                   button { class: "btn btn-outline btn-disabled join-item",
+                        disabled: "disabled",
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                        }
+                    }
+                }
+                div { class: "grid place-items-center w-full join-item bg-base-content text-base-300",
+                    Icon {
+                        width: 30,
+                        height: 30,
+                        fill: "currentColor",
+                        icon: dioxus_free_icons::icons::md_file_icons::MdCloudUpload
+                    }
+                }
+                if auth_state.is_permission("private_storage::read") {
+                    button { class: "btn btn-outline join-item",
+                        onclick: move |_| is_private_storage_shown.set(true),
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                        }
+                    }
+                } else {
+                   button { class: "btn btn-outline btn-disabled join-item",
+                        disabled: "disabled",
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                        }
+                    }
+                }
+            }
             if auth_state.is_permission(&[&schema_permission(), "::write"].concat()) {
                 button { class: "btn btn-outline btn-accent",
                     r#type: "submit",

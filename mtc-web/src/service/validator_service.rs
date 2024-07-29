@@ -7,6 +7,7 @@ pub trait ValidatorService {
     fn is_string_valid(&self, field: &str, min_len: usize) -> bool;
     fn get_string(&self, field: &str) -> String;
     fn get_string_option(&self, field: &str) -> Option<String>;
+    fn get_int_option(&self, field: &str) -> Option<i32>;
 }
 
 impl ValidatorService for Event<FormData> {
@@ -47,5 +48,15 @@ impl ValidatorService for Event<FormData> {
 
     fn get_string_option(&self, field: &str) -> Option<String> {
         self.values().get(field).map(|value| value.0[0].clone())
+    }
+
+    fn get_int_option(&self, field: &str) -> Option<i32> {
+        match self.values().get(field).map(|value| value.0[0].clone()) {
+            None => None,
+            Some(value) => match value.parse::<i32>() {
+                Ok(value) => Some(value),
+                _ => None,
+            },
+        }
     }
 }

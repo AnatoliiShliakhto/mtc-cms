@@ -12,8 +12,9 @@ pub mod schema_model;
 pub mod user_model;
 pub mod i18n;
 pub mod user_details_model;
-pub mod store_model;
-pub mod slug_title_model;
+pub mod storage_model;
+pub mod record_model;
+pub mod list_model;
 
 pub fn from_thing<'de, D>(deserializer: D) -> Result<String, D::Error>
     where

@@ -1,7 +1,9 @@
 use axum::async_trait;
 
+use mtc_model::list_model::RecordListModel;
+use mtc_model::record_model::RecordModel;
 use mtc_model::schema_model::{
-    SchemaCreateModel, SchemaFieldsModel, SchemaListItemModel, SchemaModel, SchemaUpdateModel,
+    SchemaCreateModel, SchemaFieldsModel, SchemaModel, SchemaUpdateModel,
 };
 
 use crate::error::api_error::ApiError;
@@ -29,7 +31,7 @@ pub trait SchemaRepositoryTrait {
         model: SchemaFieldsModel,
     ) -> Result<SchemaModel>;
     async fn get_fields(&self, slug: &str) -> Result<SchemaFieldsModel>;
-    async fn get_all_collections(&self) -> Result<Vec<SchemaListItemModel>>;
+    async fn get_all_collections(&self) -> Result<RecordListModel>;
 }
 
 #[async_trait]
@@ -303,11 +305,13 @@ impl SchemaRepositoryTrait for SchemaService {
         }
     }
 
-    async fn get_all_collections(&self) -> Result<Vec<SchemaListItemModel>> {
-        Ok(self
+    async fn get_all_collections(&self) -> Result<RecordListModel> {
+        Ok(RecordListModel {
+            list: self
             .db
             .query(r#"SELECT slug, title FROM schemas WHERE is_collection = true AND is_system = false;"#)
             .await?
-            .take::<Vec<SchemaListItemModel>>(0)?)
+            .take::<Vec<RecordModel>>(0)?
+        })
     }
 }
