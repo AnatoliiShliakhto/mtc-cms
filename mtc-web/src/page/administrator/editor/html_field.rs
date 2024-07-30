@@ -3,7 +3,7 @@ use crate::page::administrator::editor::FieldProps;
 
 #[component]
 pub fn HtmlField(props: FieldProps) -> Element {
-    let plugin =
+    let script = [
         r#"
         class ImageUploadAdapter {
             constructor(loader) {
@@ -11,7 +11,7 @@ pub fn HtmlField(props: FieldProps) -> Element {
             }
 
             upload() {
-                let url = 'https://localhost:4430/api/store/' + sessionStorage.getItem("schema_slug");
+                let url = 'https://' + window.location.host + '/api/storage/' + sessionStorage.getItem("path");
 
                 return this.loader.file
                     .then(file => new Promise((resolve, reject) => {
@@ -48,10 +48,7 @@ pub fn HtmlField(props: FieldProps) -> Element {
                 return new ImageUploadAdapter(loader);
             };
         }
-        "#;
 
-    let script = [
-        r#"
         import {
             ClassicEditor,
             Essentials,
@@ -85,7 +82,7 @@ pub fn HtmlField(props: FieldProps) -> Element {
             FileRepository,
         } from 'ckeditor5';
         "#,
-        format!("sessionStorage.setItem('schema_slug', '{}');", &props.schema_slug).as_str(),
+        format!("sessionStorage.setItem('path', '{}');", &props.content_id).as_str(),
         r#"
         ClassicEditor
             .create( document.querySelector( '#"#,
@@ -195,7 +192,6 @@ pub fn HtmlField(props: FieldProps) -> Element {
                 }
             }
         }
-        script { r#type: "", { plugin } },
         script { r#type: "module", { script } }
     }
 }

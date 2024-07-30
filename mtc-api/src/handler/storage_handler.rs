@@ -75,21 +75,22 @@ pub async fn private_storage_upload_handler(
     state: State<Arc<AppState>>,
     session: Session,
     mut multipart: Multipart,
-) -> Result<()> {
+) -> Result<FileResult> {
     session.permission("private_storage::write").await?;
 
     let path = state.storage_service.get_private_dir_path(&path);
+    let mut filename:String = "".to_string();
 
     state.storage_service.is_dir_exists_or_create(&path).await?;
 
-    // todo
     while let Some(field) = multipart.next_field().await? {
         if Some("file") == field.name() && field.file_name().is_some() {
-            state.storage_service.save_file(&path, field).await;
+            let name = state.storage_service.save_file(&path, field).await?;
+            filename = name.as_str().parse()?;
         }
     }
 
-    Ok(ApiResponse::Ok)
+    Ok(ApiResponse::Data(FileResult { filename }))
 }
 
 pub async fn storage_delete_handler(
