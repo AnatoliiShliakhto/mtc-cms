@@ -19,7 +19,7 @@ pub trait StorageTrait {
     async fn is_dir_exists_or_create(&self, path: &str) -> Result<bool>;
     async fn is_file_exists(&self, path: &str) -> Result<bool>;
     async fn remove_dir(&self, path: &str) -> Result<bool>;
-    async fn save_file(&self, path: &str, data: Field<'_>) -> Result<()>;
+    async fn save_file(&self, path: &str, data: Field<'_>) -> Result<String>;
     async fn delete_file(&self, path: &str) -> Result<()>;
     async fn create_assets(&self, id: &str) -> Result<()>;
     async fn delete_assets(&self, id: &str) -> Result<()>;
@@ -80,11 +80,12 @@ impl StorageTrait for StorageService {
         Ok(fs::remove_dir_all(path).await.is_ok())
     }
 
-    async fn save_file(&self, path: &str, data: Field<'_>) -> Result<()> {
+    async fn save_file(&self, path: &str, data: Field<'_>) -> Result<String> {
         let file_path = [path, data.file_name().unwrap()].join("/");
 
-        fs::write(file_path, data.bytes().await?).await?;
-        Ok(())
+        fs::write(&file_path, data.bytes().await?).await?;
+
+        return Ok(file_path);
     }
 
     async fn delete_file(&self, path: &str) -> Result<()> {
