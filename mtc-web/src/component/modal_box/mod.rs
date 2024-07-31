@@ -17,7 +17,7 @@ pub fn ModalBoxComponent() -> Element {
 
     rsx! {
         section {
-            class: "modal-page",
+            class: "modal modal-open",
             onclick: dialog_close,
             div { class: "modal-box",
                 onclick: |event| event.stop_propagation(),

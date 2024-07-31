@@ -15,7 +15,7 @@ use crate::model::modal_model::ModalModel;
 use crate::service::user_service::UserService;
 
 #[component]
-pub fn Personas() -> Element {
+pub fn PersonsPage() -> Element {
     let i18 = use_i18();
 
     let users_to_clipboard = move |_| {
@@ -132,11 +132,12 @@ pub fn Personas() -> Element {
     };
 
     rsx! {
-        section { class: "flex grow flex-row",
-            div { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                div { class: "self-start",
-                    Breadcrumb { title: translate!(i18, "messages.personas") }
+        section { class: "flex grow select-none flex-row gap-6",
+            div { class: "flex grow flex-col items-center gap-3",
+                div { class: "w-full py-3",
+                    Breadcrumb { title: translate!(i18, "messages.persons") }
                 }
+            
                 table { class: "table w-full",
                     thead {
                         tr {
@@ -168,8 +169,8 @@ pub fn Personas() -> Element {
                     }
                 }
             }
-            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
-                h2 { class: "menu-title self-center", { translate!(i18, "messages.external_data") } }
+        }    
+            aside { class: "flex flex-col gap-3 pt-7",
                 div { class: "px-2 join",
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
                         button {
@@ -240,6 +241,6 @@ pub fn Personas() -> Element {
                     }
                 }
             }
-        }
+        }          
     }
-}
+

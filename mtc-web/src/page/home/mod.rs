@@ -13,8 +13,8 @@ pub fn HomePage() -> Element {
 
     if migrate() {
         return rsx! {
-            div { class: "grid place-items-center body-scroll",
-                div { class: "m-5 flex w-full flex-col rounded border p-5 shadow-md max-w-96 input-bordered",
+            div { class: crate::DIV_CENTER,
+                div { class: "flex w-full flex-col rounded border p-5 shadow-md max-w-96 input-bordered",
                     Migration {}
                 }
             }
@@ -22,7 +22,7 @@ pub fn HomePage() -> Element {
     }
     
     rsx! {
-        div { class: "flex grow flex-col items-center justify-center gap-10 p-10",
+        div { class: crate::DIV_CENTER,
             p { class: "text-4xl",
                 "Military training center content management system!"
             }

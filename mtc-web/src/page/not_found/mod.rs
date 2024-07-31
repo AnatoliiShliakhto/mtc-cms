@@ -10,7 +10,7 @@ pub fn NotFoundPage() -> Element {
     let i18 = use_i18();
 
     rsx! {
-        div { class: "grid w-full place-items-center body-scroll",
+        div { class: crate::DIV_CENTER,
             div { class: "flex flex-col self-center m-fit gap-5",
                 span { class: "flex justify-center text-9xl text-base-content", "404"}
                 span { class: "text-4xl text-base-content", { translate!(i18, "messages.not_found") } }
