@@ -9,7 +9,6 @@ use dioxus_std::translate;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
-use crate::APP_STATE;
 use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
@@ -17,30 +16,29 @@ use crate::handler::group_handler::GroupHandler;
 use crate::handler::role_handler::RoleHandler;
 use crate::handler::user_handler::UserHandler;
 use crate::model::modal_model::ModalModel;
-use crate::model::page_action::PageAction;
+use crate::page::not_found::NotFoundPage;
 use crate::service::user_service::UserService;
 use crate::service::validator_service::ValidatorService;
+use crate::APP_STATE;
 
 #[component]
-pub fn UserEditor() -> Element {
+pub fn UserEditorPage(user: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
-    let mut is_busy = use_signal(|| true);
+    if !auth_state.is_permission("user::read") {
+        return rsx! { NotFoundPage {} };
+    }
 
-    let mut page_action = use_context::<Signal<PageAction>>();
+    let mut is_busy = use_signal(|| true);
 
     let mut form_blocked = use_signal(|| false);
 
+    let user_login = use_memo(move || user.clone());
     let mut user = use_signal(UserModel::default);
-    let user_login = use_memo(move || match page_action() {
-        PageAction::Item(value) => value,
-        _ => String::new(),
-    });
+    let is_new_user = use_memo(move || user_login().eq("new"));
     let users_details = app_state.users.signal();
-    let is_new_user =
-        use_memo(move || page_action().eq(&PageAction::New) | user_login().is_empty());
     let mut user_roles = use_signal(BTreeSet::<String>::new);
     let mut all_roles = use_signal(BTreeSet::<String>::new);
     let mut user_groups = use_signal(BTreeSet::<String>::new);
@@ -54,7 +52,7 @@ pub fn UserEditor() -> Element {
             let mut groups_user = BTreeSet::<String>::new();
             let mut roles_list = BTreeSet::<String>::new();
             let mut roles_user = BTreeSet::<String>::new();
-            
+
             let mut groups_title_list = BTreeMap::<String, String>::new();
             let mut roles_title_list = BTreeMap::<String, String>::new();
 
@@ -99,14 +97,14 @@ pub fn UserEditor() -> Element {
                         form_blocked.set(value.blocked);
 
                         user.set(value)
-                    },
+                    }
                     Err(e) => {
                         APP_STATE
                             .peek()
                             .modal
                             .signal()
                             .set(ModalModel::Error(e.message()));
-                        page_action.set(PageAction::None)
+                        navigator().go_back()
                     }
                 }
 
@@ -137,7 +135,7 @@ pub fn UserEditor() -> Element {
 
             roles_title.set(roles_title_list);
             groups_title.set(groups_title_list);
-            
+
             all_groups.set(groups_list);
             user_groups.set(groups_user);
 
@@ -181,8 +179,8 @@ pub fn UserEditor() -> Element {
                             &UserUpdateModel {
                                 blocked: event.get_string_option("blocked").is_some(),
                                 password: event.get_string_option("password"),
-                                roles,
-                                groups,
+                                roles: roles.clone(),
+                                groups: groups.clone(),
                                 fields: None,
                             },
                         )
@@ -196,15 +194,36 @@ pub fn UserEditor() -> Element {
                             &UserCreateModel {
                                 blocked: event.get_string_option("blocked").is_some(),
                                 password: event.get_string("password"),
-                                roles,
-                                groups,
+                                roles: roles.clone(),
+                                groups: groups.clone(),
                             },
                         )
                         .await
                 }
             } {
-                Ok(_) => page_action.set(PageAction::None),
-                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
+                Ok(_) => navigator().go_back(),
+                Err(e) => {
+                    let user_model = UserModel {
+                        id: user().login,
+                        login: if is_new_user() {
+                            event.get_string("login")
+                        } else {
+                            user().login
+                        },
+                        password: "".to_string(),
+                        blocked: form_blocked(),
+                        access_level: user().access_level,
+                        access_count: user().access_count,
+                        last_access: user().last_access,
+                        fields: user().fields,
+                        created_at: user().created_at,
+                        updated_at: user().updated_at,
+                        created_by: user().created_by,
+                        updated_by: user().updated_by,
+                    };
+                    user.set(user_model);
+                    app_state.modal.signal().set(ModalModel::Error(e.message()))
+                }
             }
 
             is_busy.set(false);
@@ -217,7 +236,7 @@ pub fn UserEditor() -> Element {
 
         spawn(async move {
             match app_state.api.delete_user(&user_login()).await {
-                Ok(_) => page_action.set(PageAction::None),
+                Ok(_) => navigator().go_back(),
                 Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
@@ -226,21 +245,21 @@ pub fn UserEditor() -> Element {
 
     if is_busy() {
         return rsx! {
-            div { class: "grid w-full place-items-center body-scroll",
+            div { class: crate::DIV_CENTER,
                 LoadingBoxComponent {}
-            }    
+            }
         };
     }
 
     rsx! {
-        section { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
+        section { class: "flex grow select-none flex-row gap-6",
+            form { class: "flex grow flex-col items-center gap-3",
                 id: "user-form",
                 autocomplete: "off",
                 onsubmit: user_submit,
-                div { class: "self-start",
+                div { class: "w-full py-3",
                     Breadcrumb { title: translate!(i18, "messages.users") }
-                }                   
+                }
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",
@@ -284,10 +303,9 @@ pub fn UserEditor() -> Element {
                 ListSwitcherComponent { title: translate!(i18, "messages.groups"), items: user_groups, all: all_groups, items_title: groups_title }
             }
 
-            //todo blocked
-            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
+            aside { class: "flex flex-col gap-3 pt-5 min-w-36",
                 button { class: "btn btn-outline",
-                    onclick: move |_| page_action.set(PageAction::None),
+                    onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
                         height: 22,
@@ -335,8 +353,6 @@ pub fn UserEditor() -> Element {
                         { translate!(i18, "messages.user_active") }
                     }
                 }
-
-
                 if auth_state.is_permission("user::write") {
                     button { class: "btn btn-outline btn-accent",
                         r#type: "submit",

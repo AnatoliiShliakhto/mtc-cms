@@ -2,50 +2,42 @@ use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
-
-use editor::GroupEditor;
+use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
 
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
-use crate::model::page_action::PageAction;
+use crate::router::Route::GroupEditorPage;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
+use crate::page::not_found::NotFoundPage;
 
-mod editor;
+pub mod editor;
 
 #[component]
-pub fn Groups() -> Element {
+pub fn GroupsPage() -> Element {
     let app_state = APP_STATE.peek();
-    let auth_state = app_state.auth.read_unchecked();
+    let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
-    let page = use_signal(|| 1usize);
-    let mut page_action = use_context_provider(|| Signal::new(PageAction::None));
+    if !auth_state.is_permission("group::read") {
+        return rsx! { NotFoundPage {} };
+    }
 
     let pagination = use_signal(|| PaginationModel::new(0, 10));
-    let mut groups_future =
+    let page = use_signal(|| 1usize);
+
+    let groups_future =
         use_resource(move || async move { APP_STATE.peek().api.get_group_list(page()).await });
-
-    use_effect(move || {
-        if page_action() == PageAction::None {
-            groups_future.restart()
-        }
-    });
-
-    if page_action().ne(&PageAction::None) {
-        return rsx! { GroupEditor {} };
-    }
 
     rsx! {
         match &*groups_future.read() {
             Some(Ok(response)) => rsx! {
-                section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                    div { class: "inline-flex w-full justify-between gap-5",
+                section { class: "w-full flex-grow p-3",
+                    div { class: "w-full py-3",
                         Breadcrumb { title: translate!(i18, "messages.groups") }
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
                     }
                     table { class: "table w-full",
                         thead {
@@ -60,7 +52,7 @@ pub fn Groups() -> Element {
                                     let m_slug = item.slug.clone();
                                     rsx! {
                                         tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
-                                            onclick: move |_| page_action.set(PageAction::Item(m_slug.clone())),
+                                            onclick: move |_| { navigator().push(GroupEditorPage{ group: m_slug.clone() }); },
                                             td { { item.slug.clone() } }
                                             td { { item.title.clone() } }
                                         }
@@ -69,11 +61,13 @@ pub fn Groups() -> Element {
                             }
                         }
                     }
-                    PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    div { class: "flex w-full py-2 justify-center",
+                        PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    }    
                 }
                 button {
-                    class: "absolute right-4 bottom-4 btn btn-circle btn-neutral",
-                    onclick: move |_| page_action.set(PageAction::New),
+                    class: "fixed right-4 bottom-4 btn btn-circle btn-neutral",
+                    onclick: move |_| { navigator().push(GroupEditorPage{ group: "new".to_string() }); },
                     Icon {
                         width: 26,
                         height: 26,
@@ -82,14 +76,14 @@ pub fn Groups() -> Element {
                 }
             },
             Some(Err(e)) => rsx! {
-                div { class: "grid w-full place-items-center body-scroll",
+                div { class: crate::DIV_CENTER,
                     ReloadingBoxComponent { message: e.message(), resource: groups_future }
-                }    
+                }
             },
-            None => rsx! { 
-                div { class: "grid w-full place-items-center body-scroll", 
+            None => rsx! {
+                div { class: crate::DIV_CENTER,
                     LoadingBoxComponent {}
-                }    
+                }
             },
         }
     }

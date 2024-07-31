@@ -3,50 +3,43 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use editor::RoleEditor;
+use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
 
+use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::role_handler::RoleHandler;
-use crate::model::page_action::PageAction;
+use crate::page::not_found::NotFoundPage;
+use crate::router::Route::RoleEditorPage;
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 
-mod editor;
+pub mod editor;
 
 #[component]
-pub fn Roles() -> Element {
+pub fn RolesPage() -> Element {
     let app_state = APP_STATE.peek();
-    let auth_state = app_state.auth.read_unchecked();
+    let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
-    let page = use_signal(|| 1usize);
-    let mut page_action = use_context_provider(|| Signal::new(PageAction::None));
-
-    let pagination = use_signal(|| PaginationModel::new(0, 10));
-    let mut roles_future =
-        use_resource(move || async move { APP_STATE.peek().api.get_role_list(page()).await });
-
-    use_effect(move || {
-        if page_action() == PageAction::None {
-            roles_future.restart()
-        }
-    });
-
-    if page_action().ne(&PageAction::None) {
-        return rsx! { RoleEditor {} };
+    if !auth_state.is_permission("role::read") {
+        return rsx! { NotFoundPage {} };
     }
+
+    let page = use_signal(|| 1usize);
+    let pagination = use_signal(|| PaginationModel::new(0, 10));
+
+    let roles_future =
+        use_resource(move || async move { APP_STATE.peek().api.get_role_list(page()).await });
 
     rsx! {
         match &*roles_future.read() {
             Some(Ok(response)) => rsx! {
-                section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                    div { class: "inline-flex w-full justify-between gap-5",
+                section { class: "w-full flex-grow p-3",
+                    div { class: "w-full py-3",
                         Breadcrumb { title: translate!(i18, "messages.roles") }
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
-                    }                    
+                    }
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -60,7 +53,7 @@ pub fn Roles() -> Element {
                                     let m_slug = item.slug.clone();
                                     rsx! {
                                         tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
-                                            onclick: move |_| page_action.set(PageAction::Item(m_slug.clone())),
+                                            onclick: move |_| { navigator().push(RoleEditorPage{ role: m_slug.clone() }); },
                                             td { { item.slug.clone() } }
                                             td { { item.title.clone() } }
                                         }
@@ -69,11 +62,13 @@ pub fn Roles() -> Element {
                             }
                         }
                     }
-                    PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    div { class: "flex w-full py-2 justify-center",
+                        PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    }    
                 }
                 button {
-                    class: "absolute right-4 bottom-4 btn btn-circle btn-neutral",
-                    onclick: move |_| page_action.set(PageAction::New),
+                    class: "fixed right-4 bottom-4 btn btn-circle btn-neutral",
+                    onclick: move |_| { navigator().push(RoleEditorPage{ role: "new".to_string() }); },
                     Icon {
                         width: 26,
                         height: 26,
@@ -81,15 +76,15 @@ pub fn Roles() -> Element {
                     }
                 }
             },
-            Some(Err(e)) => rsx! { 
-                div { class: "grid w-full place-items-center body-scroll",
+            Some(Err(e)) => rsx! {
+                div { class: crate::DIV_CENTER,
                     ReloadingBoxComponent { message: e.message(), resource: roles_future }
-                }    
+                }
             },
-            None => rsx! { 
-                div { class: "grid w-full place-items-center body-scroll",
+            None => rsx! {
+                div { class: crate::DIV_CENTER,
                     LoadingBoxComponent {}
-                }    
+                }
             },
         }
     }

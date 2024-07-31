@@ -6,26 +6,21 @@ use dioxus_std::translate;
 use content::Content;
 use dashboard::Dashboard;
 use editor::Editor;
-use groups::Groups;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::record_model::RecordModel;
-use personas::Personas;
-use roles::Roles;
-use schema::Schema;
-use users::Users;
 
+use crate::APP_STATE;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::page::not_found::NotFoundPage;
-use crate::APP_STATE;
 
 mod content;
 mod dashboard;
 mod editor;
-mod groups;
-mod personas;
-mod roles;
-mod schema;
-mod users;
+pub mod groups;
+pub mod persons;
+pub mod roles;
+pub(crate) mod schemas;
+pub mod users;
 
 #[allow(dead_code)]
 #[derive(Clone, Debug, PartialEq)]
@@ -56,30 +51,13 @@ pub fn AdministratorPage() -> Element {
     let mut administrator_route =
         use_context_provider(|| Signal::new(AdministratorRouteModel::Dashboard));
 
-    let mut collections_future = use_resource(move || async {
-        APP_STATE.peek().api.get_all_collections().await
-    });
+    let mut collections_future =
+        use_resource(move || async { APP_STATE.peek().api.get_all_collections().await });
 
     rsx! {
-        div { class: "flex w-full flex-row",
+        div { class: "flex grow flex-row",
             aside { class: "shadow-lg bg-base-100 min-w-60 body-scroll",
                 ul { class: "menu rounded",
-                    if auth_state.is_permission("user::read") {
-                        li {
-                            a {
-                                class: "inline-flex justify-between",
-                                class: if administrator_route.read().eq(&AdministratorRouteModel::Personas) { "active" },
-                                onclick: move |_| administrator_route.set(AdministratorRouteModel::Personas),
-                                { translate!(i18, "messages.personas") }
-                                Icon { class: "text-primary",
-                                    width: 16,
-                                    height: 16,
-                                    fill: "currentColor",
-                                    icon: dioxus_free_icons::icons::md_social_icons::MdGroups
-                                }
-                            }
-                        }
-                    }
                     li {
                         a { class: "inline-flex justify-between",
                             onclick: move |_| collections_future.restart(),
@@ -229,11 +207,6 @@ pub fn AdministratorPage() -> Element {
             match administrator_route() {
                 AdministratorRouteModel::ContentEditor => rsx! { Editor {} },
                 AdministratorRouteModel::Content => rsx! { Content {} },
-                AdministratorRouteModel::Groups => rsx! { Groups {} },
-                AdministratorRouteModel::Roles => rsx! { Roles {} },
-                AdministratorRouteModel::Users => rsx! { Users {} },
-                AdministratorRouteModel::Schema => rsx! { Schema {} },
-                AdministratorRouteModel::Personas => rsx! { Personas {} },
                 _ => rsx! { Dashboard {} },
             }
         }

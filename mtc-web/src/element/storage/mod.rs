@@ -156,7 +156,7 @@ pub fn StorageManager(mut props: StorageProps) -> Element {
     };
 
     rsx! {
-        section { class: "modal-page",
+        section { class: "modal modal-open",
             onclick: move |_| props.is_shown.set(false),
             div { class: "modal-box min-w-96 w-fit h-5/6",
                 onclick: move |event| event.stop_propagation(),
