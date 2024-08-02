@@ -7,19 +7,11 @@ pub fn Footer() -> Element {
     let i18 = use_i18();
 
     rsx! {
-        footer { class: "footer footer-center h-14 p-4 bg-base-200 text-base-content rounded",
-            aside {
-                p { class: "flex flex-nowrap gap-1",
-                    a { class: "link link-hover",
-                        href: "mailto:a.shlyakhto@gmail.com",
-                        { translate!(i18, "messages.copyright") }
-                    }
-                    a { class: "link link-hover",
-                        href: "https://github.com/AnatoliiShliakhto/mtc-cms",
-                        target: "_blank",
-                        "MTC_CMS"
-                    }
-                }
+        footer { class: "footer footer-center h-14 p-4 text-base-content rounded",
+            a { class: "link link-hover hover:text-primary",
+                href: "https://github.com/AnatoliiShliakhto/mtc-cms",
+                target: "_blank",
+                { translate!(i18, "messages.copyright") }
             }
         }
     }

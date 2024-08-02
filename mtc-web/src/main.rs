@@ -16,7 +16,7 @@ use crate::state::AppState;
 static API_URL: &str = "https://localhost/api";
 static PUBLIC_STORAGE_URL: &str = "/files";
 static PRIVATE_STORAGE_URL: &str = "/api/private_storage";
-static DIV_CENTER: &str = "grid place-items-center h-[80vh] w-full lg:w-10/12";
+static DIV_CENTER: &str = "flex h-[80vh] w-full lg:w-10/12 justify-center items-center";
 
 mod component;
 mod element;

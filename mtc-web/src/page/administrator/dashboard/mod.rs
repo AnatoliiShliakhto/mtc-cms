@@ -5,7 +5,7 @@ use dioxus_std::translate;
 use crate::component::breadcrumb::Breadcrumb;
 
 #[component]
-pub fn Dashboard() -> Element {
+pub fn AdministratorDashboardPage() -> Element {
     let i18 = use_i18();
 
     rsx! {

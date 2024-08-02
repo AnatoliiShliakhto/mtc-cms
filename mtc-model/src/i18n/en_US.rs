@@ -28,7 +28,7 @@ pub static EN_US: &str = r#"{
             "collections": "Collections",
             "constructor": "Constructor",
             "content": "Content",
-            "copyright": "2024 ©",
+            "copyright": "2024 © Powered by MTC-CMS",
             "created_at": "created at",
             "dashboard": "Dashboard",
             "delete": "Delete",

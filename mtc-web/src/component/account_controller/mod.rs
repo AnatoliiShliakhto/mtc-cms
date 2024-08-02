@@ -6,9 +6,9 @@ use tracing::error;
 
 use mtc_model::auth_model::AuthModelTrait;
 
-use crate::APP_STATE;
 use crate::handler::auth_handler::AuthHandler;
-use crate::router::Route::{AdministratorPage, DashboardPage};
+use crate::router::Route::{AdministratorDashboardPage, DashboardPage};
+use crate::APP_STATE;
 
 #[component]
 pub fn AccountControllerComponent() -> Element {
@@ -21,8 +21,8 @@ pub fn AccountControllerComponent() -> Element {
             let mut auth_state = APP_STATE.peek().auth.signal();
 
             match APP_STATE.peek().api.sign_out().await {
-                Ok(auth_model) => { auth_state.set(auth_model) }
-                Err(e) => error!("SignOut: {}", e.message())
+                Ok(auth_model) => auth_state.set(auth_model),
+                Err(e) => error!("SignOut: {}", e.message()),
             }
         });
     };
@@ -57,7 +57,7 @@ pub fn AccountControllerComponent() -> Element {
                         { translate!(i18, "messages.settings") } }
                     }
                     if auth_state().is_admin() {
-                        li { Link { to: AdministratorPage {},
+                        li { Link { to: AdministratorDashboardPage {},
                             Icon {
                                 width: 18,
                                 height: 18,
