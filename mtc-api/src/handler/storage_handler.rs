@@ -4,7 +4,6 @@ use axum::body::{Body, Bytes};
 use axum::extract::{Multipart, Path, State};
 use axum::http::header;
 use axum::response::{AppendHeaders, IntoResponse, Response};
-use serde::{Deserialize, Serialize};
 use tower_sessions::Session;
 
 use mtc_model::storage_model::StoragesModel;
@@ -15,9 +14,6 @@ use crate::middleware::auth_middleware::UserSession;
 use crate::model::response_model::{ApiResponse, HandlerResult};
 use crate::service::storage_service::StorageTrait;
 use crate::state::AppState;
-
-#[derive(Deserialize, Serialize)]
-pub struct FileResult { pub filename: String }
 
 pub async fn storage_get_dir_handler(
     Path(path): Path<String>,
@@ -52,22 +48,20 @@ pub async fn storage_upload_handler(
     state: State<Arc<AppState>>,
     session: Session,
     mut multipart: Multipart,
-) -> Result<FileResult> {
+) -> Result<()> {
     session.permission("storage::write").await?;
 
     let path = state.storage_service.get_dir_path(&path);
-    let mut filename:String = "".to_string();
 
     state.storage_service.is_dir_exists_or_create(&path).await?;
 
     while let Some(field) = multipart.next_field().await? {
         if Some("file") == field.name() && field.file_name().is_some() {
-            let name = state.storage_service.save_file(&path, field).await?;
-            filename = name.as_str().parse()?;
+            state.storage_service.save_file(&path, field).await?
         }
     }
 
-    Ok(ApiResponse::Data(FileResult { filename }))
+    Ok(ApiResponse::Ok)
 }
 
 pub async fn private_storage_upload_handler(
@@ -75,22 +69,20 @@ pub async fn private_storage_upload_handler(
     state: State<Arc<AppState>>,
     session: Session,
     mut multipart: Multipart,
-) -> Result<FileResult> {
+) -> Result<()> {
     session.permission("private_storage::write").await?;
 
     let path = state.storage_service.get_private_dir_path(&path);
-    let mut filename:String = "".to_string();
 
     state.storage_service.is_dir_exists_or_create(&path).await?;
 
     while let Some(field) = multipart.next_field().await? {
         if Some("file") == field.name() && field.file_name().is_some() {
-            let name = state.storage_service.save_file(&path, field).await?;
-            filename = name.as_str().parse()?;
+            state.storage_service.save_file(&path, field).await?
         }
     }
 
-    Ok(ApiResponse::Data(FileResult { filename }))
+    Ok(ApiResponse::Ok)
 }
 
 pub async fn storage_delete_handler(

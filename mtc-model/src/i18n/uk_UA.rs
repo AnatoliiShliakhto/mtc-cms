@@ -28,7 +28,7 @@ pub static UK_UA: &str = r#"{
             "collections": "Колекції",
             "constructor": "Конструктор",
             "content": "Контент",
-            "copyright": "2024 ©",
+            "copyright": "2024 © Працює на MTC-CMS",
             "created_at": "створено",
             "dashboard": "Користувач",
             "delete": "Видалити",

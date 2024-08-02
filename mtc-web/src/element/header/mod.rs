@@ -30,7 +30,7 @@ pub fn Header() -> Element {
                     div { class: "flex w-full lg:hidden justify-center",
                         Link { class: "btn btn-ghost text-xl flex lg:hidden", to: crate::router::Route::HomePage {}, "MTC-CMS" }
                     }
-                    span { class: "hidden lg:flex px-5 text-xl", style:"font-weight: 600;", "military training center" }
+                    span { class: "hidden lg:flex px-5 text-xl font-semibold text-base-content", "military training center" }
                 }
                 div { class: "flex-0",
                     div { class: "join",

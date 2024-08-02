@@ -18,7 +18,7 @@ dioxus = { version = "0.5.6", features = ["web", "router"] }
 dioxus-free-icons = { version = "0.8.6", features = ["font-awesome-regular", "material-design-icons-action", "material-design-icons-social", "material-design-icons-navigation", "material-design-icons-file", "material-design-icons-editor", "material-design-icons-content", "ionicons"] }
 tracing = { version = "0.1.40" }
 reqwest = { version = "0.12.5", features = ["json"] }
-serde_json = { version = "1.0.121" }
+serde_json = { version = "1.0.122" }
 serde = { version = "1.0.204", features = ["derive"] }
 futures-util = { version = "0.3.30" }
 chrono = { version = "0.4.38", features = ["wasmbind"] }

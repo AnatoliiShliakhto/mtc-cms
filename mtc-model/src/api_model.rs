@@ -5,7 +5,7 @@ use validator::Validate;
 
 use crate::from_thing;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct ApiModel {
     #[serde(deserialize_with = "from_thing")]
     pub id: String,

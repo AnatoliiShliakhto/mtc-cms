@@ -4,51 +4,7 @@ use crate::page::administrator::editor::FieldProps;
 #[component]
 pub fn HtmlField(props: FieldProps) -> Element {
     let script = [
-        r#"
-        class ImageUploadAdapter {
-            constructor(loader) {
-                this.loader = loader;
-            }
-
-            upload() {
-                let url = 'https://' + window.location.host + '/api/storage/' + sessionStorage.getItem("path");
-
-                return this.loader.file
-                    .then(file => new Promise((resolve, reject) => {
-                        const data = new FormData();
-                        data.append('file', file);
-
-                        fetch(url, {
-                            method: 'POST',
-                            body: data,
-                            credentials: 'include', // pass cookie
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.code) {
-                                    reject(data.message);
-                                }
-                                let filename = data.data.filename;
-
-                                resolve({
-                                    default: filename.replace("/public", "")
-                                });
-                            })
-                            .catch(error => {
-                                reject(error);
-                            });
-                    }));
-            }
-
-            abort() {}
-        }
-
-        function ImageUploadAdapterPlugin(editor) {
-            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-                return new ImageUploadAdapter(loader);
-            };
-        }
-
+        r#"                
         import {
             ClassicEditor,
             Essentials,
@@ -77,13 +33,10 @@ pub fn HtmlField(props: FieldProps) -> Element {
             TableCellProperties,
             TableColumnResize,
             PasteFromOffice,
-
             Image, ImageInsert,
             FileRepository,
         } from 'ckeditor5';
-        "#,
-        format!("sessionStorage.setItem('path', '{}');", &props.content_id).as_str(),
-        r#"
+
         ClassicEditor
             .create( document.querySelector( '#"#,
         &props.slug,
