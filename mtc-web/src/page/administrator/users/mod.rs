@@ -5,8 +5,7 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
-
-use crate::component::breadcrumb::Breadcrumb;
+use mtc_model::record_model::RecordModel;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
@@ -28,6 +27,12 @@ pub fn UsersPage() -> Element {
         return rsx! { NotFoundPage {} };
     }
 
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+        RecordModel { title: translate!(i18, "messages.users"), slug: "/administrator/users".to_string() },
+    ]);
+
     let pagination = use_signal(|| PaginationModel::new(0, 10));
     let page = use_signal(|| 1usize);
 
@@ -40,9 +45,6 @@ pub fn UsersPage() -> Element {
         match &*users_future.read() {
             Some(Ok(response)) => rsx! {
                 section { class: "w-full flex-grow p-3",
-                    div { class: "w-full py-3",
-                        Breadcrumb { title: translate!(i18, "messages.users") }
-                    }
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -60,7 +62,7 @@ pub fn UsersPage() -> Element {
                                     let m_login = item.login.clone();
                                     rsx! {
                                         tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
-                                            onclick: move |_| { navigator().push(UserEditorPage{ user: m_login.clone() }); },
+                                            onclick: move |_| { navigator().push(UserEditorPage{ user_prop: m_login.clone() }); },
                                             td { class: "text-error",
                                                 if item.blocked {
                                                     Icon {
@@ -88,7 +90,7 @@ pub fn UsersPage() -> Element {
                 }
                 button {
                     class: "fixed right-4 bottom-4 btn btn-circle btn-neutral",
-                    onclick: move |_| { navigator().push(UserEditorPage{ user: "new".to_string() }); },
+                    onclick: move |_| { navigator().push(UserEditorPage{ user_prop: "new".to_string() }); },
                     Icon {
                         width: 26,
                         height: 26,

@@ -1,15 +1,17 @@
 [package]
+resolver = "2"
 name = "mtc-api"
 description = "Military training center CMS API"
-version = "0.1.0"
-edition = "2021"
-authors = ["Anatolii Shliakhto <a.shlyakhto@gmail.com>"]
-license = "MIT"
-resolver = "2"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 mtc-model = { path = "../mtc-model" }
+
+[target.'cfg(all(any(windows, unix), not(target_family = "wasm")))'.dependencies]
 axum = { version = "0.7.5", features = ["multipart", "macros"] }
 serde = { version = "1.0.204", features = ["derive"] }
 tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread", "fs"] }

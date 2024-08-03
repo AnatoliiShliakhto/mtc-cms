@@ -7,9 +7,9 @@ use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::record_model::RecordModel;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
-use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
@@ -22,7 +22,7 @@ use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
 
 #[component]
-pub fn UserEditorPage(user: String) -> Element {
+pub fn UserEditorPage(user_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
@@ -35,7 +35,7 @@ pub fn UserEditorPage(user: String) -> Element {
 
     let mut form_blocked = use_signal(|| false);
 
-    let user_login = use_memo(move || user.clone());
+    let user_login = use_memo(move || user_prop.clone());
     let mut user = use_signal(UserModel::default);
     let is_new_user = use_memo(move || user_login().eq("new"));
     let users_details = app_state.users.signal();
@@ -45,6 +45,22 @@ pub fn UserEditorPage(user: String) -> Element {
     let mut all_groups = use_signal(BTreeSet::<String>::new);
     let mut roles_title = use_signal(BTreeMap::<String, String>::new);
     let mut groups_title = use_signal(BTreeMap::<String, String>::new);
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+        RecordModel { title: translate!(i18, "messages.users"), slug: "/administrator/users".to_string() },
+        RecordModel {
+            title:
+            if is_new_user() {
+                translate!(i18, "messages.add")
+            } else {
+                user().login
+            }
+            ,
+            slug: "".to_string(),
+        },
+    ]);
 
     use_hook(|| {
         spawn(async move {
@@ -257,9 +273,7 @@ pub fn UserEditorPage(user: String) -> Element {
                 id: "user-form",
                 autocomplete: "off",
                 onsubmit: user_submit,
-                div { class: "w-full py-3",
-                    Breadcrumb { title: translate!(i18, "messages.users") }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",

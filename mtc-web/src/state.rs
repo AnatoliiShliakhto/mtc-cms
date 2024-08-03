@@ -13,9 +13,7 @@ pub struct AppState {
     pub auth: GlobalSignal<AuthModel>,
     pub modal: GlobalSignal<ModalModel>,
     pub users: GlobalSignal<BTreeMap<String, UserDetailsModel>>,
-    pub active_content_api: GlobalSignal<RecordModel>,
-    pub active_content: GlobalSignal<RecordModel>,
-    pub is_busy: GlobalSignal<bool>,
+    pub breadcrumbs: GlobalSignal<Vec<RecordModel>>,
 }
 
 impl Default for AppState {
@@ -26,9 +24,7 @@ impl Default for AppState {
             auth: Signal::global(AuthModel::default),
             modal: Signal::global(|| ModalModel::None),
             users: Signal::global(BTreeMap::<String, UserDetailsModel>::new),
-            active_content_api: Signal::global(RecordModel::default),
-            active_content: Signal::global(RecordModel::default),
-            is_busy: Signal::global(|| false),
+            breadcrumbs: Signal::global(Vec::<RecordModel>::new),
         }
     }
 }

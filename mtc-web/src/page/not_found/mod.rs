@@ -3,11 +3,20 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
+use mtc_model::record_model::RecordModel;
+
+use crate::APP_STATE;
 use crate::router::Route::{DashboardPage, HomePage};
 
 #[component]
 pub fn NotFoundPage() -> Element {
+    let app_state = APP_STATE.peek();
     let i18 = use_i18();
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.not_found"), slug: "".to_string() },
+    ]);
 
     rsx! {
         div { class: crate::DIV_CENTER,

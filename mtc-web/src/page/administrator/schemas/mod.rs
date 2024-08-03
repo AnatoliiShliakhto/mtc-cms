@@ -5,15 +5,15 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
+use mtc_model::record_model::RecordModel;
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::page::not_found::NotFoundPage;
 use crate::router::Route::SchemaEditorPage;
-use crate::APP_STATE;
 
 pub mod editor;
 
@@ -27,6 +27,12 @@ pub fn SchemasPage() -> Element {
         return rsx! { NotFoundPage {} };
     }
 
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+        RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
+    ]);
+
     let page = use_signal(|| 1usize);
     let pagination = use_signal(|| PaginationModel::new(0, 10));
 
@@ -37,9 +43,6 @@ pub fn SchemasPage() -> Element {
         match &*schemas_future.read() {
             Some(Ok(response)) => rsx! {
                 section { class: "w-full flex-grow p-3",
-                    div { class: "w-full py-3",
-                        Breadcrumb { title: translate!(i18, "messages.schema") }
-                    }
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -57,7 +60,7 @@ pub fn SchemasPage() -> Element {
                                         tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
                                             onclick: move |_| {
                                                 if m_can_view {
-                                                    navigator().push(SchemaEditorPage{ schema: m_slug.clone() });
+                                                    navigator().push(SchemaEditorPage{ schema_prop: m_slug.clone() });
                                                 }
                                             },
                                             td { class: "text-primary",
@@ -98,7 +101,7 @@ pub fn SchemasPage() -> Element {
                 }
                 button {
                     class: "fixed right-4 bottom-4 btn btn-circle btn-neutral",
-                    onclick: move |_| { navigator().push(SchemaEditorPage{ schema: "new".to_string() }); },
+                    onclick: move |_| { navigator().push(SchemaEditorPage{ schema_prop: "new".to_string() }); },
                     Icon {
                         width: 26,
                         height: 26,

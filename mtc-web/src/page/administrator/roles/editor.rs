@@ -7,9 +7,9 @@ use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::record_model::RecordModel;
 use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 
-use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::permissions_handler::PermissionsHandler;
@@ -20,7 +20,7 @@ use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
 
 #[component]
-pub fn RoleEditorPage(role: String) -> Element {
+pub fn RoleEditorPage(role_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
@@ -31,7 +31,7 @@ pub fn RoleEditorPage(role: String) -> Element {
 
     let mut is_busy = use_signal(|| true);
 
-    let role_slug = use_memo(move || role.clone());
+    let role_slug = use_memo(move || role_prop.clone());
     let mut role = use_signal(RoleModel::default);
     let is_new_role = use_memo(move || role_slug().eq("new"));
 
@@ -41,6 +41,22 @@ pub fn RoleEditorPage(role: String) -> Element {
 
     let dummy_permissions_title = use_signal(BTreeMap::<String, String>::new);
 
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+        RecordModel { title: translate!(i18, "messages.roles"), slug: "/administrator/roles".to_string() },
+        RecordModel {
+            title:
+            if is_new_role() {
+                translate!(i18, "messages.add")
+            } else {
+                role().title
+            }
+            ,
+            slug: "".to_string(),
+        },
+    ]);
+    
     use_hook(|| {
         spawn(async move {
             let mut permissions_list = BTreeSet::<String>::new();
@@ -202,9 +218,7 @@ pub fn RoleEditorPage(role: String) -> Element {
                 id: "role-form",
                 autocomplete: "off",
                 onsubmit: role_submit,
-                div { class: "w-full py-3",
-                    Breadcrumb { title: translate!(i18, "messages.roles") }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",

@@ -135,10 +135,6 @@ CREATE permissions CONTENT {
     slug: 'writer'
 };
 CREATE permissions CONTENT {
-    id: 'instructor',
-    slug: 'instructor'
-};
-CREATE permissions CONTENT {
     id: 'content_read',
     slug: 'content::read'
 };
@@ -240,7 +236,6 @@ DEFINE INDEX idx_role_permissions ON TABLE role_permissions COLUMNS in, out UNIQ
 RELATE roles:anonymous->role_permissions->permissions:content_read;
 RELATE roles:administrator->role_permissions->permissions:administrator;
 RELATE roles:administrator->role_permissions->permissions:writer;
-RELATE roles:administrator->role_permissions->permissions:instructor;
 RELATE roles:administrator->role_permissions->permissions:content_read;
 RELATE roles:administrator->role_permissions->permissions:content_write;
 RELATE roles:administrator->role_permissions->permissions:content_delete;

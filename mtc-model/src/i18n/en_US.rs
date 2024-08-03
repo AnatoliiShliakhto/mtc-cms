@@ -34,6 +34,7 @@ pub static EN_US: &str = r#"{
             "delete": "Delete",
             "draft": "Draft",
             "download": "download",
+            "editor": "Editor",
             "external_data": "External data",
             "fields": "fields",
             "file": "file",

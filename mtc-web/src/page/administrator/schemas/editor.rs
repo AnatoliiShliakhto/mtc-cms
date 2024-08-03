@@ -9,18 +9,18 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::field_model::{FieldModel, FieldTypeModel};
+use mtc_model::record_model::RecordModel;
 use mtc_model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel};
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
 use crate::page::not_found::NotFoundPage;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 #[component]
-pub fn SchemaEditorPage(schema: String) -> Element {
+pub fn SchemaEditorPage(schema_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
@@ -34,11 +34,27 @@ pub fn SchemaEditorPage(schema: String) -> Element {
     let mut form_is_collection = use_signal(|| false);
     let mut form_is_public = use_signal(|| false);
 
-    let schema_slug = use_memo(move || schema.clone());
+    let schema_slug = use_memo(move || schema_prop.clone());
     let mut schema = use_signal(SchemaModel::default);
     let is_new_schema = use_memo(move || schema_slug().eq("new"));
 
     let mut fields = use_signal(BTreeMap::<usize, FieldModel>::new);
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+        RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
+        RecordModel {
+            title:
+            if is_new_schema() {
+                translate!(i18, "messages.add")
+            } else {
+                schema().title
+            }
+            ,
+            slug: "".to_string(),
+        },
+    ]);
 
     use_hook(|| {
         if is_new_schema() {
@@ -211,9 +227,6 @@ pub fn SchemaEditorPage(schema: String) -> Element {
     rsx! {
         section { class: "flex grow select-none flex-row gap-6",
             div { class: "flex grow flex-col items-center gap-3",
-                div { class: "w-full py-3",
-                    Breadcrumb { title: translate!(i18, "messages.schema") }
-                }
                 form { class: "w-full",
                     id: "schema-form",
                     autocomplete: "off",

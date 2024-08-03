@@ -1,8 +1,8 @@
 [package]
+resolver = "2"
 name = "mtc-model"
 description = "Military training center CMS Model"
-edition = "2021"
-resolver = "2"
+edition.workspace = true
 version.workspace = true
 authors.workspace = true
 license.workspace = true
