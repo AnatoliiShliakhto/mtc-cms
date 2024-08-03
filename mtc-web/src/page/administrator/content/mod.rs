@@ -7,9 +7,10 @@ use dioxus_std::translate;
 
 use mtc_model::api_model::{ApiListItemModel, ApiModel, ApiPostModel};
 use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::record_model::RecordModel;
 use mtc_model::schema_model::SchemaModel;
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::content_handler::ContentHandler;
 use crate::handler::schema_handler::SchemaHandler;
@@ -17,13 +18,16 @@ use crate::model::modal_model::ModalModel;
 use crate::page::not_found::NotFoundPage;
 use crate::router::Route::EditorPage;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 #[component]
 pub fn ContentPage(schema_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
+    
+    if !auth_state.is_permission("writer") | !auth_state.is_permission("schema::read") {
+        return rsx! { NotFoundPage {} };
+    }
 
     let mut content_list = use_signal(BTreeMap::<String, ApiListItemModel>::new);
     let mut schema_slug = use_signal(|| "singles".to_string());
@@ -32,11 +36,30 @@ pub fn ContentPage(schema_prop: String) -> Element {
     let mut is_busy = use_signal(|| true);
     let mut is_new_content = use_signal(|| false);
 
-    if !auth_state.is_permission("writer") | !auth_state.is_permission("schema::read") {
-        return rsx! { NotFoundPage {} };
-    }
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(
+        if schema_slug().eq("singles") {
+            vec![
+                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
+            ]
+        } else if is_new_content() {
+            vec![
+                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+                RecordModel { title: translate!(i18, "messages.add"), slug: "".to_string() },
+            ]
+        } else {
+            vec![
+                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+            ]
+        }
+    );
 
-    use_effect(use_reactive((&schema_prop,), move |(schema_prop,)| {
+    use_effect(use_reactive((&schema_prop,), move |(schema_prop, )| {
         is_busy.set(true);
 
         spawn(async move {
@@ -156,15 +179,6 @@ pub fn ContentPage(schema_prop: String) -> Element {
                     id: "content-form",
                     autocomplete: "off",
                     onsubmit: content_submit,
-                    div { class: "w-full py-3",
-                        Breadcrumb { title:
-                            if schema_slug().eq("singles") {
-                                translate!(i18, "messages.singles")
-                            } else {
-                                schema().title.clone()
-                            }
-                        }
-                    }
 
                     label { class: "w-full form-control",
                         div { class: "label",
@@ -223,16 +237,6 @@ pub fn ContentPage(schema_prop: String) -> Element {
 
     rsx! {
         section { class: "w-full flex-grow p-3",
-            div { class: "w-full py-3",
-                Breadcrumb { title:
-                    if schema_slug().eq("singles") {
-                        translate!(i18, "messages.singles")
-                    } else {
-                        schema().title.clone()
-                    }
-                }
-            }
-
             table { class: "table w-full",
                 thead {
                     tr {

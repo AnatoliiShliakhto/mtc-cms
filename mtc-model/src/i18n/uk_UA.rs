@@ -34,6 +34,7 @@ pub static UK_UA: &str = r#"{
             "delete": "Видалити",
             "download": "зберегти",
             "draft": "Чернетка",
+            "editor": "Редагування",
             "external_data": "Зовнішні дані",
             "fields": "поля",
             "file": "файл",

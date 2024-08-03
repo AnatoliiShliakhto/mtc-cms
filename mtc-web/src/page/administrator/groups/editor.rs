@@ -6,17 +6,17 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
+use mtc_model::record_model::RecordModel;
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
 use crate::model::modal_model::ModalModel;
 use crate::page::not_found::NotFoundPage;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 #[component]
-pub fn GroupEditorPage(group: String) -> Element {
+pub fn GroupEditorPage(group_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
@@ -27,9 +27,25 @@ pub fn GroupEditorPage(group: String) -> Element {
 
     let mut is_busy = use_signal(|| true);
 
-    let group_slug = use_memo(move || group.clone());
+    let group_slug = use_memo(move || group_prop.clone());
     let mut group = use_signal(GroupModel::default);
     let is_new_group = use_memo(move || group_slug().eq("new"));
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+        RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
+        RecordModel {
+            title:
+            if is_new_group() {
+                translate!(i18, "messages.add")
+            } else {
+                group().title
+            }
+            ,
+            slug: "".to_string(),
+        },
+    ]);
 
     use_hook(|| {
         if is_new_group() {
@@ -143,9 +159,7 @@ pub fn GroupEditorPage(group: String) -> Element {
                 id: "group-form",
                 autocomplete: "off",
                 onsubmit: group_submit,
-                div { class: "w-full py-3",
-                    Breadcrumb { title: translate!(i18, "messages.groups") }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",

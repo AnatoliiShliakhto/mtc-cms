@@ -1,12 +1,17 @@
 use dioxus::prelude::*;
 
+use crate::APP_STATE;
 use crate::component::account_controller::AccountControllerComponent;
+use crate::component::breadcrumbs::Breadcrumbs;
 use crate::component::language_switcher::LanguageSwitcherComponent;
 use crate::component::theme_switcher::ThemeSwitcherComponent;
 
 pub fn Header() -> Element {
+    let app_state = APP_STATE.peek();
+    let breadcrumbs = app_state.breadcrumbs.signal();
+
     rsx! {
-        div { class: "bg-base-100 text-base-content sticky top-0 z-[30] flex h-12 w-full justify-center bg-opacity-90 backdrop-blur transition-shadow duration-100 [transform:translate3d(0,0,0)]", 
+        div { class: "bg-base-100 text-base-content sticky top-0 z-[30] flex h-12 w-full justify-center bg-opacity-90 backdrop-blur transition-shadow duration-100 [transform:translate3d(0,0,0)]",
             nav { class: "navbar w-full p-0 min-h-12",
                 div { class: "flex flex-1 md:gap-1 lg:gap-2",
                     label { 
@@ -40,6 +45,11 @@ pub fn Header() -> Element {
                     }
                 }
             }    
+        }
+        if !breadcrumbs().is_empty() {
+            div { class: "bg-base-100 text-base-content sm:sticky top-12 z-[20] flex w-full p-3 bg-opacity-90 backdrop-blur transition-shadow duration-100 [transform:translate3d(0,0,0)]",
+                Breadcrumbs {}
+            }
         }
     }
 }

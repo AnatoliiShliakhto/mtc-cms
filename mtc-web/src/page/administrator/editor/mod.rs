@@ -9,19 +9,20 @@ use html_field::HtmlField;
 use mtc_model::api_model::{ApiModel, ApiPostModel};
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::field_model::FieldTypeModel;
+use mtc_model::record_model::RecordModel;
 use mtc_model::schema_model::SchemaModel;
 use string_field::StringField;
 use text_field::TextField;
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::element::storage::StorageManager;
 use crate::handler::content_handler::ContentHandler;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
+use crate::page::not_found::NotFoundPage;
 use crate::service::content_service::ContentService;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 mod html_field;
 mod string_field;
@@ -40,9 +41,14 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
+    if !auth_state.is_permission("writer") | !auth_state.is_permission("schema::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
     let mut is_busy = use_signal(|| true);
 
     let mut schema = use_signal(SchemaModel::default);
+    let mut schema_slug = use_signal(String::new);
     let mut content = use_signal(ApiModel::default);
     let storage = use_memo(move || content().id);
     let mut form_published = use_signal(|| false);
@@ -50,13 +56,33 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
     let mut is_public_storage_shown = use_signal(|| false);
     let mut is_private_storage_shown = use_signal(|| false);
 
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(
+        if schema_slug().eq("singles") {
+            vec![
+                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
+                RecordModel { title: content().title, slug: "".to_string() },
+            ]
+        } else {
+            vec![
+                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+                RecordModel { title: content().title, slug: "".to_string() },
+            ]
+        }
+    );
+
     use_effect(use_reactive(
         (&schema_prop, &content_prop),
         move |(schema_prop, content_prop)| {
             let app_state = APP_STATE.peek();
 
             spawn(async move {
-                if schema_prop.eq("singles") {
+                schema_slug.set(schema_prop);
+
+                if schema_slug().eq("singles") {
                     match APP_STATE.peek().api.get_schema(&content_prop).await {
                         Ok(value) => schema.set(value),
                         Err(e) => {
@@ -65,7 +91,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                         }
                     }
                 } else {
-                    match APP_STATE.peek().api.get_schema(&schema_prop).await {
+                    match APP_STATE.peek().api.get_schema(&schema_slug()).await {
                         Ok(value) => schema.set(value),
                         Err(e) => {
                             app_state.modal.signal().set(ModalModel::Error(e.message()));
@@ -268,15 +294,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                 id: "content-form",
                 autocomplete: "off",
                 onsubmit: submit_task,
-                div { class: "w-full py-3",
-                    Breadcrumb { title:
-                        if !schema().is_collection {
-                            translate!(i18, "messages.singles")
-                        } else {
-                            schema().title
-                        }
-                    }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary", { translate!(i18, "messages.slug") } }

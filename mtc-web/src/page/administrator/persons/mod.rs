@@ -7,16 +7,29 @@ use dioxus_std::translate;
 use serde_json::Value;
 use tracing::error;
 
+use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::record_model::RecordModel;
 use mtc_model::user_details_model::UserDetailsModel;
 
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 use crate::model::modal_model::ModalModel;
+use crate::page::not_found::NotFoundPage;
 use crate::service::user_service::UserService;
 
 #[component]
 pub fn PersonsPage() -> Element {
+    let app_state = APP_STATE.peek();
+    let auth_state = app_state.auth.read();
     let i18 = use_i18();
+
+    if !auth_state.is_permission("user::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    breadcrumbs.set(vec![
+        RecordModel { title: translate!(i18, "messages.persons"), slug: "/persons".to_string() },
+    ]);
 
     let users_to_clipboard = move |_| {
         let users = APP_STATE.peek().users.signal();
@@ -134,10 +147,6 @@ pub fn PersonsPage() -> Element {
     rsx! {
         section { class: "flex grow select-none flex-row gap-6",
             div { class: "flex grow flex-col items-center gap-3",
-                div { class: "w-full py-3",
-                    Breadcrumb { title: translate!(i18, "messages.persons") }
-                }
-            
                 table { class: "table w-full",
                     thead {
                         tr {
@@ -241,6 +250,6 @@ pub fn PersonsPage() -> Element {
                     }
                 }
             }
-        }          
-    }
+        }
+}
 

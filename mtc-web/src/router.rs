@@ -9,6 +9,7 @@ use tracing::error;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::record_model::RecordModel;
 
+use crate::APP_STATE;
 use crate::component::main_menu_item::MainMenuItem;
 use crate::component::modal_box::ModalBoxComponent;
 use crate::element::footer::Footer;
@@ -29,8 +30,6 @@ use crate::page::administrator::users::editor::UserEditorPage;
 use crate::page::administrator::users::UsersPage;
 use crate::page::dashboard::DashboardPage;
 use crate::page::home::HomePage;
-use crate::page::instructor_tools::InstructorToolsPage;
-use crate::APP_STATE;
 
 #[derive(Routable, Clone, Debug, PartialEq)]
 #[rustfmt::skip]
@@ -47,28 +46,26 @@ pub enum Route {
     AdministratorDashboardPage {},
     #[route("/administrator/groups")]
     GroupsPage {},
-    #[route("/administrator/groups/:group")]
-    GroupEditorPage { group: String },
+    #[route("/administrator/groups/:group_prop")]
+    GroupEditorPage { group_prop: String },
     #[route("/administrator/roles")]
     RolesPage {},
-    #[route("/administrator/roles/:role")]
-    RoleEditorPage { role: String },
+    #[route("/administrator/roles/:role_prop")]
+    RoleEditorPage { role_prop: String },
     #[route("/administrator/users")]
     UsersPage {},
-    #[route("/administrator/users/:user")]
-    UserEditorPage { user: String },
+    #[route("/administrator/users/:user_prop")]
+    UserEditorPage { user_prop: String },
     #[route("/administrator/schemas")]
     SchemasPage {},
-    #[route("/administrator/schemas/:schema")]
-    SchemaEditorPage { schema: String },
+    #[route("/administrator/schemas/:schema_prop")]
+    SchemaEditorPage { schema_prop: String },
     #[route("/content/:schema_prop")]
     ContentPage { schema_prop: String },
     #[route("/editor/:schema_prop/:content_prop")]
     EditorPage { schema_prop: String, content_prop: String },
     #[route("/dashboard")]
     DashboardPage {},
-    #[route("/instructor")]
-    InstructorToolsPage {},
 }
 
 #[component]
@@ -139,8 +136,8 @@ fn RootLayout() -> Element {
                     div { class: "bg-base-200 sticky top-0 z-20 flex items-center gap-2 bg-opacity-90 h-12 backdrop-blur lg:hidden",
                         button { class: "w-full btn btn-ghost justify-start",
                             onclick: move |_| main_menu_toggle.set(false),
-                            span { class: "flex flex-nowrap text-2xl gap-5 items-center font-semibold",
-                                Icon {
+                            span { class: "flex flex-nowrap text-xl gap-5 items-center font-semibold",
+                                Icon { class: "mt-[3px]",
                                     width: 26,
                                     height: 26,
                                     icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack,
