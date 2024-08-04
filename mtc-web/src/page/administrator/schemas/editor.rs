@@ -41,22 +41,24 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
     let mut fields = use_signal(BTreeMap::<usize, FieldModel>::new);
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
-        RecordModel {
-            title:
-            if is_new_schema() {
-                translate!(i18, "messages.add")
-            } else {
-                schema().title
-            }
-            ,
-            slug: "".to_string(),
-        },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
+            RecordModel {
+                title:
+                if is_new_schema() {
+                    translate!(i18, "messages.add")
+                } else {
+                    schema().title
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
 
-    use_hook(|| {
+    use_effect(move || {
         if is_new_schema() {
             is_busy.set(false);
             return;
@@ -395,7 +397,7 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                             maxlength: 50,
                             required: true,
                         }
-                        button { class: "btn btn-outline btn-accent",
+                        button { class: "btn btn-primary",
                             r#type: "submit",
                             form: "field-form",
                             Icon {
@@ -411,7 +413,7 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
             }
 
             aside { class: "flex flex-col gap-3 pt-5 min-w-36",
-                button { class: "btn btn-outline",
+                button { class: "btn btn-ghost",
                     onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
@@ -430,7 +432,7 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                 }
 
                 if auth_state.is_permission("schema::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "schema-form",
                         Icon {
@@ -444,7 +446,7 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                 }
                 if auth_state.is_permission("schema::delete") && !is_new_schema() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: schema_delete,
                         Icon {
                             width: 18,

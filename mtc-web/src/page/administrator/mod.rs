@@ -6,3 +6,5 @@ pub mod persons;
 pub mod roles;
 pub mod schemas;
 pub mod users;
+pub mod storage;
+pub mod migration;

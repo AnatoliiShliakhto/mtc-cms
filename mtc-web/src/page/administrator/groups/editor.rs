@@ -32,22 +32,24 @@ pub fn GroupEditorPage(group_prop: String) -> Element {
     let is_new_group = use_memo(move || group_slug().eq("new"));
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
-        RecordModel {
-            title:
-            if is_new_group() {
-                translate!(i18, "messages.add")
-            } else {
-                group().title
-            }
-            ,
-            slug: "".to_string(),
-        },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
+            RecordModel {
+                title:
+                if is_new_group() {
+                    translate!(i18, "messages.add")
+                } else {
+                    group().title
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
 
-    use_hook(|| {
+    use_effect(move || {
         if is_new_group() {
             is_busy.set(false);
             return;
@@ -192,7 +194,7 @@ pub fn GroupEditorPage(group_prop: String) -> Element {
             }
 
             aside { class: "flex flex-col gap-3 pt-5 min-w-36",
-                button { class: "btn btn-outline",
+                button { class: "btn btn-ghost",
                     onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
@@ -211,7 +213,7 @@ pub fn GroupEditorPage(group_prop: String) -> Element {
                 }
 
                 if auth_state.is_permission("group::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "group-form",
                         Icon {
@@ -225,7 +227,7 @@ pub fn GroupEditorPage(group_prop: String) -> Element {
                 }
                 if auth_state.is_permission("group::delete") && !is_new_group() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: group_delete,
                         Icon {
                             width: 18,

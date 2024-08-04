@@ -24,50 +24,60 @@ pub fn ContentPage(schema_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
-    
+
     if !auth_state.is_permission("writer") | !auth_state.is_permission("schema::read") {
         return rsx! { NotFoundPage {} };
     }
 
     let mut content_list = use_signal(BTreeMap::<String, ApiListItemModel>::new);
-    let mut schema_slug = use_signal(|| "singles".to_string());
+    let mut schema_slug = use_signal(|| schema_prop.clone());
     let mut schema = use_signal(SchemaModel::default);
     let mut content = use_signal(ApiModel::default);
     let mut is_busy = use_signal(|| true);
     let mut is_new_content = use_signal(|| false);
 
-    let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(
-        if schema_slug().eq("singles") {
-            vec![
-                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
-                RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
-            ]
-        } else if is_new_content() {
-            vec![
-                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
-                RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
-                RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
-                RecordModel { title: translate!(i18, "messages.add"), slug: "".to_string() },
-            ]
-        } else {
-            vec![
-                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
-                RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
-                RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
-            ]
-        }
-    );
-
+    let compare_schema_slug = schema_slug();
     use_effect(use_reactive((&schema_prop,), move |(schema_prop, )| {
+        if compare_schema_slug.ne(&schema_prop) {
+            schema_slug.set(schema_prop)
+        }
+    }));
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(
+            if schema_slug().eq("singles") {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
+                ]
+            } else if is_new_content() {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                    RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+                    RecordModel { title: translate!(i18, "messages.add"), slug: "".to_string() },
+                ]
+            } else {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                    RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+                ]
+            }
+        );
+    });
+
+    use_effect(move || {
         is_busy.set(true);
 
+        let m_schema_slug = schema_slug();
+
         spawn(async move {
-            schema_slug.set(schema_prop);
             is_new_content.set(false);
 
-            if schema_slug().ne("singles") {
-                match APP_STATE.peek().api.get_schema(&schema_slug()).await {
+            if m_schema_slug.ne("singles") {
+                match APP_STATE.peek().api.get_schema(&m_schema_slug).await {
                     Ok(value) => schema.set(value),
                     Err(e) => {
                         APP_STATE
@@ -80,7 +90,7 @@ pub fn ContentPage(schema_prop: String) -> Element {
                 }
             }
 
-            match APP_STATE.peek().api.get_content_list(&schema_slug()).await {
+            match APP_STATE.peek().api.get_content_list(&m_schema_slug).await {
                 Ok(value) => {
                     let list = value
                         .iter()
@@ -100,7 +110,7 @@ pub fn ContentPage(schema_prop: String) -> Element {
 
             is_busy.set(false)
         });
-    }));
+    });
 
     let schema_permission = use_memo(move || {
         if schema().is_public {
@@ -209,7 +219,7 @@ pub fn ContentPage(schema_prop: String) -> Element {
                         }
                     }
                     div { class: "flex p-2 gap-5 flex-inline",
-                        button { class: "btn btn-outline btn-success",
+                        button { class: "btn btn-primary",
                             r#type: "submit",
                             Icon {
                                 width: 24,
@@ -219,7 +229,7 @@ pub fn ContentPage(schema_prop: String) -> Element {
                             }
                             { translate!(i18, "messages.add") }
                         }
-                        button { class: "btn btn-outline",
+                        button { class: "btn btn-neutral",
                             onclick: move |_| is_new_content.set(false),
                             Icon {
                                 width: 24,

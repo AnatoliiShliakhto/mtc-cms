@@ -30,6 +30,7 @@ use crate::page::administrator::users::editor::UserEditorPage;
 use crate::page::administrator::users::UsersPage;
 use crate::page::dashboard::DashboardPage;
 use crate::page::home::HomePage;
+use crate::page::not_found::NotFoundPage;
 
 #[derive(Routable, Clone, Debug, PartialEq)]
 #[rustfmt::skip]
@@ -37,8 +38,10 @@ use crate::page::home::HomePage;
 pub enum Route {
     /// Core system routes
     #[layout(RootLayout)]
+    #[route("/not_found")]
+    #[redirect("/:..segments", | segments: Vec < String > | Route::NotFoundPage {})]
+    NotFoundPage {},
     #[route("/")]
-    #[redirect("/:..segments", | segments: Vec < String > | Route::HomePage {})]
     HomePage {},
     #[route("/persons")]
     PersonsPage {},
@@ -136,8 +139,8 @@ fn RootLayout() -> Element {
                     div { class: "bg-base-200 sticky top-0 z-20 flex items-center gap-2 bg-opacity-90 h-12 backdrop-blur lg:hidden",
                         button { class: "w-full btn btn-ghost justify-start",
                             onclick: move |_| main_menu_toggle.set(false),
-                            span { class: "flex flex-nowrap text-xl gap-5 items-center font-semibold",
-                                Icon { class: "mt-[3px]",
+                            span { class: "flex flex-nowrap text-lg gap-3 items-center font-semibold",
+                                Icon { class: "mt-[2px]",
                                     width: 26,
                                     height: 26,
                                     icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack,

@@ -6,6 +6,8 @@ use dioxus_std::translate;
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
 use mtc_model::record_model::RecordModel;
+
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
@@ -13,7 +15,6 @@ use crate::handler::user_handler::UserHandler;
 use crate::page::not_found::NotFoundPage;
 use crate::router::Route::UserEditorPage;
 use crate::service::user_service::UserService;
-use crate::APP_STATE;
 
 pub mod editor;
 
@@ -28,10 +29,12 @@ pub fn UsersPage() -> Element {
     }
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.users"), slug: "/administrator/users".to_string() },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.users"), slug: "/administrator/users".to_string() },
+        ]);
+    });
 
     let pagination = use_signal(|| PaginationModel::new(0, 10));
     let page = use_signal(|| 1usize);

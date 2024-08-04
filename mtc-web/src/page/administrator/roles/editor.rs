@@ -10,6 +10,7 @@ use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::record_model::RecordModel;
 use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 
+use crate::APP_STATE;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::permissions_handler::PermissionsHandler;
@@ -17,7 +18,6 @@ use crate::handler::role_handler::RoleHandler;
 use crate::model::modal_model::ModalModel;
 use crate::page::not_found::NotFoundPage;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 #[component]
 pub fn RoleEditorPage(role_prop: String) -> Element {
@@ -42,22 +42,24 @@ pub fn RoleEditorPage(role_prop: String) -> Element {
     let dummy_permissions_title = use_signal(BTreeMap::<String, String>::new);
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.roles"), slug: "/administrator/roles".to_string() },
-        RecordModel {
-            title:
-            if is_new_role() {
-                translate!(i18, "messages.add")
-            } else {
-                role().title
-            }
-            ,
-            slug: "".to_string(),
-        },
-    ]);
-    
-    use_hook(|| {
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.roles"), slug: "/administrator/roles".to_string() },
+            RecordModel {
+                title:
+                if is_new_role() {
+                    translate!(i18, "messages.add")
+                } else {
+                    role().title
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
+
+    use_effect(move || {
         spawn(async move {
             let mut permissions_list = BTreeSet::<String>::new();
             let mut permissions_role = BTreeSet::<String>::new();
@@ -308,7 +310,7 @@ pub fn RoleEditorPage(role_prop: String) -> Element {
             }
 
             aside { class: "flex flex-col gap-3 pt-5 min-w-36",
-                button { class: "btn btn-outline",
+                button { class: "btn btn-ghost",
                     onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
@@ -327,7 +329,7 @@ pub fn RoleEditorPage(role_prop: String) -> Element {
                 }
 
                 if auth_state.is_permission("role::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "role-form",
                         Icon {
@@ -341,7 +343,7 @@ pub fn RoleEditorPage(role_prop: String) -> Element {
                 }
                 if auth_state.is_permission("role::delete") && !is_new_role() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: role_delete,
                         Icon {
                             width: 18,

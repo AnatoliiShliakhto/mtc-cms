@@ -45,7 +45,9 @@ pub static EN_US: &str = r#"{
             "load": "Load",
             "loading": "Loading...",
             "login": "login",
+            "login_announcement": "You need to contact the responsible persons of the military unit to obtain credentials.",
             "logged_in": "You are logged in.",
+            "login_now": "Login now!",
             "menu": "Menu",
             "migration": "Migration",
             "migration_success": "Migration successfull!",
@@ -90,6 +92,7 @@ pub static EN_US: &str = r#"{
             "user_active": "Active",
             "user_blocked": "Blocked",          
             "welcome": "Welcome!",
+            "welcome_announcement": "You can change your password with this form іf necessary.",
             "yes": "Yes"
         },
         "errors": {

@@ -10,6 +10,7 @@ use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::record_model::RecordModel;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
+use crate::APP_STATE;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
@@ -19,7 +20,6 @@ use crate::model::modal_model::ModalModel;
 use crate::page::not_found::NotFoundPage;
 use crate::service::user_service::UserService;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 
 #[component]
 pub fn UserEditorPage(user_prop: String) -> Element {
@@ -47,22 +47,24 @@ pub fn UserEditorPage(user_prop: String) -> Element {
     let mut groups_title = use_signal(BTreeMap::<String, String>::new);
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.users"), slug: "/administrator/users".to_string() },
-        RecordModel {
-            title:
-            if is_new_user() {
-                translate!(i18, "messages.add")
-            } else {
-                user().login
-            }
-            ,
-            slug: "".to_string(),
-        },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.users"), slug: "/administrator/users".to_string() },
+            RecordModel {
+                title:
+                if is_new_user() {
+                    translate!(i18, "messages.add")
+                } else {
+                    user().login
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
 
-    use_hook(|| {
+    use_effect(move || {
         spawn(async move {
             let mut groups_list = BTreeSet::<String>::new();
             let mut groups_user = BTreeSet::<String>::new();
@@ -318,7 +320,7 @@ pub fn UserEditorPage(user_prop: String) -> Element {
             }
 
             aside { class: "flex flex-col gap-3 pt-5 min-w-36",
-                button { class: "btn btn-outline",
+                button { class: "btn btn-ghost",
                     onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
@@ -338,9 +340,9 @@ pub fn UserEditorPage(user_prop: String) -> Element {
 
                 label { class:
                     if form_blocked() {
-                        "items-center rounded border p-3 swap border-error text-error"
+                        "items-center p-3 swap text-warning"
                     } else {
-                        "items-center rounded border p-3 swap border-success text-success"
+                        "items-center p-3 swap text-success"
                     },
                     input { r#type: "checkbox",
                         name: "blocked",
@@ -368,7 +370,7 @@ pub fn UserEditorPage(user_prop: String) -> Element {
                     }
                 }
                 if auth_state.is_permission("user::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "user-form",
                         Icon {
@@ -382,7 +384,7 @@ pub fn UserEditorPage(user_prop: String) -> Element {
                 }
                 if auth_state.is_permission("user::delete") && !is_new_user() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: user_delete,
                         Icon {
                             width: 18,

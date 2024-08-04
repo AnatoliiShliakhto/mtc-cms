@@ -28,10 +28,12 @@ pub fn GroupsPage() -> Element {
     }
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
+        ]);
+    });
 
     let pagination = use_signal(|| PaginationModel::new(0, 10));
     let page = use_signal(|| 1usize);

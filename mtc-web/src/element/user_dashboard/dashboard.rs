@@ -40,7 +40,7 @@ pub fn Dashboard() -> Element {
             is_busy.set(false);
             return;
         };
-        
+
         if !event.is_string_valid("old-password", 6) | !event.is_string_valid("new-password", 6)
         {
             APP_STATE
@@ -72,6 +72,76 @@ pub fn Dashboard() -> Element {
         });
     };
 
+    rsx! {
+        div { class: "hero",
+            div { class: "hero-content flex-col lg:flex-row-reverse",
+                div { class: "text-center lg:text-left w-full sm:max-w-sm",
+                    h1 { class: "text-3xl font-bold", { translate!(i18, "messages.welcome") } }
+                    p { class: "py-6", { translate!(i18, "messages.welcome_announcement") } }
+                }
+                div { class: "card w-full max-w-sm shrink-0 border input-bordered rounded",
+                    form { class: "card-body",
+                        id: "password-form",
+                        autocomplete: "off",
+                        onsubmit: password_submit,
+                        div { class: "form-control",
+                            label { class: "label",
+                                span { class:"label-text", { translate!(i18, "messages.password_old") } }
+                            }
+                            input { r#type: "password", name: "old-password",
+                                class: "input input-bordered",
+                                minlength: 6,
+                                maxlength: 20,
+                                required: true,
+                            }
+                        }
+                        div { class: "form-control",
+                            label { class: "label",
+                                span { class:"label-text", { translate!(i18, "messages.password_new") } }
+                            }
+                            input { r#type: "password", name: "new-password",
+                                class: "input input-bordered",
+                                minlength: 6,
+                                maxlength: 20,
+                                required: true,
+                            }
+                        }
+                        div { class: "form-control",
+                            label { class: "label",
+                                span { class:"label-text", { translate!(i18, "messages.password_confirm") } }
+                            }
+                            input { r#type: "password", name: "confirm-password",
+                                class: "input input-bordered",
+                                minlength: 6,
+                                maxlength: 20,
+                                required: true,
+                            }
+                        }                        
+                        div { class: "form-control mt-6",
+                            if !is_busy() {
+                                button { class: "btn btn-primary",
+                                    r#type: "submit",
+                                    Icon {
+                                        width: 22,
+                                        height: 22,
+                                        icon: dioxus_free_icons::icons::md_action_icons::MdLockOutline
+                                    }
+                                    { translate!(i18, "messages.password_change") }
+                                }
+                            } else {
+                                div { class: "flex flex-nowrap gap-4 self-center justify center items-center",
+                                    span { class: "loading loading-spinner loading-md" }
+                                    span { { translate!(i18, "messages.processing") } "..." }
+                                }
+                            }
+                        }
+                    }    
+                }
+            }
+        }
+    }
+}    
+/*
     rsx! {
         p { class: "self-center text-xl",
             { translate!(i18, "messages.welcome") }
@@ -143,3 +213,6 @@ pub fn Dashboard() -> Element {
         }
     }
 }
+
+
+ */
