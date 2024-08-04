@@ -28,10 +28,12 @@ pub fn SchemasPage() -> Element {
     }
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
+        ]);
+    });
 
     let page = use_signal(|| 1usize);
     let pagination = use_signal(|| PaginationModel::new(0, 10));

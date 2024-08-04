@@ -27,9 +27,11 @@ pub fn PersonsPage() -> Element {
     }
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(vec![
-        RecordModel { title: translate!(i18, "messages.persons"), slug: "/persons".to_string() },
-    ]);
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.persons"), slug: "/persons".to_string() },
+        ]);
+    });
 
     let users_to_clipboard = move |_| {
         let users = APP_STATE.peek().users.signal();

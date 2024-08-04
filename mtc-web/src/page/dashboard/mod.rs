@@ -14,23 +14,23 @@ pub fn DashboardPage() -> Element {
     let i18 = use_i18();
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(
-        if APP_STATE.peek().auth.signal().read().is_auth() {
-            vec![
-                RecordModel { title: translate!(i18, "messages.settings"), slug: "/dashboard".to_string() }
-            ]
-        } else {
-            vec![
-                RecordModel { title: translate!(i18, "messages.sign_in"), slug: "/dashboard".to_string() }
-            ]
-        }
-    );
+    use_effect(move || {
+        breadcrumbs.set(
+            if APP_STATE.peek().auth.signal().read().is_auth() {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.settings"), slug: "".to_string() }
+                ]
+            } else {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.sign_in"), slug: "".to_string() }
+                ]
+            }
+        );
+    });
 
     rsx! {
         div { class: crate::DIV_CENTER,
-            div { class: "flex w-full flex-col rounded border p-5 shadow-md max-w-96 input-bordered",
-                UserDashboard {}
-            }
+            UserDashboard {}
         }
     }
 }

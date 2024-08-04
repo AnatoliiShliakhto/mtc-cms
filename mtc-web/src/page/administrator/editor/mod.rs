@@ -16,11 +16,12 @@ use text_field::TextField;
 
 use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
-use crate::element::storage::StorageManager;
 use crate::handler::content_handler::ContentHandler;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
+use crate::page::administrator::storage::StorageManager;
 use crate::page::not_found::NotFoundPage;
+use crate::repository::storage::use_session_storage;
 use crate::service::content_service::ContentService;
 use crate::service::validator_service::ValidatorService;
 
@@ -48,89 +49,107 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
     let mut is_busy = use_signal(|| true);
 
     let mut schema = use_signal(SchemaModel::default);
-    let mut schema_slug = use_signal(String::new);
+    let mut schema_slug = use_signal(|| schema_prop.clone());
     let mut content = use_signal(ApiModel::default);
+    let mut content_slug = use_signal(|| content_prop.clone());
     let storage = use_memo(move || content().id);
     let mut form_published = use_signal(|| false);
 
     let mut is_public_storage_shown = use_signal(|| false);
     let mut is_private_storage_shown = use_signal(|| false);
 
-    let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(
-        if schema_slug().eq("singles") {
-            vec![
-                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
-                RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
-                RecordModel { title: content().title, slug: "".to_string() },
-            ]
-        } else {
-            vec![
-                RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
-                RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
-                RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
-                RecordModel { title: content().title, slug: "".to_string() },
-            ]
-        }
-    );
+    let mut content_id = use_session_storage("contentId", String::new);
 
+    let compare_schema_slug = schema_slug();
+    let compare_content_slug = content_slug();
     use_effect(use_reactive(
         (&schema_prop, &content_prop),
         move |(schema_prop, content_prop)| {
-            let app_state = APP_STATE.peek();
+            if compare_schema_slug.ne(&schema_prop) {
+                schema_slug.set(schema_prop)
+            }
+            if compare_content_slug.ne(&content_prop) {
+                content_slug.set(content_prop)
+            }
+        }));
 
-            spawn(async move {
-                schema_slug.set(schema_prop);
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(
+            if schema_slug().eq("singles") {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
+                    RecordModel { title: content().title, slug: "".to_string() },
+                ]
+            } else {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                    RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+                    RecordModel { title: content().title, slug: "".to_string() },
+                ]
+            }
+        );
+    });
 
-                if schema_slug().eq("singles") {
-                    match APP_STATE.peek().api.get_schema(&content_prop).await {
-                        Ok(value) => schema.set(value),
-                        Err(e) => {
-                            app_state.modal.signal().set(ModalModel::Error(e.message()));
-                            navigator().go_back()
-                        }
-                    }
-                } else {
-                    match APP_STATE.peek().api.get_schema(&schema_slug()).await {
-                        Ok(value) => schema.set(value),
-                        Err(e) => {
-                            app_state.modal.signal().set(ModalModel::Error(e.message()));
-                            navigator().go_back()
-                        }
+    use_effect(move || {
+        let app_state = APP_STATE.peek();
+
+        let m_schema_slug = schema_slug();
+        let m_content_slug = content_slug();
+
+        spawn(async move {
+            if m_schema_slug.eq("singles") {
+                match APP_STATE.peek().api.get_schema(&m_content_slug).await {
+                    Ok(value) => schema.set(value),
+                    Err(e) => {
+                        app_state.modal.signal().set(ModalModel::Error(e.message()));
+                        navigator().go_back()
                     }
                 }
-                if schema().is_collection {
-                    match app_state
-                        .api
-                        .get_collection_content(&schema().slug, &content_prop)
-                        .await
-                    {
-                        Ok(value) => {
-                            form_published.set(value.published);
-                            content.set(value)
-                        }
-                        Err(e) => {
-                            app_state.modal.signal().set(ModalModel::Error(e.message()));
-                            navigator().go_back()
-                        }
-                    }
-                } else {
-                    match app_state.api.get_single_content(&schema().slug).await {
-                        Ok(value) => {
-                            form_published.set(value.published);
-                            content.set(value)
-                        }
-                        Err(e) => {
-                            app_state.modal.signal().set(ModalModel::Error(e.message()));
-                            navigator().go_back()
-                        }
+            } else {
+                match APP_STATE.peek().api.get_schema(&m_schema_slug).await {
+                    Ok(value) => schema.set(value),
+                    Err(e) => {
+                        app_state.modal.signal().set(ModalModel::Error(e.message()));
+                        navigator().go_back()
                     }
                 }
+            }
+            if schema().is_collection {
+                match app_state
+                    .api
+                    .get_collection_content(&schema().slug, &m_content_slug)
+                    .await
+                {
+                    Ok(value) => {
+                        form_published.set(value.published);
+                        content_id.set(value.id.clone());
+                        content.set(value)
+                    }
+                    Err(e) => {
+                        app_state.modal.signal().set(ModalModel::Error(e.message()));
+                        navigator().go_back()
+                    }
+                }
+            } else {
+                match app_state.api.get_single_content(&schema().slug).await {
+                    Ok(value) => {
+                        form_published.set(value.published);
+                        content_id.set(value.id.clone());
+                        content.set(value)
+                    }
+                    Err(e) => {
+                        app_state.modal.signal().set(ModalModel::Error(e.message()));
+                        navigator().go_back()
+                    }
+                }
+            }
 
-                is_busy.set(false);
-            });
-        },
-    ));
+            is_busy.set(false);
+        });
+    });
 
     let schema_permission = use_memo(move || {
         if schema().is_public {
@@ -245,45 +264,6 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
     }
 
     rsx! {
-        script {
-            {
-    [r#"
-    class ImageUploadAdapter {
-        constructor(loader) { this.loader = loader; }
-
-        upload() {
-                let url = '"#, crate::API_URL, "/storage/", storage().as_str(), r#"';
-
-                return this.loader.file
-                    .then(file => new Promise((resolve, reject) => {
-                        const data = new FormData();
-                        data.append('file', file);
-
-                        fetch(url, {
-                            method: 'POST',
-                            body: data,
-                            credentials: 'include', // pass cookie
-                        })
-                        .then(data => {
-                            resolve({
-                                default: '"#, crate::PUBLIC_STORAGE_URL, "/", storage().as_str(), r#"/' + file.name
-                            });
-                        })
-                        .catch(error => { reject(error); });
-                    }));
-            }
-
-        abort() {}
-    }
-
-    function ImageUploadAdapterPlugin(editor) {
-        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-            return new ImageUploadAdapter(loader);
-        };
-    }
-    "#].concat()
-            }
-        }
         if is_public_storage_shown() {
             StorageManager { dir: storage, is_shown: is_public_storage_shown, private: false }
         } else if is_private_storage_shown() {
@@ -337,7 +317,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
             }
 
             aside { class: "flex flex-col gap-3 pt-5 min-w-36",
-                button { class: "btn btn-outline",
+                button { class: "btn btn-ghost",
                     onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
@@ -356,9 +336,9 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                 }
                 label { class:
                     if form_published() {
-                        "items-center rounded border p-3 swap border-success text-success"
+                        "items-center p-3 swap text-success"
                     } else {
-                        "items-center rounded border p-3 swap border-warning text-warning"
+                        "items-center p-3 swap text-warning"
                     },
                     input { r#type: "checkbox",
                         name: "published",
@@ -388,7 +368,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
 
                 div { class: "w-full join",
                     if auth_state.is_permission("storage::read") {
-                        button { class: "btn btn-outline join-item",
+                        button { class: "btn btn-ghost join-item",
                             onclick: move |_| is_public_storage_shown.set(true),
                             Icon {
                                 width: 22,
@@ -398,7 +378,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                             }
                         }
                     } else {
-                        button { class: "btn btn-outline btn-disabled join-item",
+                        button { class: "btn btn-ghost btn-disabled join-item",
                             disabled: "disabled",
                             Icon {
                                 width: 22,
@@ -408,6 +388,10 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                             }
                         }
                     }
+                    div { class: "grid place-items-center w-fit join-item text-neutral px-2 text-lg semibold",
+                        "<>"
+                    }
+                    /*
                     div { class: "grid place-items-center w-full join-item bg-base-content text-base-300",
                         Icon {
                             width: 30,
@@ -416,8 +400,9 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                             icon: dioxus_free_icons::icons::md_file_icons::MdCloudUpload
                         }
                     }
+                     */
                     if auth_state.is_permission("private_storage::read") {
-                        button { class: "btn btn-outline join-item",
+                        button { class: "btn btn-ghost join-item",
                             onclick: move |_| is_private_storage_shown.set(true),
                             Icon {
                                 width: 22,
@@ -427,7 +412,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                             }
                         }
                     } else {
-                        button { class: "btn btn-outline btn-disabled join-item",
+                        button { class: "btn btn-ghost btn-disabled join-item",
                             disabled: "disabled",
                             Icon {
                                 width: 22,
@@ -439,7 +424,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                     }
                 }
                 if auth_state.is_permission(&[&schema_permission(), "::write"].concat()) {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "content-form",
                         Icon {
@@ -453,7 +438,7 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                 }
                 if schema().is_collection && auth_state.is_permission(&[&schema_permission(), "::delete"].concat()) {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: content_delete,
                         Icon {
                             width: 18,

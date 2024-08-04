@@ -19,11 +19,13 @@ pub fn AdministratorDashboardPage() -> Element {
     }
 
     let mut breadcrumbs = app_state.breadcrumbs.signal();
-    breadcrumbs.set(
-        vec![
-            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
-        ]
-    );
+    use_effect(move || {
+        breadcrumbs.set(
+            vec![
+                RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            ]
+        );
+    });
 
     rsx! {
         section { class: "w-full flex-grow p-3",
