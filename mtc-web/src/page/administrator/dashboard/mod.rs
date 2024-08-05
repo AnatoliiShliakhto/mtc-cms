@@ -6,6 +6,7 @@ use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::record_model::RecordModel;
 
 use crate::APP_STATE;
+use crate::page::administrator::migration::Migration;
 use crate::page::not_found::NotFoundPage;
 
 #[component]
@@ -28,9 +29,14 @@ pub fn AdministratorDashboardPage() -> Element {
     });
 
     rsx! {
-        section { class: "w-full flex-grow p-3",
-            div { class: crate::DIV_CENTER,
-                span { "In-Dev" }
+        section { class: "flex w-full grow flex-wrap p-3 gap-5",
+            div { class: "card bg-base-100 min-w-sm shadow-md",
+                div { class: "card-body",
+                    h2 { class: "card-title pb-2",
+                        { translate!(i18, "messages.migration") }
+                    }
+                    Migration {}
+                }    
             }
         }
     }

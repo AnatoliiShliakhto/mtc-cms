@@ -22,11 +22,7 @@ pub async fn migration_handler(
 ) -> Result<()> {
     if !state.migration_service.is_new().await? {
         session.permission("administrator").await?;
-    }
-
-    let sql = state.migration_service.get_migration().await?;
-    if sql.is_none() {
-        return Ok(ApiResponse::Ok);
+        session.permission("schema::write").await?;
     }
 
     let salt = SaltString::from_b64(&state.cfg.password_salt).unwrap();
@@ -36,15 +32,20 @@ pub async fn migration_handler(
         .hash_password(payload.password.as_bytes(), &salt)
         .expect("Error occurred while encrypted password")
         .to_string();
+    
+    while let Some(file_name) = state.migration_service.get_migration_file_name().await? {
+        let sql = state.migration_service.get_migration(&file_name).await?;
 
-    let responses = state
-        .db
-        .query(sql.unwrap())
-        .bind(("login", payload.login.trim().to_uppercase()))
-        .bind(("password", password_hash.as_str()))
-        .await?;
+        state
+            .db
+            .query(sql)
+            .bind(("login", payload.login.trim().to_uppercase()))
+            .bind(("password", password_hash.as_str()))
+            .await?;
+        info!("Migration {} is done!", file_name);
 
-    info!("{responses:#?}\nMigration done!");
-
+        state.migration_service.delete_migration_file(&file_name).await?;
+    } 
+    
     Ok(ApiResponse::Ok)
 }

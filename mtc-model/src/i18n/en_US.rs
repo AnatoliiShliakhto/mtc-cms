@@ -30,6 +30,7 @@ pub static EN_US: &str = r#"{
             "content": "Content",
             "copyright": "2024 © Powered by MTC-CMS",
             "created_at": "created at",
+            "created_by": "created by",
             "dashboard": "Dashboard",
             "delete": "Delete",
             "draft": "Draft",

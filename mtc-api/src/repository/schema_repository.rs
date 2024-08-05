@@ -98,17 +98,20 @@ impl SchemaRepositoryTrait for SchemaService {
                     r#"
                     CREATE permissions CONTENT {
                         id: $permission_read_id,
-                        slug: $permission_read
+                        slug: $permission_read,
+                        created_by: $auth_id
                     };
 
                     CREATE permissions CONTENT {
                         id: $permission_write_id,
-                        slug: $permission_write
+                        slug: $permission_write,
+                        created_by: $auth_id
                     };
 
                     CREATE permissions CONTENT {
                         id: $permission_delete_id,
-                        slug: $permission_delete
+                        slug: $permission_delete,
+                        created_by: $auth_id
                     };
 
                     COMMIT TRANSACTION;

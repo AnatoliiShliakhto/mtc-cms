@@ -3067,10 +3067,6 @@ html {
     --btn-color: var(--fallback-p);
   }
 
-  .btn-accent {
-    --btn-color: var(--fallback-a);
-  }
-
   .btn-neutral {
     --btn-color: var(--fallback-n);
   }
@@ -3138,10 +3134,6 @@ html {
     --btn-color: var(--p);
   }
 
-  .btn-accent {
-    --btn-color: var(--a);
-  }
-
   .btn-neutral {
     --btn-color: var(--n);
   }
@@ -3149,12 +3141,6 @@ html {
   .btn-error {
     --btn-color: var(--er);
   }
-}
-
-.btn-accent {
-  --tw-text-opacity: 1;
-  color: var(--fallback-ac,oklch(var(--ac)/var(--tw-text-opacity)));
-  outline-color: var(--fallback-a,oklch(var(--a)/1));
 }
 
 .btn-neutral {
@@ -5046,6 +5032,10 @@ html:has(.drawer-toggle:checked) {
   width: 100%;
 }
 
+.w-96 {
+  width: 24rem;
+}
+
 .min-w-36 {
   min-width: 9rem;
 }
@@ -5322,6 +5312,10 @@ html:has(.drawer-toggle:checked) {
   padding-top: 1.75rem;
 }
 
+.pb-2 {
+  padding-bottom: 0.5rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -5439,6 +5433,12 @@ html:has(.drawer-toggle:checked) {
 .shadow-xl {
   --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.shadow-lg {
+  --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
@@ -5828,6 +5828,10 @@ input:invalid {
 
   .sm\:w-80 {
     width: 20rem;
+  }
+
+  .sm\:w-96 {
+    width: 24rem;
   }
 
   .sm\:max-w-sm {

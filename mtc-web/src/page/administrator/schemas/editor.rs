@@ -348,7 +348,9 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                     table { class: "table w-full",
                         thead {
                             tr {
-                                th { class: "w-6" }
+                                if auth_state.is_permission("schema::write") {
+                                    th { class: "w-6" }
+                                }
                                 th { { translate!(i18, "messages.type") } }
                                 th { { translate!(i18, "messages.slug") } }
                                 th { { translate!(i18, "messages.title") } }
@@ -357,15 +359,17 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                         tbody {
                             for (id, field) in fields() {
                                 tr { class: "hover:bg-base-200 hover:shadow-md",
-                                    td {
-                                        button { class: "btn btn-xs btn-ghost text-error",
-                                            onclick: move |_| field_remove(&id),
-                                            Icon {
-                                                width: 16,
-                                                height: 16,
-                                                fill: "currentColor",
-                                                icon: dioxus_free_icons::icons::md_navigation_icons::MdClose
-                                            }
+                                    if auth_state.is_permission("schema::write") {
+                                        td {
+                                            button { class: "btn btn-xs btn-ghost text-error",
+                                                onclick: move |_| field_remove(&id),
+                                                Icon {
+                                                    width: 16,
+                                                    height: 16,
+                                                    fill: "currentColor",
+                                                    icon: dioxus_free_icons::icons::md_navigation_icons::MdClose
+                                                }
+                                            }    
                                         }
                                     }
                                     td { { translate!(i18, ["fields.", field.field_type.to_string().as_str()].concat().as_str()) } }
@@ -375,38 +379,40 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                             }
                         }
                     }
-                    div { class: "mt-1 label",
-                        span { class: "label-text text-primary", "⌘ " { translate!(i18, "messages.new_field") } }
-                    }
-                    div { class: "flex flex-wrap gap-5 rounded p-2 bg-base-200",
-                        select { class: "select select-bordered input-bordered",
-                            name: "field_type",
-                            option { value: "str", selected: true, { translate!(i18, "fields.str") } }
-                            option { value: "text", { translate!(i18, "fields.text") } }
-                            option { value: "html", { translate!(i18, "fields.html") } }
+                    if auth_state.is_permission("schema::write") {
+                        div { class: "mt-1 label",
+                            span { class: "label-text text-primary", "⌘ " { translate!(i18, "messages.new_field") } }
                         }
-                        input { r#type: "text", name: "slug", placeholder: translate!(i18, "messages.slug"),
-                            class: "input input-bordered",
-                            minlength: 4,
-                            maxlength: 30,
-                            required: true,
-                        }
-                        input { r#type: "text", name: "title", placeholder: translate!(i18, "messages.title"),
-                            class: "min-w-72 input input-bordered",
-                            minlength: 4,
-                            maxlength: 50,
-                            required: true,
-                        }
-                        button { class: "btn btn-primary",
-                            r#type: "submit",
-                            form: "field-form",
-                            Icon {
-                                width: 24,
-                                height: 24,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_content_icons::MdAdd
+                        div { class: "flex flex-wrap gap-5 rounded p-2 bg-base-200",
+                            select { class: "select select-bordered input-bordered",
+                                name: "field_type",
+                                option { value: "str", selected: true, { translate!(i18, "fields.str") } }
+                                option { value: "text", { translate!(i18, "fields.text") } }
+                                option { value: "html", { translate!(i18, "fields.html") } }
                             }
-                            { translate!(i18, "messages.add_field") }
+                            input { r#type: "text", name: "slug", placeholder: translate!(i18, "messages.slug"),
+                                class: "input input-bordered",
+                                minlength: 4,
+                                maxlength: 30,
+                                required: true,
+                            }
+                            input { r#type: "text", name: "title", placeholder: translate!(i18, "messages.title"),
+                                class: "min-w-72 input input-bordered",
+                                minlength: 4,
+                                maxlength: 50,
+                                required: true,
+                            }
+                            button { class: "btn btn-primary",
+                                r#type: "submit",
+                                form: "field-form",
+                                Icon {
+                                    width: 24,
+                                    height: 24,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_content_icons::MdAdd
+                                }
+                                { translate!(i18, "messages.add_field") }
+                            }    
                         }
                     }
                 }

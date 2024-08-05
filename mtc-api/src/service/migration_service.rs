@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use axum::async_trait;
 use tokio::fs;
+
 use crate::error::Result;
 
 crate::impl_service!(MigrationService);
@@ -9,7 +10,9 @@ crate::impl_service!(MigrationService);
 #[async_trait]
 pub trait MigrationTrait {
     async fn is_new(&self) -> Result<bool>;
-    async fn get_migration(&self) -> Result<Option<String>>;
+    async fn get_migration_file_name(&self) -> Result<Option<String>>;
+    async fn get_migration(&self, file_name: &str) -> Result<String>;
+    async fn delete_migration_file(&self, file_name: &str) -> Result<()>;
 }
 
 #[async_trait]
@@ -18,7 +21,7 @@ impl MigrationTrait for MigrationService {
         Ok(fs::try_exists([&self.cfg.migration_path, "0000-init.sql"].join("/")).await?)
     }
 
-    async fn get_migration(&self) -> Result<Option<String>> {
+    async fn get_migration_file_name(&self) -> Result<Option<String>> {
         let mut files = BTreeSet::<String>::new();
         if let Ok(mut folder) = fs::read_dir(&self.cfg.migration_path).await {
             while let Ok(Some(child)) = folder.next_entry().await {
@@ -29,16 +32,25 @@ impl MigrationTrait for MigrationService {
                 }
             }
         }
+
         if files.is_empty() {
             return Ok(None);
         }
-        
-        let file_name = [&self.cfg.migration_path, files.first().unwrap().as_str()].join("/");
-        let sql = fs::read_to_string(&file_name).await?;
 
+        let file_name = [&self.cfg.migration_path, files.first().unwrap().as_str()].join("/");
+
+        Ok(Some(file_name))
+    }
+
+    async fn get_migration(&self, file_name: &str) -> Result<String> {
+        Ok(fs::read_to_string(&file_name).await?)
+    }
+
+    #[allow(unused_variables)]
+    async fn delete_migration_file(&self, file_name: &str) -> Result<()> {
         #[cfg(not(debug_assertions))]
         fs::remove_file(file_name).await?;
-        
-        Ok(Some(sql))
+
+        Ok(())
     }
 }

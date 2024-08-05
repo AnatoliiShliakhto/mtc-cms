@@ -56,8 +56,9 @@ DEFINE FIELD created_at ON TABLE users TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE users TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE users TYPE string;
 DEFINE FIELD updated_by ON TABLE users TYPE string;
-DEFINE INDEX idx_users_update ON TABLE users COLUMNS updated_at;
 DEFINE INDEX idx_users_login ON TABLE users COLUMNS login UNIQUE;
+DEFINE INDEX idx_users_access_level ON TABLE users COLUMNS access_level;
+DEFINE INDEX idx_users_access_level_blocked ON TABLE users COLUMNS access_level, blocked;
 
 CREATE users CONTENT {
     id: 'sa',
@@ -122,8 +123,9 @@ CREATE schemas CONTENT {
 };
 
 DEFINE FIELD slug ON TABLE permissions TYPE string;
+DEFINE FIELD is_custom ON TABLE permissions TYPE bool DEFAULT false;
+DEFINE FIELD created_by ON TABLE permissions TYPE string DEFAULT $login;
 DEFINE FIELD created_at ON TABLE permissions TYPE datetime DEFAULT time::now();
-DEFINE FIELD updated_at ON TABLE permissions TYPE datetime VALUE time::now();
 DEFINE INDEX idx_permissions_slug ON TABLE permissions COLUMNS slug UNIQUE;
 
 CREATE permissions CONTENT {

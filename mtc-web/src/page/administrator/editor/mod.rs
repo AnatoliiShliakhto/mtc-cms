@@ -334,63 +334,64 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                     span { { content.read().updated_by.clone() } }
                     span { class: "label-text-alt", { content().updated_at.clone().with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
                 }
-                label { class:
-                    if form_published() {
-                        "items-center p-3 swap text-success"
-                    } else {
-                        "items-center p-3 swap text-warning"
-                    },
-                    input { r#type: "checkbox",
-                        name: "published",
-                        form: "content-form",
-                        checked: form_published(),
-                        onchange: move |event| form_published.set(event.checked())
-                    }
-                    div { class: "inline-flex gap-3 swap-on",
-                        Icon {
-                            width: 22,
-                            height: 22,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::md_action_icons::MdVisibility
+                if auth_state.is_permission(&[&schema_permission(), "::write"].concat()) {
+                    label { class:
+                        if form_published() {
+                            "items-center p-3 swap text-success"
+                        } else {
+                            "items-center p-3 swap text-warning"
+                        },
+                        input { r#type: "checkbox",
+                            name: "published",
+                            form: "content-form",
+                            checked: form_published(),
+                            onchange: move |event| form_published.set(event.checked())
                         }
-                        { translate!(i18, "messages.published") }
-                    }
-                    div { class: "inline-flex gap-3 swap-off",
-                        Icon {
-                            width: 22,
-                            height: 22,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::md_action_icons::MdVisibilityOff
+                        div { class: "inline-flex gap-3 swap-on",
+                            Icon {
+                                width: 22,
+                                height: 22,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_action_icons::MdVisibility
+                            }
+                            { translate!(i18, "messages.published") }
                         }
-                        { translate!(i18, "messages.draft") }
+                        div { class: "inline-flex gap-3 swap-off",
+                            Icon {
+                                width: 22,
+                                height: 22,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_action_icons::MdVisibilityOff
+                            }
+                            { translate!(i18, "messages.draft") }
+                        }
                     }
-                }
 
-                div { class: "w-full join",
-                    if auth_state.is_permission("storage::read") {
-                        button { class: "btn btn-ghost join-item",
-                            onclick: move |_| is_public_storage_shown.set(true),
-                            Icon {
-                                width: 22,
-                                height: 22,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                    div { class: "w-full join",
+                        if auth_state.is_permission("storage::read") {
+                            button { class: "btn btn-ghost join-item",
+                                onclick: move |_| is_public_storage_shown.set(true),
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                                }
+                            }
+                        } else {
+                            button { class: "btn btn-ghost btn-disabled join-item",
+                                disabled: "disabled",
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                                }
                             }
                         }
-                    } else {
-                        button { class: "btn btn-ghost btn-disabled join-item",
-                            disabled: "disabled",
-                            Icon {
-                                width: 22,
-                                height: 22,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_social_icons::MdGroups
-                            }
+                        div { class: "grid place-items-center w-fit join-item text-neutral px-2 text-lg semibold",
+                            "<>"
                         }
-                    }
-                    div { class: "grid place-items-center w-fit join-item text-neutral px-2 text-lg semibold",
-                        "<>"
-                    }
                     /*
                     div { class: "grid place-items-center w-full join-item bg-base-content text-base-300",
                         Icon {
@@ -401,29 +402,29 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                         }
                     }
                      */
-                    if auth_state.is_permission("private_storage::read") {
-                        button { class: "btn btn-ghost join-item",
-                            onclick: move |_| is_private_storage_shown.set(true),
-                            Icon {
-                                width: 22,
-                                height: 22,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                        if auth_state.is_permission("private_storage::read") {
+                            button { class: "btn btn-ghost join-item",
+                                onclick: move |_| is_private_storage_shown.set(true),
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                                }
                             }
-                        }
-                    } else {
-                        button { class: "btn btn-ghost btn-disabled join-item",
-                            disabled: "disabled",
-                            Icon {
-                                width: 22,
-                                height: 22,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                        } else {
+                            button { class: "btn btn-ghost btn-disabled join-item",
+                                disabled: "disabled",
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                                }
                             }
                         }
                     }
-                }
-                if auth_state.is_permission(&[&schema_permission(), "::write"].concat()) {
+                
                     button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "content-form",

@@ -30,6 +30,7 @@ pub static UK_UA: &str = r#"{
             "content": "Контент",
             "copyright": "2024 © Працює на MTC-CMS",
             "created_at": "створено",
+            "created_by": "створено",            
             "dashboard": "Користувач",
             "delete": "Видалити",
             "download": "зберегти",
