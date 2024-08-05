@@ -9,20 +9,21 @@ use html_field::HtmlField;
 use mtc_model::api_model::{ApiModel, ApiPostModel};
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::field_model::FieldTypeModel;
+use mtc_model::record_model::RecordModel;
 use mtc_model::schema_model::SchemaModel;
 use string_field::StringField;
 use text_field::TextField;
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
-use crate::element::storage::StorageManager;
 use crate::handler::content_handler::ContentHandler;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
-use crate::page::administrator::AdministratorRouteModel;
+use crate::page::administrator::storage::StorageManager;
+use crate::page::not_found::NotFoundPage;
+use crate::repository::storage::use_session_storage;
 use crate::service::content_service::ContentService;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 
 mod html_field;
@@ -37,75 +38,116 @@ pub struct FieldProps {
 }
 
 #[component]
-pub fn Editor() -> Element {
+pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
+
+    if !auth_state.is_permission("writer") | !auth_state.is_permission("schema::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
     let mut is_busy = use_signal(|| true);
 
-    let mut administrator_route = use_context::<Signal<AdministratorRouteModel>>();
-
-    let active_content_api = app_state.active_content_api.signal();
-    let active_content = app_state.active_content.signal();
-    let is_new = use_memo(move || active_content().slug.is_empty());
-
     let mut schema = use_signal(SchemaModel::default);
+    let mut schema_slug = use_signal(|| schema_prop.clone());
     let mut content = use_signal(ApiModel::default);
-    let api_id = use_memo(move || content.read().id.clone());
+    let mut content_slug = use_signal(|| content_prop.clone());
+    let storage = use_memo(move || content().id);
     let mut form_published = use_signal(|| false);
 
     let mut is_public_storage_shown = use_signal(|| false);
     let mut is_private_storage_shown = use_signal(|| false);
 
-    use_hook(|| {
+    let mut content_id = use_session_storage("contentId", String::new);
+
+    let compare_schema_slug = schema_slug();
+    let compare_content_slug = content_slug();
+    use_effect(use_reactive(
+        (&schema_prop, &content_prop),
+        move |(schema_prop, content_prop)| {
+            if compare_schema_slug.ne(&schema_prop) {
+                schema_slug.set(schema_prop)
+            }
+            if compare_content_slug.ne(&content_prop) {
+                content_slug.set(content_prop)
+            }
+        }));
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(
+            if schema_slug().eq("singles") {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.singles"), slug: format!("/content/{}", schema_slug()) },
+                    RecordModel { title: content().title, slug: "".to_string() },
+                ]
+            } else {
+                vec![
+                    RecordModel { title: translate!(i18, "messages.content"), slug: "".to_string() },
+                    RecordModel { title: translate!(i18, "messages.collections"), slug: "".to_string() },
+                    RecordModel { title: schema().title.clone(), slug: format!("/content/{}", schema_slug()) },
+                    RecordModel { title: content().title, slug: "".to_string() },
+                ]
+            }
+        );
+    });
+
+    use_effect(move || {
         let app_state = APP_STATE.peek();
 
-        let mut api_schema = active_content().slug;
-        if !active_content_api().slug.is_empty() {
-            api_schema = active_content_api().slug;
-        }
+        let m_schema_slug = schema_slug();
+        let m_content_slug = content_slug();
 
         spawn(async move {
-            match APP_STATE.peek().api.get_schema(&api_schema).await {
-                Ok(value) => schema.set(value),
-                Err(e) => {
-                    app_state.modal.signal().set(ModalModel::Error(e.message()));
-                    administrator_route.set(AdministratorRouteModel::Content)
+            if m_schema_slug.eq("singles") {
+                match APP_STATE.peek().api.get_schema(&m_content_slug).await {
+                    Ok(value) => schema.set(value),
+                    Err(e) => {
+                        app_state.modal.signal().set(ModalModel::Error(e.message()));
+                        navigator().go_back()
+                    }
+                }
+            } else {
+                match APP_STATE.peek().api.get_schema(&m_schema_slug).await {
+                    Ok(value) => schema.set(value),
+                    Err(e) => {
+                        app_state.modal.signal().set(ModalModel::Error(e.message()));
+                        navigator().go_back()
+                    }
                 }
             }
-
-            if active_content().slug.is_empty() {
-                is_busy.set(false);
-                return;
-            }
-
             if schema().is_collection {
                 match app_state
                     .api
-                    .get_collection_content(&schema().slug, &active_content().slug)
+                    .get_collection_content(&schema().slug, &m_content_slug)
                     .await
                 {
                     Ok(value) => {
                         form_published.set(value.published);
+                        content_id.set(value.id.clone());
                         content.set(value)
                     }
                     Err(e) => {
                         app_state.modal.signal().set(ModalModel::Error(e.message()));
-                        administrator_route.set(AdministratorRouteModel::Content)
+                        navigator().go_back()
                     }
                 }
             } else {
                 match app_state.api.get_single_content(&schema().slug).await {
                     Ok(value) => {
                         form_published.set(value.published);
+                        content_id.set(value.id.clone());
                         content.set(value)
                     }
                     Err(e) => {
                         app_state.modal.signal().set(ModalModel::Error(e.message()));
-                        administrator_route.set(AdministratorRouteModel::Content)
+                        navigator().go_back()
                     }
                 }
             }
+
             is_busy.set(false);
         });
     });
@@ -119,7 +161,7 @@ pub fn Editor() -> Element {
     });
 
     let submit_task = move |event: Event<FormData>| {
-        if !event.is_title_valid() | (is_new() & !event.is_slug_valid()) {
+        if !event.is_title_valid() {
             APP_STATE
                 .peek()
                 .modal
@@ -144,42 +186,52 @@ pub fn Editor() -> Element {
             published: event.get_string_option("published").is_some(),
             fields: match submit_fields.is_empty() {
                 true => None,
-                false => Some(Value::Object(submit_fields)),
+                false => Some(Value::Object(submit_fields.clone())),
             },
         };
 
         let t_schema = schema().slug.clone();
+        let t_content = content().slug.clone();
 
         spawn(async move {
-            match match is_new() {
-                true => {
+            match APP_STATE
+                .peek()
+                .api
+                .update_content(
+                    match &schema().is_collection {
+                        true => &t_schema,
+                        false => "singles",
+                    },
+                    &t_content,
+                    &submit_form,
+                )
+                .await
+            {
+                Ok(_) => navigator().go_back(),
+                Err(e) => {
+                    let content_model = ApiModel {
+                        id: content().id.clone(),
+                        slug: content().slug.clone(),
+                        title: event.get_string("title"),
+                        fields: match submit_fields.is_empty() {
+                            true => None,
+                            false => Some(Value::Object(submit_fields)),
+                        },
+                        published: event.get_string_option("published").is_some(),
+                        created_at: content().created_at.clone(),
+                        updated_at: content().updated_at.clone(),
+                        created_by: content().created_by.clone(),
+                        updated_by: content().updated_by.clone(),
+                    };
+
+                    content.set(content_model);
+
                     APP_STATE
                         .peek()
-                        .api
-                        .create_content(&schema().slug, &event.get_string("slug"), &submit_form)
-                        .await
+                        .modal
+                        .signal()
+                        .set(ModalModel::Error(e.message()))
                 }
-                false => {
-                    APP_STATE
-                        .peek()
-                        .api
-                        .update_content(
-                            match &schema().is_collection {
-                                true => &t_schema,
-                                false => "",
-                            },
-                            &content.read().slug.clone(),
-                            &submit_form,
-                        )
-                        .await
-                }
-            } {
-                Ok(_) => administrator_route.set(AdministratorRouteModel::Content),
-                Err(e) => APP_STATE
-                    .peek()
-                    .modal
-                    .signal()
-                    .set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
         });
@@ -190,56 +242,51 @@ pub fn Editor() -> Element {
             match APP_STATE
                 .peek()
                 .api
-                .delete_content(&schema().slug, &content.read().slug)
+                .delete_content(&schema().slug, &content().slug)
                 .await
             {
-                Ok(_) => administrator_route.set(AdministratorRouteModel::Content),
+                Ok(_) => navigator().go_back(),
                 Err(e) => APP_STATE
                     .peek()
                     .modal
                     .signal()
                     .set(ModalModel::Error(e.message())),
             }
+            is_busy.set(false);
         });
     };
 
     if is_busy() {
         return rsx! {
-            div { class: "grid w-full place-items-center body-scroll",
+            div { class: crate::DIV_CENTER,
                 LoadingBoxComponent {}
-            }    
+            }
         };
     }
 
     rsx! {
         if is_public_storage_shown() {
-            StorageManager { dir: api_id, is_shown: is_public_storage_shown, private: false }
+            StorageManager { dir: storage, is_shown: is_public_storage_shown, private: false }
         } else if is_private_storage_shown() {
-            StorageManager { dir: api_id, is_shown: is_private_storage_shown, private: true }
+            StorageManager { dir: storage, is_shown: is_private_storage_shown, private: true }
         }
-        section { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center p-2 body-scroll",
+        section { class: "flex grow select-none flex-row gap-6",
+            form { class: "flex grow flex-col items-center gap-3",
                 id: "content-form",
                 autocomplete: "off",
                 onsubmit: submit_task,
-                div { class: "w-full",
-                    Breadcrumb { title:
-                        if active_content_api().slug.is_empty() {
-                            translate!(i18, "messages.singles")
-                        } else {
-                            schema().title
-                        }
-                    }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary", { translate!(i18, "messages.slug") } }
                     }
                     input { r#type: "text", name: "slug",
                         class: "input input-bordered",
-                        disabled: !is_new(),
+                        disabled: true,
+                        minlength: 4,
+                        maxlength: 30,
                         required: true,
-                        initial_value: content.read().slug.clone(),
+                        initial_value: content().slug.clone()
                         pattern: SLUG_PATTERN,
                         title: translate!(i18, "validate.slug"),
                     }
@@ -250,8 +297,10 @@ pub fn Editor() -> Element {
                     }
                     input { r#type: "text", name: "title",
                         class: "input input-bordered",
+                        minlength: 4,
+                        maxlength: 50,
                         required: true,
-                        initial_value: content.read().title.clone(),
+                        initial_value: content().title.clone()
                         pattern: TITLE_PATTERN,
                         title: translate!(i18, "validate.title"),
                     }
@@ -271,134 +320,139 @@ pub fn Editor() -> Element {
                     }
                 }
             }
-        }
 
-        aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
-            button { class: "btn btn-outline",
-                onclick: move |_| administrator_route.set(AdministratorRouteModel::Content),
-                Icon {
-                    width: 22,
-                    height: 22,
-                    icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack
-                }
-                { translate!(i18, "messages.cancel") }
-            }
-            div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
-                span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
-                span { { content.read().created_by.clone() } }
-                span { class: "label-text-alt", { content.read().created_at.clone().with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
-                span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
-                span { { content.read().updated_by.clone() } }
-                span { class: "label-text-alt", { content.read().updated_at.clone().with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
-            }
-            label { class:
-                if form_published() {
-                    "items-center rounded border p-3 swap border-success text-success"
-                } else {
-                    "items-center rounded border p-3 swap border-warning text-warning"
-                },
-                input { r#type: "checkbox",
-                    name: "published",
-                    form: "content-form",
-                    checked: form_published(),
-                    onchange: move |event| form_published.set(event.checked())
-                }
-                div { class: "inline-flex gap-3 swap-on",
+            aside { class: "flex flex-col gap-3 pt-5 min-w-36",
+                button { class: "btn btn-ghost",
+                    onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
                         height: 22,
-                        fill: "currentColor",
-                        icon: dioxus_free_icons::icons::md_action_icons::MdVisibility
+                        icon: dioxus_free_icons::icons::md_navigation_icons::MdArrowBack
                     }
-                    { translate!(i18, "messages.published") }
+                    { translate!(i18, "messages.cancel") }
                 }
-                div { class: "inline-flex gap-3 swap-off",
-                    Icon {
-                        width: 22,
-                        height: 22,
-                        fill: "currentColor",
-                        icon: dioxus_free_icons::icons::md_action_icons::MdVisibilityOff
+                div { class: "flex flex-col gap-1 rounded border p-2 input-bordered label-text",
+                    span { class: "italic label-text text-primary", { translate!(i18, "messages.created_at") } ":" }
+                    span { { content.read().created_by.clone() } }
+                    span { class: "label-text-alt", { content().created_at.clone().with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
+                    span { class: "mt-1 italic label-text text-primary", { translate!(i18, "messages.updated_at") } ":" }
+                    span { { content.read().updated_by.clone() } }
+                    span { class: "label-text-alt", { content().updated_at.clone().with_timezone(&Local).format("%H:%M %d/%m/%Y").to_string() } }
+                }
+                label { class:
+                    if form_published() {
+                        "items-center p-3 swap text-success"
+                    } else {
+                        "items-center p-3 swap text-warning"
+                    },
+                    input { r#type: "checkbox",
+                        name: "published",
+                        form: "content-form",
+                        checked: form_published(),
+                        onchange: move |event| form_published.set(event.checked())
                     }
-                    { translate!(i18, "messages.draft") }
+                    div { class: "inline-flex gap-3 swap-on",
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_action_icons::MdVisibility
+                        }
+                        { translate!(i18, "messages.published") }
+                    }
+                    div { class: "inline-flex gap-3 swap-off",
+                        Icon {
+                            width: 22,
+                            height: 22,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_action_icons::MdVisibilityOff
+                        }
+                        { translate!(i18, "messages.draft") }
+                    }
                 }
-            }
 
-            div { class: "w-full join",
-                if auth_state.is_permission("storage::read") {
-                    button { class: "btn btn-outline join-item",
-                        onclick: move |_| is_public_storage_shown.set(true),
+                div { class: "w-full join",
+                    if auth_state.is_permission("storage::read") {
+                        button { class: "btn btn-ghost join-item",
+                            onclick: move |_| is_public_storage_shown.set(true),
+                            Icon {
+                                width: 22,
+                                height: 22,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                            }
+                        }
+                    } else {
+                        button { class: "btn btn-ghost btn-disabled join-item",
+                            disabled: "disabled",
+                            Icon {
+                                width: 22,
+                                height: 22,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                            }
+                        }
+                    }
+                    div { class: "grid place-items-center w-fit join-item text-neutral px-2 text-lg semibold",
+                        "<>"
+                    }
+                    /*
+                    div { class: "grid place-items-center w-full join-item bg-base-content text-base-300",
+                        Icon {
+                            width: 30,
+                            height: 30,
+                            fill: "currentColor",
+                            icon: dioxus_free_icons::icons::md_file_icons::MdCloudUpload
+                        }
+                    }
+                     */
+                    if auth_state.is_permission("private_storage::read") {
+                        button { class: "btn btn-ghost join-item",
+                            onclick: move |_| is_private_storage_shown.set(true),
+                            Icon {
+                                width: 22,
+                                height: 22,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                            }
+                        }
+                    } else {
+                        button { class: "btn btn-ghost btn-disabled join-item",
+                            disabled: "disabled",
+                            Icon {
+                                width: 22,
+                                height: 22,
+                                fill: "currentColor",
+                                icon: dioxus_free_icons::icons::md_content_icons::MdShield
+                            }
+                        }
+                    }
+                }
+                if auth_state.is_permission(&[&schema_permission(), "::write"].concat()) {
+                    button { class: "btn btn-primary",
+                        r#type: "submit",
+                        form: "content-form",
                         Icon {
                             width: 22,
                             height: 22,
                             fill: "currentColor",
-                            icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                            icon: dioxus_free_icons::icons::md_content_icons::MdSave
                         }
+                        { translate!(i18, "messages.save") }
                     }
-                } else {
-                   button { class: "btn btn-outline btn-disabled join-item",
-                        disabled: "disabled",
+                }
+                if schema().is_collection && auth_state.is_permission(&[&schema_permission(), "::delete"].concat()) {
+                    div { class: "divider" }
+                    button { class: "btn btn-ghost text-error",
+                        onclick: content_delete,
                         Icon {
-                            width: 22,
-                            height: 22,
+                            width: 18,
+                            height: 18,
                             fill: "currentColor",
-                            icon: dioxus_free_icons::icons::md_social_icons::MdGroups
+                            icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
                         }
+                        { translate!(i18, "messages.delete") }
                     }
-                }
-                div { class: "grid place-items-center w-full join-item bg-base-content text-base-300",
-                    Icon {
-                        width: 30,
-                        height: 30,
-                        fill: "currentColor",
-                        icon: dioxus_free_icons::icons::md_file_icons::MdCloudUpload
-                    }
-                }
-                if auth_state.is_permission("private_storage::read") {
-                    button { class: "btn btn-outline join-item",
-                        onclick: move |_| is_private_storage_shown.set(true),
-                        Icon {
-                            width: 22,
-                            height: 22,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::md_content_icons::MdShield
-                        }
-                    }
-                } else {
-                   button { class: "btn btn-outline btn-disabled join-item",
-                        disabled: "disabled",
-                        Icon {
-                            width: 22,
-                            height: 22,
-                            fill: "currentColor",
-                            icon: dioxus_free_icons::icons::md_content_icons::MdShield
-                        }
-                    }
-                }
-            }
-            if auth_state.is_permission(&[&schema_permission(), "::write"].concat()) {
-                button { class: "btn btn-outline btn-accent",
-                    r#type: "submit",
-                    form: "content-form",
-                    Icon {
-                        width: 22,
-                        height: 22,
-                        fill: "currentColor",
-                        icon: dioxus_free_icons::icons::md_content_icons::MdSave
-                    }
-                    { translate!(i18, "messages.save") }
-                }
-            }
-            if !is_new() && schema.read().is_collection && auth_state.is_permission(&[&schema_permission(), "::delete"].concat()) {
-                div { class: "divider" }
-                button { class: "btn btn-outline btn-error",
-                    onclick: content_delete,
-                    Icon {
-                        width: 18,
-                        height: 18,
-                        fill: "currentColor",
-                        icon: dioxus_free_icons::icons::fa_regular_icons::FaTrashCan
-                    }
-                    { translate!(i18, "messages.delete") }
                 }
             }
         }

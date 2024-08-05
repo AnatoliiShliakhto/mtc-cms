@@ -9,41 +9,57 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::field_model::{FieldModel, FieldTypeModel};
+use mtc_model::record_model::RecordModel;
 use mtc_model::schema_model::{SchemaCreateModel, SchemaModel, SchemaUpdateModel};
 
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
-use crate::model::page_action::PageAction;
+use crate::page::not_found::NotFoundPage;
 use crate::service::validator_service::ValidatorService;
 use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 
 #[component]
-pub fn SchemaEditor() -> Element {
+pub fn SchemaEditorPage(schema_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
-    let mut is_busy = use_signal(|| true);
+    if !auth_state.is_permission("schema::read") {
+        return rsx! { NotFoundPage {} };
+    }
 
-    let mut page_action = use_context::<Signal<PageAction>>();
+    let mut is_busy = use_signal(|| true);
 
     let mut form_is_collection = use_signal(|| false);
     let mut form_is_public = use_signal(|| false);
 
+    let schema_slug = use_memo(move || schema_prop.clone());
     let mut schema = use_signal(SchemaModel::default);
-    let schema_slug = use_memo(move || match page_action() {
-        PageAction::Item(value) => value,
-        _ => String::new(),
-    });
-    let is_new_schema =
-        use_memo(move || page_action().eq(&PageAction::New) | schema_slug().is_empty());
+    let is_new_schema = use_memo(move || schema_slug().eq("new"));
 
     let mut fields = use_signal(BTreeMap::<usize, FieldModel>::new);
 
-    use_hook(|| {
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.schema"), slug: "/administrator/schemas".to_string() },
+            RecordModel {
+                title:
+                if is_new_schema() {
+                    translate!(i18, "messages.add")
+                } else {
+                    schema().title
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
+
+    use_effect(move || {
         if is_new_schema() {
             is_busy.set(false);
             return;
@@ -63,7 +79,7 @@ pub fn SchemaEditor() -> Element {
                         .modal
                         .signal()
                         .set(ModalModel::Error(e.message()));
-                    page_action.set(PageAction::None)
+                    navigator().go_back()
                 }
             }
             is_busy.set(false)
@@ -142,7 +158,7 @@ pub fn SchemaEditor() -> Element {
                             &schema_slug(),
                             &SchemaUpdateModel {
                                 title: event.get_string("title"),
-                                fields: field_set,
+                                fields: field_set.clone(),
                             },
                         )
                         .await
@@ -154,7 +170,7 @@ pub fn SchemaEditor() -> Element {
                             &event.get_string("slug"),
                             &SchemaCreateModel {
                                 title: event.get_string("title"),
-                                fields: field_set,
+                                fields: field_set.clone(),
                                 is_collection,
                                 is_public,
                             },
@@ -162,8 +178,28 @@ pub fn SchemaEditor() -> Element {
                         .await
                 }
             } {
-                Ok(_) => page_action.set(PageAction::None),
-                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
+                Ok(_) => navigator().go_back(),
+                Err(e) => {
+                    let schema_model = SchemaModel {
+                        id: schema().id,
+                        slug: if is_new_schema() {
+                            event.get_string("slug")
+                        } else {
+                            schema().slug
+                        },
+                        title: event.get_string("title"),
+                        is_system: false,
+                        is_collection,
+                        is_public,
+                        fields: field_set,
+                        created_at: schema().created_at,
+                        updated_at: schema().updated_at,
+                        created_by: schema().created_by,
+                        updated_by: schema().updated_by,
+                    };
+                    schema.set(schema_model);
+                    app_state.modal.signal().set(ModalModel::Error(e.message()))
+                }
             }
 
             is_busy.set(false);
@@ -176,7 +212,7 @@ pub fn SchemaEditor() -> Element {
 
         spawn(async move {
             match app_state.api.delete_schema(&schema().slug).await {
-                Ok(_) => page_action.set(PageAction::None),
+                Ok(_) => navigator().go_back(),
                 Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
@@ -185,18 +221,15 @@ pub fn SchemaEditor() -> Element {
 
     if is_busy() {
         return rsx! {
-            div { class: "grid w-full place-items-center body-scroll",
+            div { class: crate::DIV_CENTER,
                 LoadingBoxComponent {}
-            }    
+            }
         };
     }
 
     rsx! {
-        section { class: "flex grow select-none flex-row",
-            div { class: "flex grow flex-col items-center p-2 body-scroll",
-                div { class: "self-start",
-                    Breadcrumb { title: translate!(i18, "messages.schema") }
-                }
+        section { class: "flex grow select-none flex-row gap-6",
+            div { class: "flex grow flex-col items-center gap-3",
                 form { class: "w-full",
                     id: "schema-form",
                     autocomplete: "off",
@@ -365,7 +398,7 @@ pub fn SchemaEditor() -> Element {
                             pattern: TITLE_PATTERN,
                             title: translate!(i18, "validate.title"),
                         }
-                        button { class: "btn btn-outline btn-accent",
+                        button { class: "btn btn-primary",
                             r#type: "submit",
                             form: "field-form",
                             Icon {
@@ -380,9 +413,9 @@ pub fn SchemaEditor() -> Element {
                 }
             }
 
-            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
-                button { class: "btn btn-outline",
-                    onclick: move |_| page_action.set(PageAction::None),
+            aside { class: "flex flex-col gap-3 pt-5 min-w-36",
+                button { class: "btn btn-ghost",
+                    onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
                         height: 22,
@@ -400,7 +433,7 @@ pub fn SchemaEditor() -> Element {
                 }
 
                 if auth_state.is_permission("schema::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "schema-form",
                         Icon {
@@ -414,7 +447,7 @@ pub fn SchemaEditor() -> Element {
                 }
                 if auth_state.is_permission("schema::delete") && !is_new_schema() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: schema_delete,
                         Icon {
                             width: 18,

@@ -3,50 +3,48 @@ use dioxus_free_icons::Icon;
 use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
-use editor::GroupEditor;
+use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::pagination_model::PaginationModel;
+use mtc_model::record_model::RecordModel;
 
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::paginator::{PaginatorComponent, PaginatorComponentMode};
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
-use crate::model::page_action::PageAction;
-use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
+use crate::page::not_found::NotFoundPage;
+use crate::router::Route::GroupEditorPage;
 
-mod editor;
+pub mod editor;
 
 #[component]
-pub fn Groups() -> Element {
+pub fn GroupsPage() -> Element {
     let app_state = APP_STATE.peek();
-    let auth_state = app_state.auth.read_unchecked();
+    let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
-    let page = use_signal(|| 1usize);
-    let mut page_action = use_context_provider(|| Signal::new(PageAction::None));
+    if !auth_state.is_permission("group::read") {
+        return rsx! { NotFoundPage {} };
+    }
 
-    let pagination = use_signal(|| PaginationModel::new(0, 10));
-    let mut groups_future =
-        use_resource(move || async move { APP_STATE.peek().api.get_group_list(page()).await });
-
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
     use_effect(move || {
-        if page_action() == PageAction::None {
-            groups_future.restart()
-        }
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
+        ]);
     });
 
-    if page_action().ne(&PageAction::None) {
-        return rsx! { GroupEditor {} };
-    }
+    let pagination = use_signal(|| PaginationModel::new(0, 10));
+    let page = use_signal(|| 1usize);
+
+    let groups_future =
+        use_resource(move || async move { APP_STATE.peek().api.get_group_list(page()).await });
 
     rsx! {
         match &*groups_future.read() {
             Some(Ok(response)) => rsx! {
-                section { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                    div { class: "inline-flex w-full justify-between gap-5",
-                        Breadcrumb { title: translate!(i18, "messages.groups") }
-                        PaginatorComponent { mode: PaginatorComponentMode::Compact, page, pagination: response.pagination.clone().unwrap_or_default() }
-                    }
+                section { class: "w-full flex-grow p-3",
                     table { class: "table w-full",
                         thead {
                             tr {
@@ -60,7 +58,7 @@ pub fn Groups() -> Element {
                                     let m_slug = item.slug.clone();
                                     rsx! {
                                         tr { class: "cursor-pointer hover:bg-base-200 hover:shadow-md",
-                                            onclick: move |_| page_action.set(PageAction::Item(m_slug.clone())),
+                                            onclick: move |_| { navigator().push(GroupEditorPage{ group_prop: m_slug.clone() }); },
                                             td { { item.slug.clone() } }
                                             td { { item.title.clone() } }
                                         }
@@ -69,11 +67,13 @@ pub fn Groups() -> Element {
                             }
                         }
                     }
-                    PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    div { class: "flex w-full py-2 justify-center",
+                        PaginatorComponent { mode: PaginatorComponentMode::Full, page, pagination: response.pagination.clone().unwrap_or_default() }
+                    }    
                 }
                 button {
-                    class: "absolute right-4 bottom-4 btn btn-circle btn-neutral",
-                    onclick: move |_| page_action.set(PageAction::New),
+                    class: "fixed right-4 bottom-4 btn btn-circle btn-neutral",
+                    onclick: move |_| { navigator().push(GroupEditorPage{ group_prop: "new".to_string() }); },
                     Icon {
                         width: 26,
                         height: 26,
@@ -82,14 +82,14 @@ pub fn Groups() -> Element {
                 }
             },
             Some(Err(e)) => rsx! {
-                div { class: "grid w-full place-items-center body-scroll",
+                div { class: crate::DIV_CENTER,
                     ReloadingBoxComponent { message: e.message(), resource: groups_future }
-                }    
+                }
             },
-            None => rsx! { 
-                div { class: "grid w-full place-items-center body-scroll", 
+            None => rsx! {
+                div { class: crate::DIV_CENTER,
                     LoadingBoxComponent {}
-                }    
+                }
             },
         }
     }

@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="scroll-padding-top: 5rem; scroll-behavior: smooth;">
 <head>
   <title>{app_title}</title>
   <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="/ckeditor/ckeditor5.css" />
+  <link rel="stylesheet" href="/tailwind.css" />
+  <script src="/mtc-cms.js"></script>
   {style_include}
 </head>
-<body class="h-screen w-screen overflow-hidden antialiased">
-  <div id="main" class="flex flex-col size-full"></div>
+<body class="antialiased">
+  <div id="main"></div>
   <script type="importmap">{ "imports": { "ckeditor5": "/ckeditor/ckeditor5.js", "ckeditor5/": "/ckeditor5/" } }</script>
   <script type="module">
     import init from "/{base_path}/assets/dioxus/{app_name}.js";

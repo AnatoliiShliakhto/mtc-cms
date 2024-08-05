@@ -7,42 +7,60 @@ use dioxus_std::i18n::use_i18;
 use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::record_model::RecordModel;
 use mtc_model::role_model::{RoleCreateModel, RoleModel, RoleUpdateModel};
 
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 use crate::handler::permissions_handler::PermissionsHandler;
 use crate::handler::role_handler::RoleHandler;
 use crate::model::modal_model::ModalModel;
-use crate::model::page_action::PageAction;
+use crate::page::not_found::NotFoundPage;
 use crate::service::validator_service::ValidatorService;
 
 #[component]
-pub fn RoleEditor() -> Element {
+pub fn RoleEditorPage(role_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
+    if !auth_state.is_permission("role::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
     let mut is_busy = use_signal(|| true);
 
-    let mut page_action = use_context::<Signal<PageAction>>();
-
+    let role_slug = use_memo(move || role_prop.clone());
     let mut role = use_signal(RoleModel::default);
-    let role_slug = use_memo(move || match page_action() {
-        PageAction::Item(value) => value,
-        _ => String::new(),
-    });
+    let is_new_role = use_memo(move || role_slug().eq("new"));
+
     let mut user_access_all = use_signal(|| false);
-    let is_new_role = use_memo(move || page_action().eq(&PageAction::New) | role_slug().is_empty());
     let mut role_permissions = use_signal(BTreeSet::<String>::new);
     let mut all_permissions = use_signal(BTreeSet::<String>::new);
 
     let dummy_permissions_title = use_signal(BTreeMap::<String, String>::new);
 
-    use_hook(|| {
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.roles"), slug: "/administrator/roles".to_string() },
+            RecordModel {
+                title:
+                if is_new_role() {
+                    translate!(i18, "messages.add")
+                } else {
+                    role().title
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
+
+    use_effect(move || {
         spawn(async move {
             let mut permissions_list = BTreeSet::<String>::new();
             let mut permissions_role = BTreeSet::<String>::new();
@@ -61,14 +79,14 @@ pub fn RoleEditor() -> Element {
                     Ok(value) => {
                         user_access_all.set(value.user_access_all);
                         role.set(value)
-                    },
+                    }
                     Err(e) => {
                         APP_STATE
                             .peek()
                             .modal
                             .signal()
                             .set(ModalModel::Error(e.message()));
-                        page_action.set(PageAction::None)
+                        navigator().go_back()
                     }
                 }
 
@@ -123,9 +141,11 @@ pub fn RoleEditor() -> Element {
                             &role_slug(),
                             &RoleUpdateModel {
                                 title: event.get_string("title"),
-                                user_access_level: event.get_int_option("user_access_level").unwrap_or(999),
+                                user_access_level: event
+                                    .get_int_option("user_access_level")
+                                    .unwrap_or(999),
                                 user_access_all: user_access_all(),
-                                permissions,
+                                permissions: permissions.clone(),
                             },
                         )
                         .await
@@ -137,16 +157,37 @@ pub fn RoleEditor() -> Element {
                             &event.get_string("slug"),
                             &RoleCreateModel {
                                 title: event.get_string("title"),
-                                user_access_level: event.get_int_option("user_access_level").unwrap_or(999),
+                                user_access_level: event
+                                    .get_int_option("user_access_level")
+                                    .unwrap_or(999),
                                 user_access_all: user_access_all(),
-                                permissions,
+                                permissions: permissions.clone(),
                             },
                         )
                         .await
                 }
             } {
-                Ok(_) => page_action.set(PageAction::None),
-                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
+                Ok(_) => navigator().go_back(),
+                Err(e) => {
+                    let role_model = RoleModel {
+                        id: role().id,
+                        slug: if is_new_role() {
+                            event.get_string("slug")
+                        } else {
+                            role().slug
+                        },
+                        title: event.get_string("title"),
+                        user_access_level: event.get_int_option("user_access_level").unwrap_or(999),
+                        user_access_all: user_access_all(),
+                        permissions,
+                        created_at: role().created_at,
+                        updated_at: role().updated_at,
+                        created_by: role().created_by,
+                        updated_by: role().updated_by,
+                    };
+                    role.set(role_model);
+                    app_state.modal.signal().set(ModalModel::Error(e.message()))
+                }
             }
 
             is_busy.set(false);
@@ -159,7 +200,7 @@ pub fn RoleEditor() -> Element {
 
         spawn(async move {
             match app_state.api.delete_role(&role().slug).await {
-                Ok(_) => page_action.set(PageAction::None),
+                Ok(_) => navigator().go_back(),
                 Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
@@ -168,21 +209,19 @@ pub fn RoleEditor() -> Element {
 
     if is_busy() {
         return rsx! {
-            div { class: "grid w-full place-items-center body-scroll",
-                LoadingBoxComponent {} 
-            }    
+            div { class: crate::DIV_CENTER,
+                LoadingBoxComponent {}
+            }
         };
     }
 
     rsx! {
-        section { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
+        section { class: "flex grow select-none flex-row gap-6",
+            form { class: "flex grow flex-col items-center gap-3",
                 id: "role-form",
                 autocomplete: "off",
                 onsubmit: role_submit,
-                div { class: "self-start",
-                    Breadcrumb { title: translate!(i18, "messages.roles") }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",
@@ -261,8 +300,8 @@ pub fn RoleEditor() -> Element {
                                 }
                             }
                         }
-                    }    
-                }    
+                    }
+                }
                 ListSwitcherComponent {
                     title: translate!(i18, "messages.permissions"),
                     items: role_permissions,
@@ -271,9 +310,9 @@ pub fn RoleEditor() -> Element {
                 }
             }
 
-            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
-                button { class: "btn btn-outline",
-                    onclick: move |_| page_action.set(PageAction::None),
+            aside { class: "flex flex-col gap-3 pt-5 min-w-36",
+                button { class: "btn btn-ghost",
+                    onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
                         height: 22,
@@ -291,7 +330,7 @@ pub fn RoleEditor() -> Element {
                 }
 
                 if auth_state.is_permission("role::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "role-form",
                         Icon {
@@ -305,7 +344,7 @@ pub fn RoleEditor() -> Element {
                 }
                 if auth_state.is_permission("role::delete") && !is_new_role() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: role_delete,
                         Icon {
                             width: 18,

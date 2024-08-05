@@ -14,7 +14,6 @@ pub trait StorageTrait {
     fn get_file_path(&self, dir: &str, file: &str) -> String;
     fn get_private_dir_path(&self, dir: &str) -> String;
     fn get_private_file_path(&self, dir: &str, file: &str) -> String;
-
     async fn get_dir(&self, path: &str) -> Result<StoragesModel>;
     async fn is_dir_exists_or_create(&self, path: &str) -> Result<bool>;
     async fn is_file_exists(&self, path: &str) -> Result<bool>;
@@ -83,8 +82,9 @@ impl StorageTrait for StorageService {
     async fn save_file(&self, path: &str, data: Field<'_>) -> Result<()> {
         let file_path = [path, data.file_name().unwrap()].join("/");
 
-        fs::write(file_path, data.bytes().await?).await?;
-        Ok(())
+        fs::write(&file_path, data.bytes().await?).await?;
+
+        return Ok(());
     }
 
     async fn delete_file(&self, path: &str) -> Result<()> {

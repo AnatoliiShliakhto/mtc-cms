@@ -7,16 +7,31 @@ use dioxus_std::translate;
 use serde_json::Value;
 use tracing::error;
 
+use mtc_model::auth_model::AuthModelTrait;
+use mtc_model::record_model::RecordModel;
 use mtc_model::user_details_model::UserDetailsModel;
 
 use crate::APP_STATE;
-use crate::component::breadcrumb::Breadcrumb;
 use crate::model::modal_model::ModalModel;
+use crate::page::not_found::NotFoundPage;
 use crate::service::user_service::UserService;
 
 #[component]
-pub fn Personas() -> Element {
+pub fn PersonsPage() -> Element {
+    let app_state = APP_STATE.peek();
+    let auth_state = app_state.auth.read();
     let i18 = use_i18();
+
+    if !auth_state.is_permission("user::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.persons"), slug: "/persons".to_string() },
+        ]);
+    });
 
     let users_to_clipboard = move |_| {
         let users = APP_STATE.peek().users.signal();
@@ -132,11 +147,8 @@ pub fn Personas() -> Element {
     };
 
     rsx! {
-        section { class: "flex grow flex-row",
-            div { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
-                div { class: "self-start",
-                    Breadcrumb { title: translate!(i18, "messages.personas") }
-                }
+        section { class: "flex grow select-none flex-row gap-6",
+            div { class: "flex grow flex-col items-center gap-3",
                 table { class: "table w-full",
                     thead {
                         tr {
@@ -168,8 +180,8 @@ pub fn Personas() -> Element {
                     }
                 }
             }
-            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
-                h2 { class: "menu-title self-center", { translate!(i18, "messages.external_data") } }
+        }    
+            aside { class: "flex flex-col gap-3 pt-7",
                 div { class: "px-2 join",
                     div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
                         button {
@@ -241,5 +253,5 @@ pub fn Personas() -> Element {
                 }
             }
         }
-    }
 }
+

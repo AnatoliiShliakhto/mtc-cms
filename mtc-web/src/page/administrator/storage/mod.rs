@@ -6,7 +6,7 @@ use human_bytes::human_bytes;
 use serde_json::Value;
 use tracing::error;
 use mtc_model::auth_model::AuthModelTrait;
-use crate::{APP_STATE, PRIVATE_STORAGE_URL, PUBLIC_STORAGE_URL};
+use crate::{APP_STATE};
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::component::reloading_box::ReloadingBoxComponent;
 use crate::handler::storage_handler::StorageHandler;
@@ -34,9 +34,9 @@ pub fn StorageManager(mut props: StorageProps) -> Element {
     });
     let file_path = use_memo(move || {
         if props.private {
-            format!("{:0}/{:1}", PRIVATE_STORAGE_URL, storage_dir())
+            format!("{:0}/{:1}", crate::PRIVATE_STORAGE_URL, storage_dir())
         } else {
-            format!("{:0}/{:1}", PUBLIC_STORAGE_URL, storage_dir())
+            format!("{:0}/{:1}", crate::PUBLIC_STORAGE_URL, storage_dir())
         }
     });
     let write_permission = use_memo(move || {
@@ -156,7 +156,7 @@ pub fn StorageManager(mut props: StorageProps) -> Element {
     };
 
     rsx! {
-        section { class: "modal-page",
+        section { class: "modal modal-open",
             onclick: move |_| props.is_shown.set(false),
             div { class: "modal-box min-w-96 w-fit h-5/6",
                 onclick: move |event| event.stop_propagation(),

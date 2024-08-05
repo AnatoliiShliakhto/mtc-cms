@@ -43,7 +43,7 @@ impl ContentHandler for ApiHandler {
 
     async fn get_content_list(&self, api_end_point: &str) -> Result<Vec<ApiListItemModel>, ApiError> {
         match api_end_point {
-            "" => {
+            "singles" => {
                 self.api_client
                     .get([&self.api_url, "all"].join("/"))
                     .send()
@@ -84,7 +84,7 @@ impl ContentHandler for ApiHandler {
         content: &ApiPostModel,
     ) -> Result<(), ApiError> {
         match schema {
-            "" => {
+            "singles" => {
                 self.api_client
                     .patch([&self.api_url, slug].join("/"))
                     .json(&content)

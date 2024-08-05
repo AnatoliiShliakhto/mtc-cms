@@ -6,35 +6,51 @@ use dioxus_std::translate;
 
 use mtc_model::auth_model::AuthModelTrait;
 use mtc_model::group_model::{GroupCreateModel, GroupModel, GroupUpdateModel};
+use mtc_model::record_model::RecordModel;
 
-use crate::component::breadcrumb::Breadcrumb;
+use crate::APP_STATE;
 use crate::component::loading_box::LoadingBoxComponent;
 use crate::handler::group_handler::GroupHandler;
 use crate::model::modal_model::ModalModel;
-use crate::model::page_action::PageAction;
+use crate::page::not_found::NotFoundPage;
 use crate::service::validator_service::ValidatorService;
-use crate::APP_STATE;
 use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 
 #[component]
-pub fn GroupEditor() -> Element {
+pub fn GroupEditorPage(group_prop: String) -> Element {
     let app_state = APP_STATE.peek();
     let auth_state = app_state.auth.read();
     let i18 = use_i18();
 
+    if !auth_state.is_permission("group::read") {
+        return rsx! { NotFoundPage {} };
+    }
+
     let mut is_busy = use_signal(|| true);
 
-    let mut page_action = use_context::<Signal<PageAction>>();
-
+    let group_slug = use_memo(move || group_prop.clone());
     let mut group = use_signal(GroupModel::default);
-    let group_slug = use_memo(move || match page_action() {
-        PageAction::Item(value) => value,
-        _ => String::new(),
-    });
-    let is_new_group =
-        use_memo(move || page_action().eq(&PageAction::New) | group_slug().is_empty());
+    let is_new_group = use_memo(move || group_slug().eq("new"));
 
-    use_hook(|| {
+    let mut breadcrumbs = app_state.breadcrumbs.signal();
+    use_effect(move || {
+        breadcrumbs.set(vec![
+            RecordModel { title: translate!(i18, "messages.administrator"), slug: "/administrator".to_string() },
+            RecordModel { title: translate!(i18, "messages.groups"), slug: "/administrator/groups".to_string() },
+            RecordModel {
+                title:
+                if is_new_group() {
+                    translate!(i18, "messages.add")
+                } else {
+                    group().title
+                }
+                ,
+                slug: "".to_string(),
+            },
+        ]);
+    });
+
+    use_effect(move || {
         if is_new_group() {
             is_busy.set(false);
             return;
@@ -49,7 +65,7 @@ pub fn GroupEditor() -> Element {
                         .modal
                         .signal()
                         .set(ModalModel::Error(e.message()));
-                    page_action.set(PageAction::None)
+                    navigator().go_back()
                 }
             }
 
@@ -95,8 +111,24 @@ pub fn GroupEditor() -> Element {
                         .await
                 }
             } {
-                Ok(_) => page_action.set(PageAction::None),
-                Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
+                Ok(_) => navigator().go_back(),
+                Err(e) => {
+                    let group_model = GroupModel {
+                        id: group().id,
+                        slug: if is_new_group() {
+                            event.get_string("slug")
+                        } else {
+                            group().slug
+                        },
+                        title: event.get_string("title"),
+                        created_at: group().created_at,
+                        updated_at: group().updated_at,
+                        created_by: group().created_by,
+                        updated_by: group().updated_by,
+                    };
+                    group.set(group_model);
+                    app_state.modal.signal().set(ModalModel::Error(e.message()))
+                }
             }
 
             is_busy.set(false);
@@ -109,7 +141,7 @@ pub fn GroupEditor() -> Element {
 
         spawn(async move {
             match app_state.api.delete_group(&group().slug).await {
-                Ok(_) => page_action.set(PageAction::None),
+                Ok(_) => navigator().go_back(),
                 Err(e) => app_state.modal.signal().set(ModalModel::Error(e.message())),
             }
             is_busy.set(false);
@@ -117,22 +149,20 @@ pub fn GroupEditor() -> Element {
     };
 
     if is_busy() {
-        return rsx! { 
-            div { class: "grid w-full place-items-center body-scroll",
-                LoadingBoxComponent {} 
-            }    
+        return rsx! {
+            div { class: crate::DIV_CENTER,
+                LoadingBoxComponent {}
+            }
         };
     }
 
     rsx! {
-        section { class: "flex grow select-none flex-row",
-            form { class: "flex grow flex-col items-center gap-3 p-2 body-scroll",
+        section { class: "flex grow select-none flex-row gap-6",
+            form { class: "flex grow flex-col items-center gap-3",
                 id: "group-form",
                 autocomplete: "off",
                 onsubmit: group_submit,
-                div { class: "self-start",
-                    Breadcrumb { title: translate!(i18, "messages.groups") }
-                }
+
                 label { class: "w-full form-control",
                     div { class: "label",
                         span { class: "label-text text-primary",
@@ -164,9 +194,9 @@ pub fn GroupEditor() -> Element {
                 }
             }
 
-            aside { class: "flex flex-col gap-3 p-2 pt-3 shadow-lg bg-base-200 min-w-48 body-scroll",
-                button { class: "btn btn-outline",
-                    onclick: move |_| page_action.set(PageAction::None),
+            aside { class: "flex flex-col gap-3 pt-5 min-w-36",
+                button { class: "btn btn-ghost",
+                    onclick: move |_| navigator().go_back(),
                     Icon {
                         width: 22,
                         height: 22,
@@ -184,7 +214,7 @@ pub fn GroupEditor() -> Element {
                 }
 
                 if auth_state.is_permission("group::write") {
-                    button { class: "btn btn-outline btn-accent",
+                    button { class: "btn btn-primary",
                         r#type: "submit",
                         form: "group-form",
                         Icon {
@@ -198,7 +228,7 @@ pub fn GroupEditor() -> Element {
                 }
                 if auth_state.is_permission("group::delete") && !is_new_group() {
                     div { class: "divider" }
-                    button { class: "btn btn-outline btn-error",
+                    button { class: "btn btn-ghost text-error",
                         onclick: group_delete,
                         Icon {
                             width: 18,

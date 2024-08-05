@@ -7,4 +7,5 @@ pub mod reloading_box;
 pub mod paginator;
 pub mod modal_box;
 pub mod list_switcher;
-pub mod breadcrumb;
+pub mod main_menu_item;
+pub mod breadcrumbs;

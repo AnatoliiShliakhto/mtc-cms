@@ -1,20 +1,23 @@
 use dioxus::prelude::*;
 
+use crate::APP_STATE;
 use crate::component::account_controller::AccountControllerComponent;
+use crate::component::breadcrumbs::Breadcrumbs;
 use crate::component::language_switcher::LanguageSwitcherComponent;
 use crate::component::theme_switcher::ThemeSwitcherComponent;
-use crate::element::header::logo::HeaderLogo;
-use crate::router::Route::HomePage;
-
-mod logo;
 
 pub fn Header() -> Element {
+    let app_state = APP_STATE.peek();
+    let breadcrumbs = app_state.breadcrumbs.signal();
+
     rsx! {
-        nav { class: "absolute top-0 right-0 left-0 p-0 shadow-md navbar z-[1] bg-base-100 min-h-12",
-            div { class: "navbar-start",
-                HeaderLogo {}
-                div { class: "dropdown",
-                    div { role: "button", tabindex: "0", class: "btn btn-ghost md:hidden",
+        div { class: "bg-base-100 text-base-content sticky top-0 z-[30] flex h-12 w-full justify-center bg-opacity-90 backdrop-blur transition-shadow duration-100 [transform:translate3d(0,0,0)]",
+            nav { class: "navbar w-full p-0 min-h-12",
+                div { class: "flex flex-1 md:gap-1 lg:gap-2",
+                    label { 
+                        tabindex: "0", 
+                        class: "btn btn-ghost lg:hidden",
+                        r#for: "main-menu",
                         svg {
                             "fill": "none",
                             "viewBox": "0 0 24 24",
@@ -29,44 +32,23 @@ pub fn Header() -> Element {
                             }
                         }
                     }
-                    ul { class: "p-2 shadow menu menu-sm dropdown-content z-[1] bg-base-100",
-                        li { class: "rounded-md",
-                            Link { to: HomePage {}, "Головна" } }
-                        li {
-                            details {
-                                summary { { "Інструктору" } }
-                                ul { class: "p-2",
-                                    li { a { { "Меню 1" } } }
-                                    li { a { { "Меню 2" } } }
-                                }
-                            }
-                        }
+                    div { class: "flex w-full lg:hidden justify-center",
+                        Link { class: "btn btn-ghost text-xl flex lg:hidden", to: crate::router::Route::HomePage {}, "MTC-CMS" }
+                    }
+                    span { class: "hidden lg:flex px-5 text-xl font-semibold text-base-content", "military training center" }
+                }
+                div { class: "flex-0",
+                    div { class: "join",
+                        LanguageSwitcherComponent {}
+                        ThemeSwitcherComponent {}
+                        AccountControllerComponent {}
                     }
                 }
-            }
-/*
-            div { class: "navbar-center hidden md:flex [&>*]:text-lg hoover:[&>*]:rounded-sm",
-                ul { class: "menu menu-horizontal hover:[&>li>a]:text-indigo-500",
-                    li { a { { "Головна" } } }
-                    li {
-                        details {
-                            summary { { "Інструктору" } }
-                            ul { class: "p-2 rounded-sm",
-                                li { a { { "Меню 1" } } }
-                                li { a { { "Меню 2" } } }
-                            }
-                        }
-                    }
-                }
-            }
-
- */
-            div { class: "navbar-end",
-                div { class: "join",
-                    LanguageSwitcherComponent {}
-                    ThemeSwitcherComponent {}
-                    AccountControllerComponent {}
-                }
+            }    
+        }
+        if !breadcrumbs().is_empty() {
+            div { class: "bg-base-100 text-base-content sm:sticky top-12 z-[20] flex w-full px-5 bg-opacity-90 backdrop-blur transition-shadow duration-100 [transform:translate3d(0,0,0)]",
+                Breadcrumbs {}
             }
         }
     }
