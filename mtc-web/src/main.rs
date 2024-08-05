@@ -27,6 +27,7 @@ mod repository;
 mod router;
 mod service;
 mod state;
+mod constants;
 
 pub static APP_STATE: GlobalSignal<AppState> = Signal::global(AppState::default);
 

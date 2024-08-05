@@ -13,6 +13,7 @@ use crate::APP_STATE;
 use crate::component::breadcrumb::Breadcrumb;
 use crate::component::list_switcher::ListSwitcherComponent;
 use crate::component::loading_box::LoadingBoxComponent;
+use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 use crate::handler::permissions_handler::PermissionsHandler;
 use crate::handler::role_handler::RoleHandler;
 use crate::model::modal_model::ModalModel;
@@ -191,10 +192,10 @@ pub fn RoleEditor() -> Element {
                     input { r#type: "text", name: "slug",
                         class: "input input-bordered",
                         disabled: !is_new_role(),
-                        minlength: 4,
-                        maxlength: 30,
                         required: true,
-                        initial_value: role().slug
+                        initial_value: role().slug,
+                        pattern: SLUG_PATTERN,
+                        title: translate!(i18, "validate.slug"),
                     }
                 }
                 label { class: "w-full form-control",
@@ -205,10 +206,10 @@ pub fn RoleEditor() -> Element {
                     }
                     input { r#type: "text", name: "title",
                         class: "input input-bordered",
-                        minlength: 4,
-                        maxlength: 50,
                         required: true,
-                        initial_value: role().title
+                        initial_value: role().title,
+                        pattern: TITLE_PATTERN,
+                        title: translate!(i18, "validate.title"),
                     }
                 }
                 div { class: "inline-flex w-full gap-5",

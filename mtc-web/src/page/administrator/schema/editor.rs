@@ -18,6 +18,7 @@ use crate::handler::schema_handler::SchemaHandler;
 use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
+use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 
 #[component]
 pub fn SchemaEditor() -> Element {
@@ -283,10 +284,10 @@ pub fn SchemaEditor() -> Element {
                         input { r#type: "text", name: "slug",
                             class: "input input-bordered",
                             disabled: !is_new_schema(),
-                            minlength: 4,
-                            maxlength: 30,
                             required: true,
-                            initial_value: schema().slug
+                            initial_value: schema().slug,
+                            pattern: SLUG_PATTERN,
+                            title: translate!(i18, "validate.slug")
                         }
                     }
                     label { class: "w-full form-control",
@@ -297,10 +298,10 @@ pub fn SchemaEditor() -> Element {
                         }
                         input { r#type: "text", name: "title",
                             class: "input input-bordered",
-                            minlength: 4,
-                            maxlength: 50,
                             required: true,
-                            initial_value: schema().title
+                            initial_value: schema().title,
+                            pattern: TITLE_PATTERN,
+                            title: translate!(i18, "validate.title")
                         }
                     }
                 }
@@ -354,15 +355,15 @@ pub fn SchemaEditor() -> Element {
                         }
                         input { r#type: "text", name: "slug", placeholder: translate!(i18, "messages.slug"),
                             class: "input input-bordered",
-                            minlength: 4,
-                            maxlength: 30,
                             required: true,
+                            pattern: SLUG_PATTERN,
+                            title: translate!(i18, "validate.slug"),
                         }
                         input { r#type: "text", name: "title", placeholder: translate!(i18, "messages.title"),
                             class: "min-w-72 input input-bordered",
-                            minlength: 4,
-                            maxlength: 50,
                             required: true,
+                            pattern: TITLE_PATTERN,
+                            title: translate!(i18, "validate.title"),
                         }
                         button { class: "btn btn-outline btn-accent",
                             r#type: "submit",

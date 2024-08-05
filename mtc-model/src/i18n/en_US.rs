@@ -118,7 +118,7 @@ pub static EN_US: &str = r#"{
             "login": "login must be 5 characters at least",
             "password": "password must be 6 characters at least",
             "confirm_password": "password and confirmation password do not match",
-            "slug": "must be 4 characters at least",
+            "slug": "must be 4 characters at least, latin letters, numbers and '_' '-' allowed",
             "title": "must be 4 character at least"
         },
         "fields": {

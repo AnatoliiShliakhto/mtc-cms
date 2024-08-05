@@ -14,6 +14,7 @@ use crate::model::modal_model::ModalModel;
 use crate::model::page_action::PageAction;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
+use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 
 #[component]
 pub fn GroupEditor() -> Element {
@@ -141,10 +142,10 @@ pub fn GroupEditor() -> Element {
                     input { r#type: "text", name: "slug",
                         class: "input input-bordered",
                         disabled: !is_new_group(),
-                        minlength: 4,
-                        maxlength: 30,
                         required: true,
-                        initial_value: group().slug
+                        initial_value: group().slug,
+                        pattern: SLUG_PATTERN,
+                        title: translate!(i18, "validate.slug"),
                     }
                 }
                 label { class: "w-full form-control",
@@ -155,10 +156,10 @@ pub fn GroupEditor() -> Element {
                     }
                     input { r#type: "text", name: "title",
                         class: "input input-bordered",
-                        minlength: 4,
-                        maxlength: 50,
                         required: true,
-                        initial_value: group().title
+                        initial_value: group().title,
+                        pattern: TITLE_PATTERN,
+                        title: translate!(i18, "validate.title"),
                     }
                 }
             }

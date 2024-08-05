@@ -23,6 +23,7 @@ use crate::page::administrator::AdministratorRouteModel;
 use crate::service::content_service::ContentService;
 use crate::service::validator_service::ValidatorService;
 use crate::APP_STATE;
+use crate::constants::validation::{SLUG_PATTERN, TITLE_PATTERN};
 
 mod html_field;
 mod string_field;
@@ -237,10 +238,10 @@ pub fn Editor() -> Element {
                     input { r#type: "text", name: "slug",
                         class: "input input-bordered",
                         disabled: !is_new(),
-                        minlength: 4,
-                        maxlength: 30,
                         required: true,
-                        initial_value: content.read().slug.clone()
+                        initial_value: content.read().slug.clone(),
+                        pattern: SLUG_PATTERN,
+                        title: translate!(i18, "validate.slug"),
                     }
                 }
                 label { class: "w-full form-control",
@@ -249,10 +250,10 @@ pub fn Editor() -> Element {
                     }
                     input { r#type: "text", name: "title",
                         class: "input input-bordered",
-                        minlength: 4,
-                        maxlength: 50,
                         required: true,
-                        initial_value: content.read().title.clone()
+                        initial_value: content.read().title.clone(),
+                        pattern: TITLE_PATTERN,
+                        title: translate!(i18, "validate.title"),
                     }
                 }
 
