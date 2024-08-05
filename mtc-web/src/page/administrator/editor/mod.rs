@@ -283,10 +283,8 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                     input { r#type: "text", name: "slug",
                         class: "input input-bordered",
                         disabled: true,
-                        minlength: 4,
-                        maxlength: 30,
                         required: true,
-                        initial_value: content().slug.clone()
+                        initial_value: content().slug.clone(),
                         pattern: SLUG_PATTERN,
                         title: translate!(i18, "validate.slug"),
                     }
@@ -297,10 +295,8 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                     }
                     input { r#type: "text", name: "title",
                         class: "input input-bordered",
-                        minlength: 4,
-                        maxlength: 50,
                         required: true,
-                        initial_value: content().title.clone()
+                        initial_value: content().title.clone(),
                         pattern: TITLE_PATTERN,
                         title: translate!(i18, "validate.title"),
                     }
