@@ -129,17 +129,10 @@ pub static UK_UA: &str = r#"{
         },
         "fields": {
             "str": "Строка",
-            "bool": "Логічне",
-            "int": "Ціле",
-            "float": "Дробне",
-            "datetime": "ДатаВремя",
             "text": "Текст",
             "html": "HTML",
-            "bool-array": "ЛогічнеМасив",
-            "int-array": "ЦілеМасив",
-            "float-array": "ДробнеМасив",
-            "str-array": "СтрокаМасив",
-            "text:array": "ТекстМасив"
+            "decimal": "Число",
+            "datetime": "ДатаВремя"
         }    
     }
 }"#;

@@ -100,7 +100,7 @@ pub fn StorageManager(mut props: StorageProps) -> Element {
 
     //todo multi files upload
 
-    let upload_task = move |_| {
+    let upload_task = move |event: Event<FormData>| {
         let file_uploader = eval(
             &[
                 r#"
@@ -140,7 +140,14 @@ pub fn StorageManager(mut props: StorageProps) -> Element {
                     Ok(Value::String(value)) => {
                         if value.is_empty() {
                             progress.set(100);
-                            storage_future.restart()
+                            if let Some(file_engine) = &event.files() {
+                                let files = file_engine.files();
+                                if files.len() == 1 {
+                                    copy_to_clipboard(format!("{:0}/{:1}", file_path(), files[0]));
+                                } else {
+                                    storage_future.restart()
+                                }
+                            }
                         } else {
                             progress.set(101)
                         }

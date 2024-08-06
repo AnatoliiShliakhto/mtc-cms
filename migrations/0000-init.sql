@@ -34,6 +34,25 @@ CREATE schemas CONTENT {
     updated_by: $login
 };
 
+REMOVE TABLE IF EXISTS mtc_system;
+DEFINE TABLE mtc_system SCHEMAFULL;
+
+CREATE schemas CONTENT {
+    slug: 'mtc_system',
+    title: 'System',
+    is_system: true,
+    created_by: $login,
+    updated_by: $login
+};
+
+DEFINE FIELD c_key ON TABLE mtc_system TYPE string;
+DEFINE FIELD c_value ON TABLE mtc_system FLEXIBLE;
+
+CREATE mtc_system CONTENT {
+    c_key: 'migrations',
+    c_value: ['init']
+};
+
 REMOVE TABLE IF EXISTS users;
 DEFINE TABLE users SCHEMAFULL;
 

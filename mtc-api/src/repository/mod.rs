@@ -6,6 +6,7 @@ pub mod permissions_repository;
 pub mod group_repository;
 pub mod schema_repository;
 pub mod api_repository;
+pub mod system_repository;
 
 #[async_trait]
 pub trait RepositoryPaginate<T> {

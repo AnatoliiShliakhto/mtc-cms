@@ -9,6 +9,7 @@ use crate::service::permissions_service::PermissionsService;
 use crate::service::role_service::RoleService;
 use crate::service::schema_service::SchemaService;
 use crate::service::storage_service::StorageService;
+use crate::service::system_service::SystemService;
 use crate::service::user_service::UserService;
 
 pub struct AppState {
@@ -23,6 +24,7 @@ pub struct AppState {
     pub api_service: ApiService,
     pub storage_service: StorageService,
     pub migration_service: MigrationService,
+    pub system_service: SystemService,
 }
 
 impl AppState {
@@ -38,6 +40,7 @@ impl AppState {
         let api_service = ApiService::new(&cfg, &db);
         let storage_service = StorageService::new(&cfg, &db);
         let migration_service = MigrationService::new(&cfg, &db);
+        let system_service = SystemService::new(&cfg, &db);
 
         Self {
             cfg,
@@ -51,6 +54,7 @@ impl AppState {
             api_service,
             storage_service,
             migration_service,
+            system_service,
         }
     }
 }

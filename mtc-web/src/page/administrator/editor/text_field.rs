@@ -12,7 +12,7 @@ pub fn TextField(props: FieldProps) -> Element {
             textarea {
                 class: "w-full h-24 rounded textarea textarea-bordered",
                 name: props.slug,
-                initial_value: props.value,
+                initial_value: props.value.as_str(),
             }
         }
     }

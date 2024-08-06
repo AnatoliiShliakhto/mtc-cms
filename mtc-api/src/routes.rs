@@ -82,7 +82,7 @@ pub fn routes(
         .route("/auth/change", post(change_password_handler))
         .route("/auth", get(get_credentials_handler).post(sign_in_handler).delete(sign_out_handler))
 
-        .route("/migration", post(migration_handler))
+        .route("/migration", get(get_migrations_handler).post(migration_handler))
         .route("/health", get(health_handler))
 
         .layer(ServiceBuilder::new().layer(from_fn_with_state(Arc::clone(&state), middleware_auth_handler)))
