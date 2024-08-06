@@ -39,7 +39,7 @@ pub fn ReloadingBoxComponent<T: 'static>(
                 p { { props.message } }
                 div { class: "card-actions justify-end",
                     button {
-                        class: "btn btn-outline btn-accent",
+                        class: "btn btn-primary",
                         onclick: move |_| props.resource.restart(),
                         { translate!(i18, "messages.try_again") }
                     }

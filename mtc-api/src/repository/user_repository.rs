@@ -58,7 +58,7 @@ impl UserRepositoryTrait for UserService {
                     r#"
             SELECT * FROM users WHERE access_level > $access_level "#,
                     blocked_sql,
-                    r#"ORDER BY updated_at DESC LIMIT $limit START $start;"#,
+                    r#"ORDER BY login LIMIT $limit START $start;"#,
                 ]
                 .concat(),
             )

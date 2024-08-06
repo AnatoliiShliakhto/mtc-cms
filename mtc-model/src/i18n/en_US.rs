@@ -30,6 +30,7 @@ pub static EN_US: &str = r#"{
             "content": "Content",
             "copyright": "2024 © Powered by MTC-CMS",
             "created_at": "created at",
+            "created_by": "created by",
             "dashboard": "Dashboard",
             "delete": "Delete",
             "draft": "Draft",
@@ -128,17 +129,10 @@ pub static EN_US: &str = r#"{
         },
         "fields": {
             "str": "String",
-            "bool": "Boolean",
-            "int": "Integer",
-            "float": "Float",
-            "datetime": "DateTime",
             "text": "Text",
             "html": "HTML",
-            "bool-array": "BooleanArray",
-            "int-array": "IntegerArray",
-            "float-array": "FloatArray",
-            "str-array": "StringArray",
-            "text:array": "TextArray"
+            "decimal": "Decimal",
+            "datetime": "DateTime"
         }
     }
 }"#;

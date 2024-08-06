@@ -76,7 +76,7 @@ pub fn Migration() -> Element {
                     required: true,
                 }
                 if !is_busy() {
-                    button { class: "mt-2 w-fit self-center btn btn-neutral btn-outline",
+                    button { class: "mt-2 w-fit self-center btn btn-primary",
                         r#type: "submit",
                         { translate!(i18, "messages.migration") }
                     }

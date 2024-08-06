@@ -136,8 +136,15 @@ pub fn ModalBoxComponent() -> Element {
                                 div { class: "my-0 divider" }
                             }
                         }
-                        p { class: "indent-14", { message } }                         
-                    },
+                        p { class: "indent-14", { message } }
+                    },                    
+                }
+                div { class: "card-actions justify-end",
+                    button {
+                        class: "btn btn-primary",
+                        onclick: dialog_close,
+                        { translate!(i18, "messages.close") }
+                    }
                 }
             }
         }        

@@ -348,6 +348,7 @@ pub fn UserEditorPage(user_prop: String) -> Element {
                         name: "blocked",
                         form: "user-form",
                         checked: form_blocked(),
+                        disabled: !auth_state.is_permission("user::write"),
                         onchange: move |event| form_blocked.set(event.checked())
                     }
                     div { class: "inline-flex gap-3 swap-on",

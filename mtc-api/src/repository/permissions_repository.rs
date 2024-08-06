@@ -1,9 +1,9 @@
 use axum::async_trait;
 
 use mtc_model::list_model::{RecordListModel, StringListModel};
-use mtc_model::permission_model::PermissionModel;
+use mtc_model::permission_model::{PermissionDtoModel, PermissionModel};
 use mtc_model::record_model::RecordModel;
-
+use crate::error::api_error::ApiError;
 use crate::error::db_error::DbError;
 use crate::error::Result;
 use crate::service::permissions_service::PermissionsService;
@@ -14,6 +14,9 @@ pub trait PermissionsRepositoryTrait {
     async fn find_by_slug(&self, slug: &str) -> Result<PermissionModel>;
     async fn find_by_role(&self, role: &str) -> Result<StringListModel>;
     async fn find_by_user(&self, role: &str) -> Result<StringListModel>;
+    async fn get_custom(&self) -> Result<Vec<PermissionModel>>;
+    async fn create_custom(&self, auth: &str, model: PermissionDtoModel) -> Result<()>;
+    async fn delete_custom(&self, model: PermissionDtoModel) -> Result<()>;
 }
 
 #[async_trait]
@@ -64,5 +67,59 @@ impl PermissionsRepositoryTrait for PermissionsService {
             .await?
             .take::<Option<StringListModel>>(0)?
             .ok_or(DbError::EntryNotFound.into())
+    }
+
+    async fn get_custom(&self) -> Result<Vec<PermissionModel>> {
+        Ok(self.db.query(r#"
+            SELECT * FROM permissions WHERE is_custom = true;
+            "#)
+            .await?
+            .take::<Vec<PermissionModel>>(0)?)
+    }
+
+    async fn create_custom(&self, auth: &str, model: PermissionDtoModel) -> Result<()> {
+        let permission = self.db
+            .query(
+                r#"
+                CREATE permissions CONTENT {
+	                slug: $slug,
+	                is_custom: true,
+	                created_by: $auth_id
+                };
+            "#,
+            )
+            .bind(("auth_id", auth))
+            .bind(("slug", model.slug))
+            .await?
+            .take::<Option<PermissionModel>>(0)?;
+        
+        match permission {
+            Some(value) => {
+                self.db
+                    .query(format!(
+                        r#"
+                        RELATE roles:administrator->role_permissions->permissions:{0};
+                        "#,
+                        value.id
+                    ))
+                    .await?;
+            },
+            _ => Err(ApiError::from(DbError::EntryNotFound))?,
+        }
+        
+        Ok(())    
+    }
+
+    async fn delete_custom(&self, model: PermissionDtoModel) -> Result<()> {
+        self.db
+            .query(
+                r#"
+                DELETE FROM permissions WHERE slug=$slug and is_custom = true;
+                "#,
+            )
+            .bind(("slug", model.slug))
+            .await?;
+
+        Ok(())
     }
 }

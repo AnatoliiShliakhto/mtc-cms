@@ -8,3 +8,4 @@ pub mod schemas;
 pub mod users;
 pub mod storage;
 pub mod migration;
+pub mod permissions;

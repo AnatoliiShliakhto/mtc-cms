@@ -26,6 +26,7 @@ use crate::page::administrator::roles::editor::RoleEditorPage;
 use crate::page::administrator::roles::RolesPage;
 use crate::page::administrator::schemas::editor::SchemaEditorPage;
 use crate::page::administrator::schemas::SchemasPage;
+use crate::page::administrator::permissions::PermissionsPage;
 use crate::page::administrator::users::editor::UserEditorPage;
 use crate::page::administrator::users::UsersPage;
 use crate::page::dashboard::DashboardPage;
@@ -61,6 +62,8 @@ pub enum Route {
     UserEditorPage { user_prop: String },
     #[route("/administrator/schemas")]
     SchemasPage {},
+    #[route("/administrator/permissions")]
+    PermissionsPage {},
     #[route("/administrator/schemas/:schema_prop")]
     SchemaEditorPage { schema_prop: String },
     #[route("/content/:schema_prop")]
@@ -165,7 +168,7 @@ fn RootLayout() -> Element {
                             }
                             div { class: "divider" }
                         }
-                        if auth_state.is_permission("writer") {
+                        if auth_state.is_permission("writer") & auth_state.is_permission("content::write") {
                             li {
                                 details {
                                     summary {
@@ -220,6 +223,7 @@ fn RootLayout() -> Element {
                                     }
                                     ul {
                                         MainMenuItem { route: Route::SchemasPage {}, title: translate!(i18, "messages.schema"), rights: Some("schema::read".to_string()), toggle: main_menu_toggle }
+                                        MainMenuItem { route: Route::PermissionsPage {}, title: translate!(i18, "messages.permissions"), rights: Some("role::read".to_string()), toggle: main_menu_toggle }
                                         MainMenuItem { route: Route::GroupsPage {}, title: translate!(i18, "messages.groups"), rights: Some("group::read".to_string()), toggle: main_menu_toggle }
                                         MainMenuItem { route: Route::RolesPage {}, title: translate!(i18, "messages.roles"), rights: Some("role::read".to_string()), toggle: main_menu_toggle }
                                         MainMenuItem { route: Route::UsersPage {}, title: translate!(i18, "messages.users"), rights: Some("user::read".to_string()), toggle: main_menu_toggle }

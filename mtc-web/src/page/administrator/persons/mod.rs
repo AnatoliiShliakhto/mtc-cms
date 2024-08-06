@@ -149,6 +149,77 @@ pub fn PersonsPage() -> Element {
     rsx! {
         section { class: "flex grow select-none flex-row gap-6",
             div { class: "flex grow flex-col items-center gap-3",
+                div { class: "flex w-full flex-wrap",
+                    div { class: "join",
+                        div { class: "tooltip tooltip-bottom", "data-tip": translate!(i18, "messages.clipboard_paste"),
+                            button {
+                                class: "join-item btn text-accent",
+                                onclick: users_from_clipboard,
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::fa_regular_icons::FaPaste
+                                }
+                            }
+                        }
+                        div { class: "tooltip tooltip-bottom", "data-tip": translate!(i18, "messages.clipboard_copy"),
+                            button {
+                                class: "join-item btn",
+                                onclick: users_to_clipboard,
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::fa_regular_icons::FaCopy
+                                }
+                            }
+                        }
+                        input { class: "hidden",
+                            id: "users-upload",
+                            r#type: "file",
+                            accept: ".json",
+                            multiple: true,
+                            onchange: upload_user_set
+                        }
+                        div { class: "tooltip tooltip-bottom", "data-tip": translate!(i18, "messages.upload"),
+                            button {
+                                class: "join-item btn text-accent",
+                                "onclick": "document.getElementById('users-upload').click()",
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_file_icons::MdFileUpload
+                                }
+                            }
+                        }
+                        div { class: "tooltip tooltip-bottom", "data-tip": translate!(i18, "messages.download"),
+                            button {
+                                class: "join-item btn",
+                                onclick: download_user_set,
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_file_icons::MdFileDownload
+                                }
+                            }
+                        }
+                        div { class: "tooltip tooltip-bottom", "data-tip": translate!(i18, "messages.clear"),
+                            button {
+                                class: "join-item btn text-error",
+                                onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
+                                Icon {
+                                    width: 22,
+                                    height: 22,
+                                    fill: "currentColor",
+                                    icon: dioxus_free_icons::icons::md_content_icons::MdClear
+                                }
+                            }    
+                        }
+                    }
+                }
                 table { class: "table w-full",
                     thead {
                         tr {
@@ -180,78 +251,12 @@ pub fn PersonsPage() -> Element {
                     }
                 }
             }
-        }    
-            aside { class: "flex flex-col gap-3 pt-7",
-                div { class: "px-2 join",
-                    div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_paste"),
-                        button {
-                            class: "join-item btn btn-sm btn-ghost text-accent",
-                            onclick: users_from_clipboard,
-                            Icon {
-                                width: 16,
-                                height: 16,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaPaste
-                            }
-                        }
-                    }
-                    div { class: "tooltip", "data-tip": translate!(i18, "messages.clipboard_copy"),
-                        button {
-                            class: "join-item btn btn-sm btn-ghost",
-                            onclick: users_to_clipboard,
-                            Icon {
-                                width: 16,
-                                height: 16,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::fa_regular_icons::FaCopy
-                            }
-                        }
-                    }
-                    input { class: "hidden",
-                        id: "users-upload",
-                        r#type: "file",
-                        accept: ".json",
-                        multiple: true,
-                        onchange: upload_user_set
-                    }
-                    div { class: "tooltip", "data-tip": translate!(i18, "messages.upload"),
-                        button {
-                            class: "join-item btn btn-sm btn-ghost text-accent",
-                            "onclick": "document.getElementById('users-upload').click()",
-                            Icon {
-                                width: 20,
-                                height: 20,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_file_icons::MdFileUpload
-                            }
-                        }
-                    }
-                    div { class: "tooltip", "data-tip": translate!(i18, "messages.download"),
-                        button {
-                            class: "join-item btn btn-sm btn-ghost",
-                            onclick: download_user_set,
-                            Icon {
-                                width: 20,
-                                height: 20,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_file_icons::MdFileDownload
-                            }
-                        }
-                    }
-                    div { class: "tooltip", "data-tip": translate!(i18, "messages.clear"),
-                        button {
-                            class: "join-item btn btn-sm btn-ghost text-error",
-                            onclick: move |_| APP_STATE.peek().users.signal().set(BTreeMap::<String, UserDetailsModel>::new()),
-                            Icon {
-                                width: 18,
-                                height: 18,
-                                fill: "currentColor",
-                                icon: dioxus_free_icons::icons::md_content_icons::MdClear
-                            }
-                        }
-                    }
+            if auth_state.is_permission("administrator") {
+                aside { class: "flex flex-col gap-3",
+//todo administrator actions
                 }
             }
         }
+    }    
 }
 

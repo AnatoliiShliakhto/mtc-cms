@@ -88,18 +88,14 @@ pub fn HtmlField(props: FieldProps) -> Element {
                 'alignment:left', 'alignment:right', 'alignment:center', 'alignment:justify',
                 '|',
                 'fontSize', 'fontFamily', 'fontColor',
-                '-',
-                'link',
-                'bulletedList',
-                'numberedList',
-                'blockQuote',
-                '|',
-                'mediaEmbed',
-                'removeFormat', 'showBlocks', 'sourceEditing',
+                '-',                
+                'bulletedList', 'numberedList', 'blockQuote',
                 '|',
                 'outdent', 'indent',
-                'insertTable',
-                'insertImage',
+                '|',
+                'insertTable', 'link', 'insertImage', 'mediaEmbed',
+                '|',
+                'removeFormat', 'showBlocks', 'sourceEditing',
             ],
             shouldNotGroupWhenFull: true,
         },
@@ -144,7 +140,7 @@ pub fn HtmlField(props: FieldProps) -> Element {
                 textarea {
                     id: props.slug.clone(),
                     name: props.slug,
-                    dangerous_inner_html: props.value,
+                    dangerous_inner_html: props.value.as_str(),
                 }
             }
         }

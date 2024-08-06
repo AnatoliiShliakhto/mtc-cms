@@ -76,12 +76,13 @@ pub fn routes(
         .route("/role/list", get(role_list_handler).delete(role_list_delete_handler))
         .route("/role/all", get(role_all_handler))
 
+        .route("/permissions/custom", get(permissions_get_custom).post(permissions_create_custom).delete(permissions_delete_custom))
         .route("/permissions", get(permissions_list_handler))
 
         .route("/auth/change", post(change_password_handler))
         .route("/auth", get(get_credentials_handler).post(sign_in_handler).delete(sign_out_handler))
 
-        .route("/migration", post(migration_handler))
+        .route("/migration", get(get_migrations_handler).post(migration_handler))
         .route("/health", get(health_handler))
 
         .layer(ServiceBuilder::new().layer(from_fn_with_state(Arc::clone(&state), middleware_auth_handler)))

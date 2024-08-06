@@ -66,7 +66,7 @@ impl Config {
                 .parse::<usize>()
                 .unwrap_or(10),
             public_path: get_env("PUBLIC_PATH"),
-            storage_path: get_env("STORAGE_PATH"),
+            storage_path: format!("{}/files", get_env("PUBLIC_PATH")),
             private_storage_path: get_env("PRIVATE_STORAGE_PATH"),
             cert_path: get_env("CERT_PATH"),
             log_path: get_env("LOG_PATH"),
