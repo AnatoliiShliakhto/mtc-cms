@@ -233,8 +233,10 @@ pub fn RoleEditorPage(role_prop: String) -> Element {
                         minlength: 4,
                         maxlength: 30,
                         required: true,
+                        pattern: crate::SLUG_PATTERN,
                         initial_value: role().slug
                     }
+                    span {}
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
@@ -247,8 +249,10 @@ pub fn RoleEditorPage(role_prop: String) -> Element {
                         minlength: 4,
                         maxlength: 50,
                         required: true,
+                        pattern: crate::TITLE_PATTERN,
                         initial_value: role().title
                     }
+                    span {}
                 }
                 div { class: "inline-flex w-full gap-5",
                     label { class: "w-fit form-control",

@@ -122,21 +122,6 @@ pub fn PersonsPage() -> Element {
     };
 
     let users = APP_STATE.peek().users.signal();
-    /*
-       let users_submit = move |event: Event<FormData>| {
-           if event.value().is_empty() {
-               return;
-           }
-           APP_STATE
-               .peek()
-               .users
-               .signal()
-               .set(BTreeMap::<String, UserDetailsModel>::from_string(
-                   &event.value(),
-               ));
-       };
-
-    */
 
     let remove_user = move |user: String| {
         APP_STATE

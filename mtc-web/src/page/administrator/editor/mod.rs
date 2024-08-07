@@ -285,8 +285,10 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                         minlength: 4,
                         maxlength: 30,
                         required: true,
+                        pattern: crate::SLUG_PATTERN,
                         initial_value: content().slug.clone()
                     }
+                    span {}
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
@@ -297,8 +299,10 @@ pub fn EditorPage(schema_prop: String, content_prop: String) -> Element {
                         minlength: 4,
                         maxlength: 50,
                         required: true,
+                        pattern: crate::TITLE_PATTERN,
                         initial_value: content().title.clone()
                     }
+                    span {}
                 }
 
                 for field in schema().fields.unwrap_or(vec![]).iter() {

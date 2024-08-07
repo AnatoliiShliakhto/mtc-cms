@@ -71,6 +71,7 @@ pub fn SignIn() -> Element {
                                 minlength: 5,
                                 maxlength: 15,
                                 required: true,
+                                autocapitalize: true,
                             }
                         }
                         div { class: "form-control",

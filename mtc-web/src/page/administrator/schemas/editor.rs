@@ -319,8 +319,10 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                             minlength: 4,
                             maxlength: 30,
                             required: true,
+                            pattern: crate::SLUG_PATTERN,
                             initial_value: schema().slug
                         }
+                        span {}
                     }
                     label { class: "w-full form-control",
                         div { class: "label",
@@ -333,8 +335,10 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                             minlength: 4,
                             maxlength: 50,
                             required: true,
+                            pattern: crate::TITLE_PATTERN,
                             initial_value: schema().title
                         }
+                        span {}
                     }
                 }
 
@@ -395,12 +399,14 @@ pub fn SchemaEditorPage(schema_prop: String) -> Element {
                                 minlength: 4,
                                 maxlength: 30,
                                 required: true,
+                                pattern: crate::SLUG_PATTERN
                             }
                             input { r#type: "text", name: "title", placeholder: translate!(i18, "messages.title"),
                                 class: "min-w-72 input input-bordered",
                                 minlength: 4,
                                 maxlength: 50,
                                 required: true,
+                                pattern: crate::TITLE_PATTERN
                             }
                             button { class: "btn btn-primary",
                                 r#type: "submit",

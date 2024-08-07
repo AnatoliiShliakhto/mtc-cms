@@ -174,8 +174,10 @@ pub fn GroupEditorPage(group_prop: String) -> Element {
                         minlength: 4,
                         maxlength: 30,
                         required: true,
+                        pattern: crate::SLUG_PATTERN,
                         initial_value: group().slug
                     }
+                    span {}
                 }
                 label { class: "w-full form-control",
                     div { class: "label",
@@ -188,8 +190,10 @@ pub fn GroupEditorPage(group_prop: String) -> Element {
                         minlength: 4,
                         maxlength: 50,
                         required: true,
+                        pattern: crate::TITLE_PATTERN,
                         initial_value: group().title
                     }
+                    span {}
                 }
             }
 
