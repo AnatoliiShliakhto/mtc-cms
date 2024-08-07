@@ -5036,10 +5036,6 @@ html:has(.drawer-toggle:checked) {
   width: 1.5rem;
 }
 
-.w-60 {
-  width: 15rem;
-}
-
 .w-72 {
   width: 18rem;
 }
@@ -5488,6 +5484,19 @@ input:invalid {
   border-color: var(--fallback-er, oklch(var(--er) / var(--tw-border-opacity)));
 }
 
+input + span {
+  position: relative;
+  align-self: end;
+  color: green;
+  font-size: 1.5rem;
+  right: 0.8rem;
+  bottom: 2.7rem;
+}
+
+input:valid + span::after {
+  content: "✓";
+}
+
 @media (min-width: 640px) {
   .sm\:menu-md :where(li:not(.menu-title) > *:not(ul, details, .menu-title)),.sm\:menu-md :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
     border-radius: var(--rounded-btn, 0.5rem);
@@ -5833,16 +5842,12 @@ input:invalid {
     position: sticky;
   }
 
-  .sm\:w-80 {
-    width: 20rem;
-  }
-
-  .sm\:w-full {
-    width: 100%;
-  }
-
   .sm\:w-60 {
     width: 15rem;
+  }
+
+  .sm\:w-80 {
+    width: 20rem;
   }
 
   .sm\:max-w-sm {

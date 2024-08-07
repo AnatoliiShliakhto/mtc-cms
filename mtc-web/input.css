@@ -11,3 +11,16 @@ input:invalid {
     --tw-border-opacity: 1;
     border-color: var(--fallback-er, oklch(var(--er) / var(--tw-border-opacity)));
 }
+
+input + span {
+    position: relative;
+    align-self: end;
+    color: green;
+    font-size: 1.5rem;
+    right: 0.8rem;
+    bottom: 2.7rem;
+}
+
+input:valid + span::after {
+    content: "✓";
+}

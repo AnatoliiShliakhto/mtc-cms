@@ -17,6 +17,8 @@ static API_URL: &str = "https://localhost/api";
 static PUBLIC_STORAGE_URL: &str = "/files";
 static PRIVATE_STORAGE_URL: &str = "/api/private_storage";
 static DIV_CENTER: &str = "flex min-h-[70vh] w-full justify-center items-center";
+pub static SLUG_PATTERN: &str = "[\\d\\w_\\-]{4,30}"; // [word, digit, -_] {min, max}
+pub static TITLE_PATTERN: &str = ".{4,50}"; // any {min, max}
 
 mod component;
 mod element;

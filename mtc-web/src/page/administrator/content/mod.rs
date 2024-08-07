@@ -201,8 +201,10 @@ pub fn ContentPage(schema_prop: String) -> Element {
                             minlength: 4,
                             maxlength: 30,
                             required: true,
+                            pattern: crate::SLUG_PATTERN,
                             initial_value: content.read().slug.clone()
                         }
+                        span {}
                     }
                     label { class: "w-full form-control",
                         div { class: "label",
@@ -215,8 +217,10 @@ pub fn ContentPage(schema_prop: String) -> Element {
                             minlength: 4,
                             maxlength: 50,
                             required: true,
+                            pattern: crate::TITLE_PATTERN,
                             initial_value: content.read().title.clone()
                         }
+                        span {}
                     }
                     div { class: "flex p-2 gap-5 flex-inline",
                         button { class: "btn btn-primary",
