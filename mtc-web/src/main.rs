@@ -13,6 +13,9 @@ use crate::service::health_service::HealthService;
 use crate::state::AppState;
 
 //todo refactor to .env
+#[cfg(not(debug_assertions))]
+static API_URL: &str = "https://242.org.ua/api";
+#[cfg(debug_assertions)]
 static API_URL: &str = "https://localhost/api";
 static PUBLIC_STORAGE_URL: &str = "/files";
 static PRIVATE_STORAGE_URL: &str = "/api/private_storage";
@@ -51,7 +54,7 @@ pub fn App() -> Element {
 
     let mut i18 = use_i18();
 
-    let user_i18n_en = use_persistent("settings_i18n_en", || true);
+    let user_i18n_en = use_persistent("settings_i18n_en", || false);
 
     use_effect(move || match user_i18n_en.get().eq(&true) {
         true => i18.set_language("en_US".parse().unwrap()),

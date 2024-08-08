@@ -57,6 +57,8 @@ pub fn routes(
         .route("/schema/list/:page", get(schema_list_handler))
         .route("/schema/list", get(schema_list_handler).delete(schema_list_delete_handler))
 
+        .route("/users/state", get(users_get_state))
+            
         //todo: additional user fields
         .route("/user/:login/permissions", get(user_get_permissions_handler))
         .route("/user/:login/groups", get(user_get_groups_handler).post(user_set_groups_handler))

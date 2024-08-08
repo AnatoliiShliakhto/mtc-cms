@@ -134,7 +134,7 @@ pub fn PersonsPage() -> Element {
     rsx! {
         section { class: "flex grow select-none flex-row gap-6",
             div { class: "flex grow flex-col items-center gap-3",
-                div { class: "flex w-full flex-wrap",
+                div { class: "flex w-full flex-wrap z-[10]",
                     div { class: "join",
                         div { class: "tooltip tooltip-bottom", "data-tip": translate!(i18, "messages.clipboard_paste"),
                             button {
@@ -205,7 +205,7 @@ pub fn PersonsPage() -> Element {
                         }
                     }
                 }
-                table { class: "table w-full",
+                table { class: "table table-xs table-pin-rows w-full",
                     thead {
                         tr {
                             th { class: "w-6" }

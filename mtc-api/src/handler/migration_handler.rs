@@ -5,7 +5,7 @@ use argon2::{Argon2, PasswordHasher};
 use argon2::password_hash::SaltString;
 use axum::extract::State;
 use tower_sessions::Session;
-use tracing::{info};
+use tracing::info;
 
 use mtc_model::auth_model::SignInModel;
 use mtc_model::list_model::StringListModel;

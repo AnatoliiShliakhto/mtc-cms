@@ -2,7 +2,7 @@ use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHasher};
 use axum::async_trait;
 use surrealdb::sql::Datetime;
-
+use mtc_model::user_details_model::UserDetailsStateModel;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
 use crate::error::api_error::ApiError;
@@ -37,6 +37,7 @@ pub trait UserRepositoryTrait {
     async fn get_roles_max_access_level(&self, login: &str) -> Result<i32>;
     async fn update_access_level(&self, login: &str, access_level: i32) -> Result<()>;
     async fn get_roles_access_all(&self, login: &str) -> Result<bool>;
+    async fn get_users_state(&self, user_list: Vec<String>, access: &AccessModel) -> Result<Vec<UserDetailsStateModel>>;
 }
 
 #[async_trait]
@@ -100,6 +101,7 @@ impl UserRepositoryTrait for UserService {
         if !access.users_all {
             blocked_sql = " AND blocked = false";
         }
+
         self.db
             .query(
                 [
@@ -109,6 +111,7 @@ impl UserRepositoryTrait for UserService {
                 .concat(),
             )
             .bind(("login", login.to_string()))
+            .bind(("access_level", access.users_level))
             .await?
             .take::<Option<UserModel>>(0)?
             .ok_or(DbError::EntryNotFound.into())
@@ -413,5 +416,25 @@ impl UserRepositoryTrait for UserService {
             .take::<Option<Vec<bool>>>(0)?;
 
         Ok(access.unwrap_or(vec![false]).iter().any(|value| *value))
+    }
+
+    async fn get_users_state(&self, user_list: Vec<String>, access: &AccessModel) -> Result<Vec<UserDetailsStateModel>> {
+        let mut blocked_sql = "";
+        if !access.users_all {
+            blocked_sql = " AND blocked = false";
+        }
+        self.db
+            .query(
+                [
+                    r#"SELECT login, blocked, access_count, last_access FROM users WHERE login in $users AND access_level > $access_level"#,
+                    blocked_sql,
+                ]
+                    .concat(),
+            )
+            .bind(("users", user_list))
+            .bind(("access_level", access.users_level))
+            .await?
+            .take::<Option<Vec<UserDetailsStateModel>>>(0)?
+            .ok_or(DbError::EntryNotFound.into())
     }
 }

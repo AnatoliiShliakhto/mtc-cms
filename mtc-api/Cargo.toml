@@ -13,7 +13,7 @@ mtc-model = { path = "../mtc-model" }
 
 [target.'cfg(all(any(windows, unix), not(target_family = "wasm")))'.dependencies]
 axum = { version = "0.7.5", features = ["multipart", "macros"] }
-serde = { version = "1.0.204", features = ["derive"] }
+serde = { version = "1.0.205", features = ["derive"] }
 tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread", "fs"] }
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

@@ -288,7 +288,6 @@ pub fn UserEditorPage(user_prop: String) -> Element {
                         minlength: 5,
                         maxlength: 15,
                         required: true,
-                        autocapitalize: true,
                         initial_value: user().login
                     }
                 }

@@ -4,7 +4,6 @@ use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::extract::State;
 use tower_sessions::cookie::time::Duration;
 use tower_sessions::{Expiry, Session};
-
 use mtc_model::auth_model::{AuthModel, SignInModel};
 use mtc_model::list_model::StringListModel;
 use mtc_model::user_model::UserChangePasswordModel;
@@ -32,7 +31,7 @@ pub async fn sign_in_handler(
         .find_by_login(
             &payload.login,
             &AccessModel {
-                users_level: 0,
+                users_level: -1,
                 users_all: true,
             },
         )
@@ -52,6 +51,7 @@ pub async fn sign_in_handler(
         Ok(value) => value,
         _ => Err(ApiError::from(SessionError::PasswordHash))?,
     };
+
     if argon2
         .verify_password(payload.password.as_bytes(), &parsed_hash)
         .is_err()

@@ -45,7 +45,7 @@ pub fn SchemasPage() -> Element {
         match &*schemas_future.read() {
             Some(Ok(response)) => rsx! {
                 section { class: "w-full flex-grow p-3",
-                    table { class: "table w-full",
+                    table { class: "table table-pin-rows w-full",
                         thead {
                             tr {
                                 th { class: "w-6" }

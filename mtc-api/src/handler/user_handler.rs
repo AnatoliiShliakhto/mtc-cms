@@ -6,6 +6,7 @@ use tracing::{error, warn};
 
 use mtc_model::list_model::StringListModel;
 use mtc_model::pagination_model::{PaginationBuilder, PaginationModel};
+use mtc_model::user_details_model::UserDetailsStateModel;
 use mtc_model::user_model::{UserCreateModel, UserModel, UserUpdateModel};
 
 use crate::handler::Result;
@@ -261,4 +262,19 @@ async fn set_groups(state: &Arc<AppState>, user_id: &str, groups: Vec<String>) -
     }
 
     Ok(ApiResponse::Ok)
+}
+
+pub async fn users_get_state(
+    state: State<Arc<AppState>>,
+    session: Session,
+    ValidatedPayload(payload): ValidatedPayload<StringListModel>,
+) -> Result<Vec<UserDetailsStateModel>> {
+    session.permission("user::read").await?;
+    let access = session.get_access().await?;
+
+    state
+        .user_service
+        .get_users_state(payload.list, &access)
+        .await?
+        .ok_model()
 }
