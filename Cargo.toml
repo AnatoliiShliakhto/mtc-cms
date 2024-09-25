@@ -1,0 +1,23 @@
+[workspace]
+resolver = "2"
+members = ["mtc-common", "mtc-server", "mtc-wasm"]
+default-members = ["mtc-server"]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+description = "Military Training Center CMS"
+authors = ["Anatolii Shliakhto <a.shlyalkhto@gmail.com>"]
+repository = "https://github.com/AnatoliiShliakhto/mtc-cms"
+readme = "README.md"
+license = "MIT"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

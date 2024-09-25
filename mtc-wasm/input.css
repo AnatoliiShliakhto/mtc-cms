@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+
+    :root {
+        --ck-color-base-text: var(--fallback-bc,oklch(var(--bc)/1));
+        --ck-color-base-background: var(--fallback-b1,oklch(var(--b1)/1));
+    }
+
+    body {
+        @apply antialiased;
+        @apply forced-color-adjust-none;
+        @apply touch-manipulation;
+    }
+
+    .div-centered {
+        @apply flex;
+        @apply w-full;
+        @apply min-h-screen;
+        @apply justify-center;
+        @apply items-center;
+        min-height: calc(100dvh - 11rem);
+    }
+
+    input:user-invalid {
+        @apply input-error;
+    }
+
+    .input-field {
+        @apply input;
+        @apply input-bordered;
+        @apply focus:input-primary
+    }
+
+    .ck-content .table table {
+        @apply border-inherit;
+    }
+
+    .ck-content .table table td, .ck-content .table table th {
+        @apply border-inherit;
+    }
+
+    .file-stack {
+    }
+
+    .file-stack dt {
+        @apply mb-2;
+    }
+
+    .file-stack dt span {
+        @apply text-lg;
+        @apply font-semibold;
+        @apply text-wrap;
+    }
+
+    .file-stack dd {
+        @apply flex;
+        @apply flex-nowrap;
+        @apply mt-2.5;
+        @apply sm:mt-1.5;
+        @apply gap-3;
+        @apply items-start;
+    }
+
+    .file-stack dd svg {
+        @apply w-5 min-w-5 aspect-square opacity-50 mt-[0.3rem];
+    }
+
+    .file-stack dd a {
+        @apply transition-colors duration-500 ease-in-out;
+        @apply no-underline;
+        @apply text-wrap;
+        @apply font-normal;
+    }
+
+    .file-stack dd a:hover {
+        @apply text-primary;
+    }
+
+    .file-stack dd + dt {
+    }
+
+    .course-childs {
+        @apply w-full pt-2;
+    }
+
+    .course-childs:before {
+        @apply absolute;
+        @apply bottom-7;
+        @apply top-3.5;
+        inset-inline-start: 0;
+        @apply w-[1px];
+        --tw-bg-opacity: 1;
+        background-color: var(--fallback-bc, oklch(var(--bc) / var(--tw-bg-opacity)));
+        opacity: 0.1;
+        content: "";
+    }
+
+    .entry-table {
+        @apply table;
+        @apply table-fixed;
+        @apply w-full;
+    }
+
+    .entry-table tbody tr {
+        @apply cursor-pointer;
+        @apply hover:bg-base-200;
+        @apply hover:shadow-md;
+    }
+
+    .action-right-panel {
+        @apply bg-base-200;
+        @apply fixed;
+        @apply w-36;
+        @apply -right-20;
+        @apply transition-transform;
+        @apply ease-in-out;
+        @apply duration-300;
+        @apply hover:-translate-x-20;
+        @apply rounded-l-lg;
+        @apply rounded-r-none;
+        @apply shadow-md;
+    }
+
+    .action-right-panel button {
+        @apply btn;
+        @apply justify-start;
+        @apply gap-3;
+    }
+
+    .action-right-panel :where(span) {
+        @apply transition-opacity;
+        @apply ease-in-out;
+        @apply duration-300;
+    }
+}

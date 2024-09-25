@@ -1,0 +1,42 @@
+[package]
+name = "mtc-srv"
+description = "Military training center CMS: Server"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[dependencies]
+mtc-model = { path = "../mtc-common" }
+
+thiserror = { version = "1.0.64" }
+tokio = { version = "1.40.0", features = ["full"] }
+surrealdb = { version = "2.0.1", features = ["kv-rocksdb"] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = { version = "1.0.128" }
+
+axum = { version = "0.7.6", features = ["multipart", "macros"] }
+axum-server = { version = "0.7.1", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
+axum-extra = { version = "0.9.4" }
+axum_session = { version = "0.14.2", features = ["key-store"] }
+axum_session_surreal = { version = "0.2.0" }
+
+tower = { version = "0.5.1" }
+tower-http = { version = "0.6.1", features = ["fs", "cors", "set-header", "compression-full"] }
+#tower-sessions = { version = "0.13.0" }
+#tower-sessions-surrealdb-store = {  version = "0.5.0" }
+
+argon2 = { version = "0.6.0-pre.1" }
+chrono = { version = "0.4.38" }
+dotenv = { version = "0.15.0" }
+
+tracing = { version = "0.1.40" }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-appender = { version = "0.2.3" }
+
+rustls = { version = "0.23.13" }
+
+[target.'cfg(unix)'.dependencies]
+openssl = { version = "0.10.66", features = ["vendored"] }

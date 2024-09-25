@@ -1,0 +1,10 @@
+/target
+/.idea
+/data/
+!/data/migration/
+/node_modules/
+/.env
+/Cargo.lock
+/package-lock.json
+/**/*.br
+/data/www/

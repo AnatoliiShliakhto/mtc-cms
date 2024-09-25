@@ -1,0 +1,16 @@
+[package]
+name = "mtc-model"
+description = "Military training center CMS Model"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = { version = "1.0.128" }
+serde_repr = { version = "0.1.19" }
+surrealdb = { version = "2.0.1", default-features = false }
+chrono = { version = "0.4.38" }
