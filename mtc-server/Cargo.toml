@@ -13,20 +13,20 @@ mtc-model = { path = "../mtc-common" }
 
 thiserror = { version = "1.0.64" }
 tokio = { version = "1.40.0", features = ["full"] }
-surrealdb = { version = "2.0.1", features = ["kv-rocksdb"] }
+surrealdb = { version = "2.0.2", features = ["kv-rocksdb"] }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128" }
 
 axum = { version = "0.7.6", features = ["multipart", "macros"] }
 axum-server = { version = "0.7.1", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
 axum-extra = { version = "0.9.4" }
-axum_session = { version = "0.14.2", features = ["key-store"] }
-axum_session_surreal = { version = "0.2.0" }
+#axum_session = { version = "0.14.2", features = ["key-store"] }
+#axum_session_surreal = { version = "0.2.0" }
 
 tower = { version = "0.5.1" }
 tower-http = { version = "0.6.1", features = ["fs", "cors", "set-header", "compression-full"] }
-#tower-sessions = { version = "0.13.0" }
-#tower-sessions-surrealdb-store = {  version = "0.5.0" }
+tower-sessions = { version = "0.13.0" }
+tower-sessions-surrealdb-store = {  version = "0.5.0" }
 
 argon2 = { version = "0.6.0-pre.1" }
 chrono = { version = "0.4.38" }

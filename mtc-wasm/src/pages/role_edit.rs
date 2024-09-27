@@ -24,7 +24,6 @@ pub fn RoleEdit(
                 "id": event.get_str("id"),
                 "slug": event.get_str("slug"),
                 "title": event.get_str("title"),
-                "title": event.get_str("title"),
                 "user_access_all": event.get_bool("user_access_all"),
                 "user_access_level": event.get_i64("user_access_level").unwrap_or(999),
                 "permissions": event.get_str_array("permissions").unwrap_or(vec![]),
@@ -97,14 +96,16 @@ pub fn RoleEdit(
             updated_by: response().get_string("updated_by"),
             updated_at: response().get_datetime("updated_at"),
         }
-        if id().eq(SLUG_CREATE) {
+        if id().eq(ID_CREATE) {
             EditorActions {
                 form: "role-edit-form",
+                permission: PERMISSION_ROLES_WRITE,
             }
         } else {
             EditorActions {
                 form: "role-edit-form",
                 delete_event: delete,
+                permission: PERMISSION_ROLES_WRITE,
             }
         }
     }

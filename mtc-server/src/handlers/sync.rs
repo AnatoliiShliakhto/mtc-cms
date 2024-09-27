@@ -6,11 +6,11 @@ pub async fn sync_handler(
     Payload(payload): Payload<Value>,
 ) -> Result<impl IntoResponse> {
     let auth_id = session.get_auth_id().await?;
-    /*
-    session.set_expiry(Some(tower_sessions::Expiry::OnInactivity(
-        tower_sessions::cookie::time::Duration::minutes(state.config.session_expiration)
+
+    session.set_expiry(Some(Expiry::OnInactivity(
+        Duration::minutes(state.config.session_expiration)
     )));
-    */
+
     let req_id = payload.get_str("id").unwrap_or_default();
 
     let mut json_obj = Map::new();

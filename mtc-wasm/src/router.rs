@@ -28,4 +28,8 @@ pub enum Route {
     Roles {},
     #[route("/administrator/roles/edit/:id")]
     RoleEdit { id: String },
+    #[route("/administrator/users")]
+    Users {},
+    #[route("/administrator/users/edit/:id")]
+    UserEdit { id: String },
 }

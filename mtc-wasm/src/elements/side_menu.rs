@@ -22,12 +22,17 @@ pub fn SideMenu() -> Element {
                         MenuItem {
                             route: Route::Groups {},
                             title: t!("menu-groups"),
-                            permission: PERMISSION_ROLES_READ
+                            permission: PERMISSION_GROUPS_READ
                         }
                         MenuItem {
                             route: Route::Roles {},
                             title: t!("menu-roles"),
                             permission: PERMISSION_ROLES_READ
+                        }
+                        MenuItem {
+                            route: Route::Users {},
+                            title: t!("menu-users"),
+                            permission: PERMISSION_USERS_READ
                         }
                     }
                 }

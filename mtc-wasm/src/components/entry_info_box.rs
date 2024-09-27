@@ -18,7 +18,7 @@ pub fn EntryInfoBox(
             div {
                 tabindex: "0",
                 role: "button",
-                class: "btn text-accent rounded-l-lg rounded-r-none hover:btn-accent",
+                class: "btn text-accent rounded-l-lg rounded-r-none shadow-md hover:btn-accent",
                 Icon { icon: Icons::Info2, class: "size-8" }
             }
             div {

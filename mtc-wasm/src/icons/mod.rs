@@ -39,6 +39,8 @@ mod diagram3;
 mod back;
 mod floppy;
 mod trash;
+mod ban;
+mod user_check;
 
 pub mod prelude {
     pub use super::{
@@ -88,6 +90,8 @@ pub enum Icons {
     Back,
     Floppy,
     Trash,
+    Ban,
+    UserCheck,
 }
 
 #[component]
@@ -137,5 +141,7 @@ pub fn Icon(
         Icons::Back => back::BackIcon(class),
         Icons::Floppy => floppy::FloppyIcon(class),
         Icons::Trash => trash::TrashIcon(class),
+        Icons::Ban => ban::BanIcon(class),
+        Icons::UserCheck => user_check::UserCheckIcon(class),
     }
 }
