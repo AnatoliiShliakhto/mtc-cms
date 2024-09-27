@@ -7,6 +7,11 @@ pub trait GroupsRepository {
     async fn find_group(&self, id: Cow<'static, str>) -> Result<Group>;
     async fn update_group(&self, payload: Value, by: Cow<'static, str>) -> Result<()>;
     async fn delete_group(&self, id: Cow<'static, str>) -> Result<()>;
+    async fn assign_group_to_user(
+        &self,
+        id: Cow<'static, str>,
+        group: Cow<'static, str>,
+    ) -> Result<()>;
 }
 
 #[async_trait]
@@ -106,6 +111,29 @@ impl GroupsRepository for Repository {
             .database
             .query(sql)
             .bind(("id", id))
+            .await?;
+
+        Ok(())
+    }
+
+    async fn assign_group_to_user(&self, id: Cow<'static, str>, group: Cow<'static, str>) -> Result<()> {
+        let mut sql = vec!["BEGIN TRANSACTION;"];
+        let drop_groups = format!(r#"
+            DELETE users:{}->user_groups;
+        "#, id);
+        sql.push(&drop_groups);
+
+            let group_query = format!(r#"
+                RELATE users:{}->user_groups->groups:{};
+            "#, id, group);
+        if !group.is_empty() {
+            sql.push(&group_query);
+        }
+        sql.push("COMMIT TRANSACTION;");
+
+        self
+            .database
+            .query(sql.concat())
             .await?;
 
         Ok(())

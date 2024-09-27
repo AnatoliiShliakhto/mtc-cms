@@ -6,6 +6,7 @@ pub struct User {
     pub login: Cow<'static, str>,
     #[serde(skip_serializing, default)]
     pub password: Cow<'static, str>,
+    pub group: Cow<'static, str>,
     pub blocked: bool,
     pub access_level: i32,
     pub access_count: i32,
@@ -25,6 +26,7 @@ impl Default for User {
             id: "".into(),
             login: "".into(),
             password: "".into(),
+            group: "".into(),
             blocked: false,
             access_level: 999,
             access_count: 0,

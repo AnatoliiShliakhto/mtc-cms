@@ -4,11 +4,17 @@ pub fn routes(
     state: Arc<AppState>
 ) -> Router {
     Router::new()
-        .route("/roles", get(find_role_list_handler))
-        .route("/role/:id", get(find_role_by_slug_handler)
-            .delete(delete_role_handler)
+        .route("/users", get(find_user_list_handler))
+        .route("/user/:id", get(find_user_handler)
+            .delete(delete_user_handler)
         )
-        .route("/role", post(update_role_handler))
+        .route("/user", post(update_user_handler))
+
+        .route("/roles", get(find_custom_role_list_handler))
+        .route("/role/:id", get(find_custom_role_handler)
+            .delete(delete_custom_role_handler)
+        )
+        .route("/role", post(update_custom_role_handler))
 
         .route("/groups", get(find_group_list_handler))
         .route("/group/:id", get(find_group_handler)

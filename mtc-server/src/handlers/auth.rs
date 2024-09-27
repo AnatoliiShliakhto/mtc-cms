@@ -61,7 +61,7 @@ pub async fn sign_in_handler(
 pub async fn sign_out_handler(
     session: Session,
 ) -> Result<impl IntoResponse> {
-    session.clear();
+    session.clear().await;
 
     Ok(StatusCode::OK)
 }
@@ -85,7 +85,7 @@ pub async fn change_password_handler(
 
     let Ok(user) = state
         .repository
-        .find_user_by_id(auth_state.id)
+        .find_user(auth_state.id, Access{ level: -1, full: true })
         .await else { Err(SessionError::InvalidCredentials)? };
 
     if user.blocked {

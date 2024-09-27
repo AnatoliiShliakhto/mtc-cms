@@ -6,6 +6,8 @@ pub fn EditorActions(
     form: String,
     #[props]
     delete_event: Option<EventHandler<MouseEvent>>,
+    #[props]
+    permission: Option<String>,
 ) -> Element {
     let auth_state = use_auth_state();
 
@@ -26,7 +28,12 @@ pub fn EditorActions(
 
             button {
                 form,
-                class: "hover:btn-success join-item",
+                class: if permission.is_none()
+                || auth_state().has_permission(&permission.unwrap_or_default()) {
+                    "hover:btn-success join-item"
+                } else {
+                    "btn-disabled join-item"
+                },
                 Icon { icon: Icons::Floppy, class: "size-6" }
                 span {
                     class: "opacity-0 group-hover:opacity-100",
@@ -35,7 +42,7 @@ pub fn EditorActions(
             }
 
             button {
-                class: if delete_event.is_some () {
+                class: if delete_event.is_some() {
                     "hover:btn-error join-item"
                 } else {
                     "btn-disabled join-item"

@@ -6,5 +6,5 @@ pub struct Entry {
     pub slug: Cow<'static, str>,
     pub title: Cow<'static, str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub additional: Option<Value>,
+    pub variant: Option<Value>,
 }

@@ -12,6 +12,8 @@ mod groups;
 mod group_edit;
 mod roles;
 mod role_edit;
+mod users;
+mod user_edit;
 
 pub mod prelude {
     pub use super::{
@@ -27,5 +29,7 @@ pub mod prelude {
         search_result::*,
         roles::*,
         role_edit::*,
+        users::*,
+        user_edit::*,
     };
 }

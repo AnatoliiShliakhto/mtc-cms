@@ -39,23 +39,25 @@ pub mod prelude {
             routing::{get, post},
         },
         axum_server::tls_rustls::RustlsConfig,
+        /*
         axum_session::{Key, SameSite, SessionConfig, SessionLayer, SessionMode, SessionStore},
         axum_session_surreal::SessionSurrealPool,
+        */
         tower::ServiceBuilder,
         tower_http::{
             compression::CompressionLayer, cors::CorsLayer,
             services::{ServeDir, ServeFile},
             set_header::SetResponseHeaderLayer,
         },
-        chrono::Duration,
+        //chrono::Duration,
 
-        /*
+
         tower_sessions::{
             cookie::{time::Duration, SameSite},
             ExpiredDeletion, Expiry, Session, SessionManagerLayer,
-        };
-        tower_sessions_surrealdb_store::SurrealSessionStore;
-        */
+        },
+        tower_sessions_surrealdb_store::SurrealSessionStore,
+
 
         argon2::{Argon2, password_hash::SaltString, PasswordHasher, PasswordVerifier, PasswordHash},
         tracing::log::{error, info},
@@ -91,8 +93,6 @@ async fn main() {
 
     let db = Provider::database_init(&config).await;
 
-    // tower-session + tower-session-surreal
-    /*
     let session_store =
         SurrealSessionStore::new(db.clone(), "sessions".to_string());
     tokio::task::spawn(session_store.clone().continuously_delete_expired(
@@ -105,8 +105,8 @@ async fn main() {
             .with_name("mtc-api.sid")
             .with_expiry(Expiry::OnInactivity(Duration::minutes(config.session_expiration))),
     );
-    */
 
+    /* axum sessions
     let session_config = SessionConfig::default()
         .with_table_name("sessions")
         .with_secure(true)
@@ -122,6 +122,7 @@ async fn main() {
 
     let session_store =
         SessionStore::new(Some(SessionSurrealPool::new(db.clone())), session_config).await.unwrap();
+    */
 
     let state = Arc::new(AppState::init(config, db));
 
@@ -184,8 +185,8 @@ async fn main() {
             HeaderValue::from_str(&state.config.protected_cache_control).unwrap())
         )
         .nest(API_PATH, routes(state.clone()))
-        //.layer(session_service)
-        .layer(SessionLayer::new(session_store))
+        .layer(session_service)
+        //.layer(SessionLayer::new(session_store))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
             HeaderValue::from_str(&state.config.api_cache_control).unwrap())

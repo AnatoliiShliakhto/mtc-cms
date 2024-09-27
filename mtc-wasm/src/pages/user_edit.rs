@@ -1,36 +1,39 @@
 use super::*;
 
 #[component]
-pub fn GroupEdit(
+pub fn UserEdit(
     #[props]
     id: ReadOnlySignal<String>
 ) -> Element {
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
     let api_task = use_coroutine_handle::<ApiRequestAction>();
     let auth_state = use_auth_state();
-    page_init!("menu-groups", PERMISSION_GROUPS_READ, auth_state);
+    page_init!("menu-users", PERMISSION_USERS_READ, auth_state);
 
     let future =
         use_resource(move || async move {
-            request_fetch_task(url!("group", &id())).await
+            request_fetch_task(url!("user", &id())).await
         });
 
     let response = future.suspend()?;
 
     let submit = move |event: Event<FormData>| {
         api_task.send(ApiRequestAction::PostThenBack(
-            url!("group"),
+            url!("user"),
             Some(json!({
                 "id": event.get_str("id"),
-                "slug": event.get_str("slug"),
-                "title": event.get_str("title")
+                "login": event.get_str("login"),
+                "password": event.get_str("password"),
+                "group": event.get_str("group"),
+                "blocked": event.get_bool("blocked"),
+                "roles": event.get_str_array("roles").unwrap_or(vec![]),
             })),
         ))
     };
 
     let delete = move |event: MouseEvent| {
         api_task.send(ApiRequestAction::DeleteThenBack(
-            url!("group",  &id()),
+            url!("user", &id()),
             None,
         ))
     };
@@ -40,7 +43,7 @@ pub fn GroupEdit(
             class: "flex grow select-none flex-row gap-6 px-3 pr-20 sm:pr-16",
             form {
                 class: "flex grow flex-col items-center gap-3",
-                id: "group-edit-form",
+                id: "user-edit-form",
                 autocomplete: "off",
                 onsubmit: submit,
 
@@ -50,18 +53,26 @@ pub fn GroupEdit(
                     initial_value: response().get_string("id")
                 }
                 FormTextField {
-                    name: "slug",
-                    title: "field-slug",
-                    pattern: SLUG_PATTERN,
+                    name: "login",
+                    title: "field-login",
                     required: true,
-                    initial_value: response().get_string("slug")
+                    initial_value: response().get_string("login")
                 }
                 FormTextField {
-                    name: "title",
-                    title: "field-title",
-                    pattern: TITLE_PATTERN,
-                    required: true,
-                    initial_value: response().get_string("title")
+                    name: "password",
+                    title: "field-password",
+                }
+                FormSelectField {
+                    name: "group",
+                    title: "field-group",
+                    selected: response().get_string("group").unwrap_or_default(),
+                    items: response().get_entries("groups_set").unwrap_or(vec![]),
+                }
+                FormEntriesField {
+                    name: "roles",
+                    title: "field-roles",
+                    items: response().get_str_array("roles").unwrap_or(vec![]),
+                    entries: response().get_entries("roles_set").unwrap_or(vec![]),
                 }
             }
         }
@@ -73,15 +84,18 @@ pub fn GroupEdit(
         }
         if id().eq(ID_CREATE) {
             EditorActions {
-                form: "group-edit-form",
-                permission: PERMISSION_GROUPS_WRITE,
+                form: "user-edit-form",
+                permission: PERMISSION_USERS_WRITE,
             }
         } else {
             EditorActions {
-                form: "group-edit-form",
+                form: "user-edit-form",
                 delete_event: delete,
-                permission: PERMISSION_GROUPS_WRITE,
+                permission: PERMISSION_USERS_WRITE,
             }
+        }
+        UserBlockAction {
+            checked: response().get_bool("blocked").unwrap_or_default(),
         }
     }
 }

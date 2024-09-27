@@ -1,17 +1,17 @@
 use super::*;
 
-pub async fn find_role_list_handler(
+pub async fn find_custom_role_list_handler(
     state: State<Arc<AppState>>,
     session: Session,
 ) -> Result<impl IntoResponse> {
     session.has_permission(PERMISSION_ROLES_READ).await?;
 
-    let roles = state.repository.find_role_list().await?;
+    let roles = state.repository.find_custom_role_list().await?;
 
     roles.to_response()
 }
 
-pub async fn find_role_by_slug_handler(
+pub async fn find_custom_role_handler(
     Path(id): Path<Cow<'static, str>>,
     state: State<Arc<AppState>>,
     session: Session,
@@ -37,7 +37,7 @@ pub async fn find_role_by_slug_handler(
     json_obj.to_response()
 }
 
-pub async fn update_role_handler(
+pub async fn update_custom_role_handler(
     state: State<Arc<AppState>>,
     session: Session,
     Payload(payload): Payload<Value>,
@@ -55,7 +55,7 @@ pub async fn update_role_handler(
     Ok(StatusCode::OK)
 }
 
-pub async fn delete_role_handler(
+pub async fn delete_custom_role_handler(
     Path(id): Path<Cow<'static, str>>,
     state: State<Arc<AppState>>,
     session: Session,

@@ -16,8 +16,7 @@ pub trait PermissionsRepository {
     async fn delete_custom_permission(&self, permission: Cow<'static, str>) -> Result<()>;
     async fn assign_permissions_to_role(
         &self, id: Cow<'static, str>,
-        permissions:
-        Vec<Cow<'static, str>>,
+        permissions: Vec<Cow<'static, str>>,
     ) -> Result<()>;
 }
 
