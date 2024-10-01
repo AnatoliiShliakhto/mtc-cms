@@ -13,7 +13,7 @@ pub enum FieldKind {
 }
 
 impl FromStr for FieldKind {
-    type Err = bool;
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {

@@ -14,6 +14,8 @@ pub trait JsonValueUtils {
     fn get_bool(&self, key: &str) -> Option<bool>;
     fn get_str_array(&self, key: &str) -> Option<Vec<Cow<'static, str>>>;
     fn get_entries(&self, key: &str) -> Option<Vec<Entry>>;
+    fn get_schema_kind(&self) -> SchemaKind;
+    fn get_schema_fields(&self) -> Option<Vec<Field>>;
 }
 
 impl JsonValueUtils for Value {
@@ -133,6 +135,32 @@ impl JsonValueUtils for Value {
             }
 
             return Some(entries);
+        }
+        None
+    }
+
+    fn get_schema_kind(&self) -> SchemaKind {
+        if let Some(value) = self.as_object()
+            .and_then(|obj| obj.get("kind")
+                .and_then(|val| val.as_i64())) {
+            return SchemaKind::from(value);
+        }
+        SchemaKind::Page
+    }
+
+    fn get_schema_fields(&self) -> Option<Vec<Field>> {
+        if let Some(array) = self
+            .as_object()
+            .and_then(|obj| obj.get("fields")
+                .and_then(|val| val.as_array())) {
+            let mut fields = vec![];
+            for item in array {
+                if let Ok(val) = serde_json::from_value::<Field>(item.to_owned()) {
+                    fields.push(val)
+                }
+            }
+
+            return Some(fields);
         }
         None
     }

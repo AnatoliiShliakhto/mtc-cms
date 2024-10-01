@@ -5,6 +5,7 @@ pub trait FormDataUtils {
     fn get_bool(&self, field: &str) -> bool;
     fn get_str_array(&self, field: &str) -> Option<Vec<Cow<'static, str>>>;
     fn get_i64(&self, field: &str) -> Option<i64>;
+    fn get_fields_array(&self) -> Option<Vec<Field>>;
 }
 
 impl FormDataUtils for Event<FormData> {
@@ -38,5 +39,25 @@ impl FormDataUtils for Event<FormData> {
             }
         }
         None
+    }
+
+    fn get_fields_array(&self) -> Option<Vec<Field>> {
+        let mut fields: Vec<Field> = vec![];
+
+        let kind_set = self.get_str_array("fields-kind").unwrap_or_default();
+        let slug_set = self.get_str_array("fields-slug").unwrap_or_default();
+        let title_set = self.get_str_array("fields-title").unwrap_or_default();
+
+        for (kind, (slug, title))
+        in zip(kind_set, zip(slug_set, title_set)) {
+            fields.push(Field {
+                kind: FieldKind::from_str(&*kind).unwrap_or_default(),
+                slug,
+                title,
+            })
+        }
+
+        if fields.is_empty() { return None }
+        Some(fields)
     }
 }

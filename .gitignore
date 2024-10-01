@@ -1,7 +1,7 @@
 /target
 /.idea
 /data
-!/data/migration
+!/data/migrations
 /node_modules
 /.env
 /Cargo.lock

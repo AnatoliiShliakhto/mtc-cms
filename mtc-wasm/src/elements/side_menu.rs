@@ -15,6 +15,11 @@ pub fn SideMenu() -> Element {
                     }
                     ul {
                         MenuItem {
+                            route: Route::Schemas {},
+                            title: t!("menu-schemas"),
+                            permission: PERMISSION_SCHEMAS_READ,
+                        }
+                        MenuItem {
                             route: Route::Permissions {},
                             title: t!("menu-permissions"),
                             permission: PERMISSION_ROLES_READ,

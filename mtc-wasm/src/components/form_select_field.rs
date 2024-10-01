@@ -21,7 +21,7 @@ pub fn FormSelectField(
                     "⌘ " { t!(title.as_str()) }
                 }
             }
-            select { class: "select select-bordered input-bordered",
+            select { class: "select select-bordered input-bordered focus:input-primary",
                 name,
                 option {
                     initial_selected: selected.is_empty(),

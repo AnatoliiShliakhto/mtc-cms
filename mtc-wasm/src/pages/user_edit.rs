@@ -16,6 +16,7 @@ pub fn UserEdit(
         });
 
     let response = future.suspend()?;
+    if response().is_null() { fail!(future) }
 
     let submit = move |event: Event<FormData>| {
         api_task.send(ApiRequestAction::PostThenBack(

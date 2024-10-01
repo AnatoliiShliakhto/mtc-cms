@@ -41,6 +41,9 @@ mod floppy;
 mod trash;
 mod ban;
 mod user_check;
+mod folder;
+mod people;
+mod description;
 
 pub mod prelude {
     pub use super::{
@@ -92,6 +95,9 @@ pub enum Icons {
     Trash,
     Ban,
     UserCheck,
+    Folder,
+    People,
+    Description,
 }
 
 #[component]
@@ -143,5 +149,8 @@ pub fn Icon(
         Icons::Trash => trash::TrashIcon(class),
         Icons::Ban => ban::BanIcon(class),
         Icons::UserCheck => user_check::UserCheckIcon(class),
+        Icons::Folder => folder::FolderIcon(class),
+        Icons::People => people::PeopleIcon(class),
+        Icons::Description => description::DescriptionIcon(class),
     }
 }

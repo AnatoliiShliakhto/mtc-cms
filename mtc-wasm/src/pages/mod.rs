@@ -14,6 +14,8 @@ mod roles;
 mod role_edit;
 mod users;
 mod user_edit;
+mod schemas;
+mod schema_edit;
 
 pub mod prelude {
     pub use super::{
@@ -31,5 +33,7 @@ pub mod prelude {
         role_edit::*,
         users::*,
         user_edit::*,
+        schemas::*,
+        schema_edit::*,
     };
 }

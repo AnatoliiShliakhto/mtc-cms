@@ -1,7 +1,7 @@
 use super::*;
 
-#[derive(Default, Serialize, Debug, Deserialize, Clone, PartialEq)]
-pub struct SchemaModel {
+#[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
+pub struct Schema {
     pub id: Cow<'static, str>,
     pub kind: SchemaKind,
     pub slug: Cow<'static, str>,
@@ -13,4 +13,21 @@ pub struct SchemaModel {
     pub updated_at: Cow<'static, Datetime>,
     pub created_by: Cow<'static, str>,
     pub updated_by: Cow<'static, str>,
+}
+
+impl Default for Schema {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            kind: SchemaKind::Page,
+            slug: Default::default(),
+            title: Default::default(),
+            permission: Cow::Borrowed(PERMISSION_PUBLIC),
+            fields: None,
+            created_at: Default::default(),
+            updated_at: Default::default(),
+            created_by: Default::default(),
+            updated_by: Default::default(),
+        }
+    }
 }

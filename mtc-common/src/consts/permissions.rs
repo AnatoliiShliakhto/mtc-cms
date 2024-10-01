@@ -22,3 +22,8 @@ pub const PERMISSION_USERS: &str = "users";
 pub const PERMISSION_USERS_READ: &str = "users::read";
 pub const PERMISSION_USERS_WRITE: &str = "users::write";
 pub const PERMISSION_USERS_DELETE: &str = "users::delete";
+
+pub const PERMISSION_SCHEMAS: &str = "schemas";
+pub const PERMISSION_SCHEMAS_READ: &str = "schemas::read";
+pub const PERMISSION_SCHEMAS_WRITE: &str = "schemas::write";
+pub const PERMISSION_SCHEMAS_DELETE: &str = "schemas::delete";
