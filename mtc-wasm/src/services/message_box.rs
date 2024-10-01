@@ -16,33 +16,33 @@ pub enum MessageBoxAction {
 }
 
 pub async fn message_box_service(mut rx: UnboundedReceiver<MessageBoxAction>) {
-    let message_box = use_message_box();
+    let mut message_box = use_message_box();
 
     while let Some(msg) = rx.next().await {
         match msg {
             MessageBoxAction::Clear =>
-                *message_box.write_unchecked() = None,
+                message_box.set(None),
             MessageBoxAction::Alert(message) =>
-                *message_box.write_unchecked() = Some((MessageKind::Alert, message, None, None)),
+                message_box.set(Some((MessageKind::Alert, message, None, None))),
             MessageBoxAction::Info(message) =>
-                *message_box.write_unchecked() = Some((MessageKind::Info, message, None, None)),
+                message_box.set(Some((MessageKind::Info, message, None, None))),
             MessageBoxAction::Error(message) =>
-                *message_box.write_unchecked() = Some((MessageKind::Error, message, None, None)),
+                message_box.set(Some((MessageKind::Error, message, None, None))),
             MessageBoxAction::Success(message) =>
-                *message_box.write_unchecked() = Some((MessageKind::Success, message, None, None)),
+                message_box.set(Some((MessageKind::Success, message, None, None))),
             MessageBoxAction::Warning(message) =>
-                *message_box.write_unchecked() = Some((MessageKind::Warning, message, None, None)),
+                message_box.set(Some((MessageKind::Warning, message, None, None))),
 
             MessageBoxAction::AlertDialog(message, task, args) =>
-                *message_box.write_unchecked() = Some((MessageKind::Alert, message, Some(task), Some(args))),
+                message_box.set(Some((MessageKind::Alert, message, Some(task), Some(args)))),
             MessageBoxAction::InfoDialog(message, task, args) =>
-                *message_box.write_unchecked() = Some((MessageKind::Info, message, Some(task), Some(args))),
+                message_box.set(Some((MessageKind::Info, message, Some(task), Some(args)))),
             MessageBoxAction::ErrorDialog(message, task, args) =>
-                *message_box.write_unchecked() = Some((MessageKind::Error, message, Some(task), Some(args))),
+                message_box.set(Some((MessageKind::Error, message, Some(task), Some(args)))),
             MessageBoxAction::SuccessDialog(message, task, args) =>
-                *message_box.write_unchecked() = Some((MessageKind::Success, message, Some(task), Some(args))),
+                message_box.set(Some((MessageKind::Success, message, Some(task), Some(args)))),
             MessageBoxAction::WarningDialog(message, task, args) =>
-                *message_box.write_unchecked() = Some((MessageKind::Warning, message, Some(task), Some(args))),
+                message_box.set(Some((MessageKind::Warning, message, Some(task), Some(args)))),
         }
     }
 }

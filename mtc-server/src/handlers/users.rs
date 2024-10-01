@@ -57,7 +57,7 @@ pub async fn update_user_handler(
 
     let by = session.get_user().await?;
 
-    state.repository.update_user(payload, by, state.config.password_salt.clone()).await?;
+    state.repository.update_user(payload, by).await?;
 
     Ok(StatusCode::OK)
 }

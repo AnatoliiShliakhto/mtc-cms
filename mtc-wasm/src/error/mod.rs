@@ -21,7 +21,6 @@ impl Error {
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
-        error!("Network error: {}", value.to_string());
         Error::Network("error-connection".into())
     }
 }

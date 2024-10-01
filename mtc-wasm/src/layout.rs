@@ -2,11 +2,12 @@ use crate::prelude::*;
 
 pub fn Layout() -> Element
 {
+    use_coroutine(api_request_service);
+
     let mut menu_state = use_init_menu_state();
+
     let message_box = use_message_box();
     let search_result_empty = use_memo(|| use_search_engine()().is_empty());
-
-    use_coroutine(api_request_service);
 
     rsx! {
         div { 
@@ -53,8 +54,10 @@ pub fn Layout() -> Element
                 task_args,
             }            
         }
-        button { id: "scrollUpButton",
-            class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100 right-4 bottom-4 hidden",
+        button {
+            id: "scrollUpButton",
+            class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100 \
+            right-4 bottom-4 hidden",
             "onclick": "window.scrollTo(0, 0);",
             Icon { icon: Icons::ArrowUp, class: "size-8" }
         }

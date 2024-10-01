@@ -11,7 +11,7 @@ pub async fn find_custom_role_list_handler(
     roles.to_response()
 }
 
-pub async fn find_custom_role_handler(
+pub async fn find_role_handler(
     Path(id): Path<Cow<'static, str>>,
     state: State<Arc<AppState>>,
     session: Session,
@@ -37,7 +37,7 @@ pub async fn find_custom_role_handler(
     json_obj.to_response()
 }
 
-pub async fn update_custom_role_handler(
+pub async fn update_role_handler(
     state: State<Arc<AppState>>,
     session: Session,
     Payload(payload): Payload<Value>,
@@ -55,7 +55,7 @@ pub async fn update_custom_role_handler(
     Ok(StatusCode::OK)
 }
 
-pub async fn delete_custom_role_handler(
+pub async fn delete_role_handler(
     Path(id): Path<Cow<'static, str>>,
     state: State<Arc<AppState>>,
     session: Session,

@@ -21,6 +21,7 @@ mod user_state;
 mod content;
 mod course_entry;
 mod search_idx_dto;
+mod schema_entry_details;
 
 pub mod prelude {
     pub use super::{
@@ -36,6 +37,7 @@ pub mod prelude {
         entry::*,
         schema_kind::*,
         schema::*,
+        schema_entry_details::*,
         search_kind::*,
         search_idx::*,
         storage_entry::*,

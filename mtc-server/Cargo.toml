@@ -1,5 +1,5 @@
 [package]
-name = "mtc-srv"
+name = "mtc-server"
 description = "Military training center CMS: Server"
 edition.workspace = true
 version.workspace = true
@@ -17,7 +17,7 @@ surrealdb = { version = "2.0.2", features = ["kv-rocksdb"] }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128" }
 
-axum = { version = "0.7.6", features = ["multipart", "macros"] }
+axum = { version = "0.7.7", features = ["multipart", "macros"] }
 axum-server = { version = "0.7.1", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
 axum-extra = { version = "0.9.4" }
 #axum_session = { version = "0.14.2", features = ["key-store"] }

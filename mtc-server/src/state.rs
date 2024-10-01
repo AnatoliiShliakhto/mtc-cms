@@ -10,7 +10,7 @@ impl AppState {
         let config = Arc::new(cfg);
         let database = Arc::new(db);
 
-        let repository = Repository::init(&database);
+        let repository = Repository::init(&database, &config);
 
         Self {
             config,

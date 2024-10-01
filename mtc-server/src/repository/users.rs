@@ -16,7 +16,6 @@ pub trait UserRepository {
         &self,
         payload: Value,
         by: Cow<'static, str>,
-        password_salt: Cow<'static, str>,
     ) -> Result<()>;
     async fn delete_user(&self, id: Cow<'static, str>) -> Result<()>;
 }
@@ -140,7 +139,6 @@ impl UserRepository for Repository {
         &self,
         payload: Value,
         by: Cow<'static, str>,
-        password_salt: Cow<'static, str>,
     ) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
         let id = payload.get_str("id").unwrap_or_default();
@@ -152,7 +150,8 @@ impl UserRepository for Repository {
         let access_level = self.find_roles_max_access_level(&roles).await?;
 
         if !password.is_empty() {
-            let Ok(salt) = SaltString::from_b64(&password_salt) else {
+            let Ok(salt) =
+                SaltString::from_b64(&self.config.password_salt) else {
                 Err(SessionError::PasswordHash)?
             };
 

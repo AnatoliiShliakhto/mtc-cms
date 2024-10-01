@@ -18,18 +18,22 @@ pub enum Route {
     Administrator {},
     #[route("/administrator/permissions")]
     Permissions {},
-    #[route("/administrator/permissions/create")]
+    #[route("/administrator/permission/create")]
     PermissionCreate {},
     #[route("/administrator/groups")]
     Groups {},
-    #[route("/administrator/groups/edit/:id")]
+    #[route("/administrator/group/edit/:id")]
     GroupEdit { id: String },
     #[route("/administrator/roles")]
     Roles {},
-    #[route("/administrator/roles/edit/:id")]
+    #[route("/administrator/role/edit/:id")]
     RoleEdit { id: String },
     #[route("/administrator/users")]
     Users {},
-    #[route("/administrator/users/edit/:id")]
+    #[route("/administrator/user/edit/:id")]
     UserEdit { id: String },
+    #[route("/administrator/schemas")]
+    Schemas {},
+    #[route("/administrator/schema/edit/:id")]
+    SchemaEdit { id: String },
 }

@@ -51,6 +51,7 @@ pub mod prelude {
         borrow::Cow,
         collections::{BTreeMap, BTreeSet},
         str::FromStr,
+        iter::zip,
     };
     pub use tracing::error;
 }

@@ -66,6 +66,7 @@ pub mod prelude {
             filter::LevelFilter, fmt::layer, layer::SubscriberExt,
             util::SubscriberInitExt, EnvFilter,
         },
+        tokio::fs,
 
         super::{
             types::*,

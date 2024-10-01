@@ -11,7 +11,7 @@ pub trait PermissionsRepository {
     async fn create_custom_permission(
         &self,
         permission: Cow<'static, str>,
-        creator: Cow<'static, str>,
+        by: Cow<'static, str>,
     ) -> Result<()>;
     async fn delete_custom_permission(&self, permission: Cow<'static, str>) -> Result<()>;
     async fn assign_permissions_to_role(
@@ -67,7 +67,7 @@ impl PermissionsRepository for Repository {
 
     async fn create_custom_permission(
         &self, permission: Cow<'static, str>,
-        creator: Cow<'static, str>,
+        by: Cow<'static, str>,
     ) -> Result<()> {
         let sql = [
             r#"
@@ -77,21 +77,21 @@ impl PermissionsRepository for Repository {
                     id: $permission_read_id,
                     slug: $permission_read,
                     is_custom: true,
-                    created_by: $creator
+                    created_by: $by
                 };
 
                 CREATE permissions CONTENT {
                     id: $permission_write_id,
                     slug: $permission_write,
                     is_custom: true,
-                    created_by: $creator
+                    created_by: $by
                 };
 
                 CREATE permissions CONTENT {
                     id: $permission_delete_id,
                     slug: $permission_delete,
                     is_custom: true,
-                    created_by: $creator
+                    created_by: $by
                 };
             "#,
             &format!(r#"
@@ -106,7 +106,7 @@ impl PermissionsRepository for Repository {
 
         self.database
             .query(sql)
-            .bind(("creator", creator))
+            .bind(("by", by))
             .bind(("permission_read_id", format!("{}_read", permission)))
             .bind(("permission_read", format!("{}::read", permission)))
             .bind(("permission_write_id", format!("{}_write", permission)))
@@ -139,7 +139,11 @@ impl PermissionsRepository for Repository {
         Ok(())
     }
 
-    async fn assign_permissions_to_role(&self, id: Cow<'static, str>, permissions: Vec<Cow<'static, str>>) -> Result<()> {
+    async fn assign_permissions_to_role(
+        &self,
+        id: Cow<'static, str>,
+        permissions: Vec<Cow<'static, str>>,
+    ) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
         let drop_permissions = format!(r#"
             DELETE roles:{}->role_permissions;

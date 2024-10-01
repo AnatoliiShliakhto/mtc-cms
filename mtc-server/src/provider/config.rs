@@ -69,7 +69,7 @@ impl Config {
             private_storage_path: [&data_path, "protected"].join("/").into(),
             cert_path: [&data_path, "cert"].join("/").into(),
             log_path: [&data_path, "log"].join("/").into(),
-            migration_path: [&data_path, "migration"].join("/").into(),
+            migration_path: [&data_path, "migrations"].join("/").into(),
             api_cache_control: Self::get_env("API_CACHE_CONTROL"),
             public_cache_control: Self::get_env("PUBLIC_CACHE_CONTROL"),
             protected_cache_control: Self::get_env("PROTECTED_CACHE_CONTROL"),

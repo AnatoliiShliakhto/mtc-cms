@@ -14,7 +14,7 @@ pub enum SchemaKind {
 }
 
 impl FromStr for SchemaKind {
-    type Err = bool;
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
@@ -54,6 +54,20 @@ impl From<SchemaKind> for &str {
             SchemaKind::Links => "links",
             SchemaKind::Course => "course",
             SchemaKind::Quiz => "quiz"
+        }
+    }
+}
+
+impl From<i64> for SchemaKind {
+    fn from(value: i64) -> Self {
+        match value {
+            0 => SchemaKind::System,
+            1 => SchemaKind::User,
+            3 => SchemaKind::Pages,
+            4 => SchemaKind::Links,
+            5 => SchemaKind::Course,
+            6 => SchemaKind::Quiz,
+            _ => SchemaKind::Page,
         }
     }
 }

@@ -17,6 +17,9 @@ mod form_toggle_field;
 mod form_entries_field;
 mod form_select_field;
 mod user_block_action;
+mod form_fields_field;
+mod form_permissions_field;
+mod form_schema_kind_field;
 
 pub mod prelude {
     pub use super::{
@@ -34,6 +37,9 @@ pub mod prelude {
         form_toggle_field::*,
         form_entries_field::*,
         form_select_field::*,
+        form_fields_field::*,
+        form_schema_kind_field::*,
+        form_permissions_field::*,
         entry_info_box::*,
         editor_actions::*,
         user_block_action::*,

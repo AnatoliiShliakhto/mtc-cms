@@ -6,6 +6,7 @@ mod permissions;
 mod groups;
 mod roles;
 mod users;
+mod schemas;
 
 pub mod prelude {
     pub use super::{
@@ -15,6 +16,7 @@ pub mod prelude {
         groups::*,
         roles::*,
         users::*,
+        schemas::*,
     };
 }
 

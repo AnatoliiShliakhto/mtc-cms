@@ -34,6 +34,7 @@ pub fn EditorActions(
                 } else {
                     "btn-disabled join-item"
                 },
+                onclick: move |event| event.stop_propagation(),
                 Icon { icon: Icons::Floppy, class: "size-6" }
                 span {
                     class: "opacity-0 group-hover:opacity-100",

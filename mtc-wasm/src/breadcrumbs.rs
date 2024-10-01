@@ -28,6 +28,11 @@ pub fn build_breadcrumbs(slug: &str) {
                 (t!("menu-users"), "/administrator/users")
             ],
 
+            "menu-schemas" => vec![
+                (t!("menu-administrator"), "/administrator"),
+                (t!("menu-schemas"), "/administrator/schemas")
+            ],
+
             _ => vec![],
         };
 
