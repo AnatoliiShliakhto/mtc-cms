@@ -7,7 +7,7 @@ pub fn Schemas() -> Element {
 
     let future =
         use_resource(move || async move {
-            request_fetch_entries_task(url!("schemas")).await
+            request_fetch_entries_task(url!(API_SCHEMAS)).await
         });
     let response = future.suspend()?;
 

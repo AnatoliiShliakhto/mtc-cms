@@ -4,8 +4,13 @@ use super::*;
 pub trait SchemasRepository {
     async fn find_schema_list(&self) -> Result<Vec<Entry>>;
     async fn find_schema(&self, id: Cow<'static, str>) -> Result<Schema>;
+    async fn find_schema_by_slug(&self, slug: Cow<'static, str>) -> Result<Schema>;
     async fn update_schema(&self, payload: Value, by: Cow<'static, str>) -> Result<()>;
     async fn delete_schema(&self, id: Cow<'static, str>) -> Result<()>;
+    async fn find_pages_entries(
+        &self,
+        permissions: BTreeSet<Cow<'static, str>>,
+    ) -> Result<Vec<Entry>>;
 }
 
 #[async_trait]
@@ -17,11 +22,11 @@ impl SchemasRepository for Repository {
             FROM schemas WHERE kind > 1 ORDER BY created_at;
             "#;
 
-        let roles = self.database.query(sql)
+        let schemas = self.database.query(sql)
             .await?
             .take::<Vec<Entry>>(0)?;
 
-        Ok(roles)
+        Ok(schemas)
     }
 
     async fn find_schema(&self, id: Cow<'static, str>) -> Result<Schema> {
@@ -34,6 +39,21 @@ impl SchemasRepository for Repository {
             .database
             .query(sql)
             .bind(("id", id))
+            .await?
+            .take::<Option<Schema>>(0)?
+            .ok_or(DatabaseError::EntryNotFound.into())
+    }
+
+    async fn find_schema_by_slug(&self, slug: Cow<'static, str>) -> Result<Schema> {
+        let sql = r#"
+            SELECT *, record::id(id) as id FROM schemas
+            WHERE slug = $slug LIMIT 1;
+        "#;
+
+        self
+            .database
+            .query(sql)
+            .bind(("slug", slug))
             .await?
             .take::<Option<Schema>>(0)?
             .ok_or(DatabaseError::EntryNotFound.into())
@@ -213,5 +233,23 @@ impl SchemasRepository for Repository {
             .await?;
 
         Ok(())
+    }
+
+    async fn find_pages_entries(
+        &self,
+        permissions: BTreeSet<Cow<'static, str>>
+    ) -> Result<Vec<Entry>> {
+        let sql = r#"
+            SELECT record::id(id) as id, slug, title
+            FROM schemas WHERE kind = 3 AND permission in $permissions
+            ORDER BY title;
+            "#;
+
+        let schemas = self.database.query(sql)
+            .bind(("permissions", permissions))
+            .await?
+            .take::<Vec<Entry>>(0)?;
+
+        Ok(schemas)
     }
 }

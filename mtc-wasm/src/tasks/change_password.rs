@@ -3,6 +3,7 @@ use super::*;
 pub fn change_password_task(event: Event<FormData>) {
     let sync_task = use_coroutine_handle::<SyncAction>();
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
+    let api_client = use_api_client();
     let mut busy = use_busy();
 
     let current_password =
@@ -20,8 +21,8 @@ pub fn change_password_task(event: Event<FormData>) {
     spawn(async move {
         *busy.write() = true;
 
-        match use_api_client()
-            .patch([API_URL, "auth"].join("/"))
+        match api_client()
+            .patch([API_ENDPOINT, API_AUTH].join("/"))
             .json(&json!({
                 "current_password": current_password, 
                 "new_password": new_password

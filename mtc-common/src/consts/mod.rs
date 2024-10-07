@@ -2,6 +2,7 @@ mod permissions;
 mod roles;
 mod session;
 mod settings;
+mod api_endpoints;
 
 pub mod prelude {
     pub use super::{
@@ -9,5 +10,6 @@ pub mod prelude {
         roles::*,
         session::*,
         settings::*,
+        api_endpoints::*,
     };
 }

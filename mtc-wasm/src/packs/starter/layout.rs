@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use super::*;
 
 pub fn Layout() -> Element
 {
@@ -61,15 +61,6 @@ pub fn Layout() -> Element
             "onclick": "window.scrollTo(0, 0);",
             Icon { icon: Icons::ArrowUp, class: "size-8" }
         }
-        script {{r#"
-            var scrollTopButton = document.getElementById("scrollUpButton");
-            window.onscroll = function() {
-                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-                    scrollTopButton.style.display = "inline-flex";
-                } else {
-                    scrollTopButton.style.display = "none";
-                }
-            };
-        "#}}
+        script { { EVAL_SCROLL_UP } }
     }
 }

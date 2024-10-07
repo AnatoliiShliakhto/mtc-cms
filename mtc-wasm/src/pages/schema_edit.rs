@@ -2,17 +2,20 @@ use super::*;
 
 #[component]
 pub fn SchemaEdit(
-    #[props]
-    id: ReadOnlySignal<String>,
+    #[props(into)]
+    id: String,
 ) -> Element {
+    let id = use_memo(use_reactive!(|id| id));
+
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
     let api_task = use_coroutine_handle::<ApiRequestAction>();
     let auth_state = use_auth_state();
+
     page_init!("menu-schemas", PERMISSION_SCHEMAS_READ, auth_state);
 
     let future =
         use_resource(move || async move {
-            request_fetch_task(url!("schema", &id())).await
+            request_fetch_task(url!(API_SCHEMA, &id())).await
         });
 
     let response = future.suspend()?;
@@ -20,7 +23,7 @@ pub fn SchemaEdit(
 
     let submit = move |event: Event<FormData>| {
         api_task.send(ApiRequestAction::PostThenBack(
-            url!("schema"),
+            url!(API_SCHEMA),
             Some(json!({
                 "id": event.get_str("id"),
                 "slug": event.get_str("slug"),
@@ -34,7 +37,7 @@ pub fn SchemaEdit(
 
     let delete = move |event: MouseEvent| {
         api_task.send(ApiRequestAction::DeleteThenBack(
-            url!("schema", &id()),
+            url!(API_SCHEMA, &id()),
             None,
         ))
     };

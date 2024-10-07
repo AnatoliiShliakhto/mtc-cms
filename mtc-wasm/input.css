@@ -4,11 +4,6 @@
 
 @layer components {
 
-    :root {
-        --ck-color-base-text: var(--fallback-bc,oklch(var(--bc)/1));
-        --ck-color-base-background: var(--fallback-b1,oklch(var(--b1)/1));
-    }
-
     body {
         @apply antialiased;
         @apply forced-color-adjust-none;
@@ -122,12 +117,15 @@
         @apply rounded-l-lg;
         @apply rounded-r-none;
         @apply shadow-md;
+        @apply z-[10];
     }
 
     .action-right-panel button {
         @apply btn;
         @apply justify-start;
         @apply gap-3;
+        @apply flex;
+        @apply flex-nowrap;
     }
 
     .action-right-panel :where(span) {
@@ -135,4 +133,14 @@
         @apply ease-in-out;
         @apply duration-300;
     }
+
+    .menu :where(svg) {
+        @apply -translate-x-4;
+        @apply sm:-translate-x-2;
+    }
+}
+
+.ck.ck-editor__main>.ck-editor__editable {
+    background: transparent;
+    border-radius: 0;
 }

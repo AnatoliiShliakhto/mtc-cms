@@ -8,12 +8,13 @@ pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
     let mut auth_state = use_auth_state();
     let mut search_list = use_search_engine_list();
     let mut search_idx = use_search_engine_index();
+    let api_client = use_api_client();
 
     while let Some(msg) = rx.next().await {
         match msg {
             SyncAction::RefreshState(auth_id) => {
-                let Ok(response) = use_api_client()
-                    .post([API_URL, "sync"].join("/"))
+                let Ok(response) = api_client()
+                    .post([API_ENDPOINT, "sync"].join("/"))
                     .json(&json!({"id": auth_id}))
                     .send()
                     .await
@@ -23,6 +24,9 @@ pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
                 let Ok(value) = response.json::<Value>().await else { continue };
                 if let Some(auth) = value.get_object::<AuthState>("auth") {
                     *auth_state.write() = auth;
+                }
+                if let Some(pages) = value.get_object::<Vec<Entry>>("pages") {
+                    *use_pages_entries().write() = pages;
                 }
                 if let Some(search) =
                     value.get_object::<Vec<SearchIdxDto>>("search_idx") {

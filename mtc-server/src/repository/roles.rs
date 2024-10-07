@@ -94,12 +94,18 @@ impl RolesRepository for Repository {
 
     async fn update_role(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
-        let id = payload.get_str("id").unwrap_or_default();
-        let slug = payload.get_str("slug").unwrap_or_default();
-        let title = payload.get_str("title").unwrap_or_default();
-        let user_access_level = payload.get_i64("user_access_level").unwrap_or(999);
-        let user_access_all = payload.get_bool("user_access_all").unwrap_or_default();
-        let permissions = payload.get_str_array("permissions").unwrap_or(vec![]);
+        let id =
+            payload.get_str("id").unwrap_or_default();
+        let slug =
+            payload.get_str("slug").unwrap_or_default();
+        let title =
+            payload.get_str("title").unwrap_or_default();
+        let user_access_level =
+            payload.get_i64("user_access_level").unwrap_or(999);
+        let user_access_all =
+            payload.get_bool("user_access_all").unwrap_or_default();
+        let permissions =
+            payload.get_str_array("permissions").unwrap_or(vec![]);
 
         if payload.has_key("id") && !id.is_empty() {
             sql.push(r#"LET $rec_id = UPDATE type::record("roles:" + $id) MERGE {"#)

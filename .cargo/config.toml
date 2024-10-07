@@ -1,0 +1,3 @@
+[build]
+rustflags = "--cfg starter"
+#rustflags = "--cfg utc242"

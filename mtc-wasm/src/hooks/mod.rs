@@ -8,6 +8,7 @@ mod message_box;
 mod i18n;
 mod breadcrumbs;
 mod search_engine;
+mod pages_entries;
 
 pub mod prelude {
     pub use super::{
@@ -19,5 +20,6 @@ pub mod prelude {
         i18n::*,
         breadcrumbs::*,
         search_engine::*,
+        pages_entries::*,
     };
 }

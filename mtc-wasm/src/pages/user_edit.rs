@@ -3,16 +3,19 @@ use super::*;
 #[component]
 pub fn UserEdit(
     #[props]
-    id: ReadOnlySignal<String>
+    id: String,
 ) -> Element {
+    let id = use_memo(use_reactive!(|id| id));
+
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
     let api_task = use_coroutine_handle::<ApiRequestAction>();
     let auth_state = use_auth_state();
+
     page_init!("menu-users", PERMISSION_USERS_READ, auth_state);
 
     let future =
         use_resource(move || async move {
-            request_fetch_task(url!("user", &id())).await
+            request_fetch_task(url!(API_USER, &id())).await
         });
 
     let response = future.suspend()?;
@@ -20,7 +23,7 @@ pub fn UserEdit(
 
     let submit = move |event: Event<FormData>| {
         api_task.send(ApiRequestAction::PostThenBack(
-            url!("user"),
+            url!(API_USER),
             Some(json!({
                 "id": event.get_str("id"),
                 "login": event.get_str("login"),
@@ -34,7 +37,7 @@ pub fn UserEdit(
 
     let delete = move |event: MouseEvent| {
         api_task.send(ApiRequestAction::DeleteThenBack(
-            url!("user", &id()),
+            url!(API_USER, &id()),
             None,
         ))
     };

@@ -40,7 +40,8 @@ localhost-key.pem -> ./data/cert/private.key
 ```
 
 ## Settings
-- ./mtc-common/consts/settings.rs
+- **.cargo/config.toml**
+- WASM front-end packs: **/mtc-wasm/packs**
 - rename **.env.example** to **.env**
 
 ## Debug

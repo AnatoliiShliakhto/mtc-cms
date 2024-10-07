@@ -1,3 +1,3 @@
-pub const ROLE_ADMINISTRATOR: &str = "administrator";
-pub const ROLE_ANONYMOUS: &str = "anonymous";
-pub const ROLE_WRITER: &str = "writer";
+pub static ROLE_ADMINISTRATOR: &str = "administrator";
+pub static ROLE_ANONYMOUS: &str = "anonymous";
+pub static ROLE_WRITER: &str = "writer";

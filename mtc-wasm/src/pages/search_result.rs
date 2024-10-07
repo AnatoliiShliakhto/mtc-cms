@@ -35,28 +35,52 @@ pub fn SearchResult() -> Element {
                                 class: "group",
                                 match item.kind {
                                     SearchKind::LocalLink => rsx! {
-                                        Icon { icon: Icons::Link45Deg, class: "size-4 text-primary group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::Link45Deg,
+                                            class: "size-4 text-primary group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::Link => rsx! {
-                                        Icon { icon: Icons::Link, class: "size-4 text-primary group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::Link,
+                                            class: "size-4 text-primary group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::File => rsx! {
-                                        Icon { icon: Icons::File, class: "size-4 group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::File,
+                                            class: "size-4 group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::FileWord => rsx! {
-                                        Icon { icon: Icons::FileWord, class: "size-4 group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::FileWord,
+                                            class: "size-4 group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::FileExcel => rsx! {
-                                        Icon { icon: Icons::FileExcel, class: "size-4 group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::FileExcel,
+                                            class: "size-4 group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::FilePowerPoint => rsx! {
-                                        Icon { icon: Icons::FilePowerPoint, class: "size-4 group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::FilePowerPoint,
+                                            class: "size-4 group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::FilePdf => rsx! {
-                                        Icon { icon: Icons::FilePdf, class: "size-4 group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::FilePdf,
+                                            class: "size-4 group-hover:animate-ping"
+                                        }
                                     },
                                     SearchKind::Course => rsx! {
-                                        Icon { icon: Icons::Diagram3, class: "size-4 text-accent group-hover:animate-ping" }
+                                        Icon {
+                                            icon: Icons::Diagram3,
+                                            class: "size-4 text-accent group-hover:animate-ping"
+                                        }
                                     },
                                 }
                                 if item.kind == SearchKind::LocalLink

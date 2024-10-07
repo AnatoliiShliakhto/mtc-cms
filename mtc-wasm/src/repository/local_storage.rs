@@ -5,7 +5,7 @@ pub fn use_local_storage<T: Serialize + DeserializeOwned + Default + 'static>(
     init: impl FnOnce() -> T,
 ) -> UseLocalStorage<T> {
     let state = use_signal(move || {
-        let key = Cow::Owned(key.to_string());
+        let key = key.to_string();
         let value = LocalStorage::get(&key)
             .ok()
             .unwrap_or_else(init);

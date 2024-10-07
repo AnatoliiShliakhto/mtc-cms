@@ -5,10 +5,11 @@ pub fn request_delete_then_msg_task(
     value: Option<Value>,
 ) {
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
+    let api_client = use_api_client();
 
     if let Some(value) = value {
         spawn(async move {
-            match use_api_client()
+            match api_client()
                 .delete(&*url)
                 .json(&value)
                 .send()
@@ -26,7 +27,7 @@ pub fn request_delete_then_msg_task(
     } else {
         spawn(async move {
             let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-            match use_api_client()
+            match api_client()
                 .delete(&*url)
                 .send()
                 .await

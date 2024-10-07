@@ -16,7 +16,7 @@ pub fn PermissionCreate() -> Element {
                 onsubmit: move |event| {
                     let Some(slug) = event.get_str("slug") else { return };
                     api.send(ApiRequestAction::PostThenBack(
-                        url!("permission", &slug),
+                        url!(API_PERMISSION, &slug),
                         None
                     ))
                 },

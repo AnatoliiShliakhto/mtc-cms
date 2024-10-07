@@ -1,8 +1,6 @@
 #![allow(non_snake_case, unused_variables)]
 use prelude::*;
 
-mod router;
-mod layout;
 mod repository;
 mod services;
 mod error;
@@ -13,24 +11,24 @@ mod icons;
 mod utils;
 mod components;
 mod tasks;
-mod breadcrumbs;
 mod macros;
+mod packs;
+mod js_eval;
 
 pub mod prelude {
     pub use crate::{
+        packs::prelude::*, // various site packs
         components::prelude::*,
         elements::prelude::*,
         error::*,
         hooks::prelude::*,
         icons::prelude::*,
-        breadcrumbs::*,
         repository::prelude::*,
-        router::*,
-        layout::*,
         services::prelude::*,
         tasks::prelude::*,
         utils::prelude::*,
         pages::prelude::*,
+        js_eval::*,
         t,
         page_init,
         url,
@@ -43,6 +41,7 @@ pub mod prelude {
     pub use chrono::{DateTime, Local};
     pub use futures_util::StreamExt;
     pub use gloo_storage::{LocalStorage, SessionStorage, Storage};
+    pub use human_bytes::*;
     //pub use dioxus_i18n::{prelude::*, t, unic_langid::langid};
 
     pub use serde::{Deserialize, Serialize};
@@ -52,6 +51,8 @@ pub mod prelude {
         collections::{BTreeMap, BTreeSet},
         str::FromStr,
         iter::zip,
+        ffi::OsStr,
+        path::Path,
     };
     pub use tracing::error;
 }
@@ -63,11 +64,12 @@ fn main() {
 
 pub fn app() -> Element {
     let auth_state = use_init_auth_state();
-    use_init_i18n(include_str!("../../i18n/uk-UA.ftl"));
+    use_init_i18n(I18N_UK_UA);
     use_init_message_box();
     use_init_api_client();
     use_init_breadcrumbs();
     use_init_search_engine();
+    use_init_pages_entries();
 
     /*
         use_init_i18n(|| {
@@ -84,7 +86,7 @@ pub fn app() -> Element {
     use_coroutine(sync_service);
     use_coroutine(message_box_service);
 
-    let sync_eval = eval(r#"setInterval(() => dioxus.send(), 30000);"#);
+    let sync_eval = eval(EVAL_SYNC);
     let sync_task = use_coroutine_handle::<SyncAction>();
 
     use_hook(|| {
@@ -101,6 +103,7 @@ pub fn app() -> Element {
     });
 
     rsx! {
+        Title { { t!("site-title") } }
         ErrorBoundary {
             handle_error: |errors: ErrorContext| {
                 match errors.show() {

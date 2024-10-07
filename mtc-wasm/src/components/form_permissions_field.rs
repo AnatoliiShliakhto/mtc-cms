@@ -2,8 +2,8 @@ use super::*;
 
 #[component]
 pub fn FormPermissionsField(
-    #[props]
-    init_permission: Cow<'static, str>,
+    #[props(into)]
+    init_permission: String,
     #[props]
     permissions: Vec<Cow<'static, str>>,
 ) -> Element {

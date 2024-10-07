@@ -4,7 +4,7 @@ class ImageUploadAdapter {
     }
 
     upload() {
-        let api_url = 'https://' + window.location.host + '/api/storage/' + sessionStorage.getItem('contentId').replaceAll('"', '');
+        let api_url = 'https://' + window.location.host + '/api/storage/public/' + sessionStorage.getItem('contentId').replaceAll('"', '');
 
         return this.loader.file
             .then(file => new Promise((resolve, reject) => {

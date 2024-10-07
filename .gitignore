@@ -1,9 +1,10 @@
-/target
-/.idea
-/data
-!/data/migrations
-/node_modules
+/target/
+/.idea/
+/data/
+!/data/migrations/
+/node_modules/
 /.env
 /Cargo.lock
 /package-lock.json
 /**/*.br
+/mtc-wasm/src/packs/utc242/

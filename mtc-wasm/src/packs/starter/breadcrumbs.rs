@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub fn build_breadcrumbs(slug: &str) {
     let slug: Cow<'static, str> = slug.to_owned().into();
 
-    use_effect(move || {
+    use_effect(use_reactive!(|(slug,)| {
         let breadcrumbs: Vec<(Cow<str>, &str)> = match &*slug {
             "menu-sign-in" => vec![(t!("menu-sign-in"), "/sign-in")],
             "menu-settings" => vec![(t!("menu-settings"), "/change-password")],
@@ -33,13 +33,28 @@ pub fn build_breadcrumbs(slug: &str) {
                 (t!("menu-schemas"), "/administrator/schemas")
             ],
 
+            "menu-page" => vec![
+                (t!("menu-content"), ""),
+                (t!("menu-page"), "/list/page")
+            ],
+
+            "menu-course" => vec![
+                (t!("menu-content"), ""),
+                (t!("menu-course"), "/list/course")
+            ],
+
+            "menu-content-edit" => vec![
+                (t!("menu-content"), ""),
+                (t!("menu-content-edit"), "")
+            ],
+
             _ => vec![],
         };
 
         use_breadcrumbs().set(breadcrumbs.into_iter()
             .map(|(key, value)| (key.into(), Cow::Borrowed(value.into())))
             .collect::<BTreeMap<Cow<'static, str>, Cow<'static, str>>>())
-    });
+    }));
 }
 
 pub fn drop_breadcrumbs() {

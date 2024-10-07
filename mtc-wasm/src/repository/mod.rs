@@ -11,6 +11,6 @@ pub mod prelude {
 }
 
 pub struct StorageEntry<T> {
-    key: Cow<'static, str>,
+    key: String,
     value: T,
 }

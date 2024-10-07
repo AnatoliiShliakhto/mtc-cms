@@ -8,10 +8,9 @@ pub fn Users() -> Element {
 
     let future =
         use_resource(move || async move {
-            request_fetch_entries_task(url!("users")).await
+            request_fetch_entries_task(url!(API_USERS)).await
         });
     let response = future.suspend()?;
-
     if response().is_none() { fail!(future) }
 
     rsx! {

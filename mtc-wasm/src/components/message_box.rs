@@ -4,8 +4,8 @@ use super::*;
 pub fn MessageBox(
     #[props]
     kind: MessageKind,
-    #[props]
-    message: Cow<'static, str>,
+    #[props(into)]
+    message: String,
     #[props]
     task: Option<MessageBoxFn>,
     #[props]

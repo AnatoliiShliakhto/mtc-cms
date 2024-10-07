@@ -7,6 +7,8 @@ mod groups;
 mod roles;
 mod users;
 mod schemas;
+mod content;
+mod storage;
 
 pub mod prelude {
     pub use super::{
@@ -17,6 +19,8 @@ pub mod prelude {
         roles::*,
         users::*,
         schemas::*,
+        content::*,
+        storage::*,
     };
 }
 
