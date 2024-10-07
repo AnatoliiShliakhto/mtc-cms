@@ -5,7 +5,7 @@ pub fn use_session_storage<T: Serialize + DeserializeOwned + Default + 'static>(
     init: impl FnOnce() -> T,
 ) -> UseSessionStorage<T> {
     let state = use_signal(move || {
-        let key = Cow::Owned(key.to_string());
+        let key = key.to_string();
         let value = SessionStorage::get(&key)
             .ok()
             .unwrap_or_else(init);

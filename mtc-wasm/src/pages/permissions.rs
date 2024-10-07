@@ -9,7 +9,7 @@ pub fn Permissions() -> Element {
 
     let future =
         use_resource(move || async move {
-            request_fetch_task(url!("permissions")).await
+            request_fetch_task(url!(API_PERMISSIONS)).await
         });
     let response = future.suspend()?;
     if response().is_null() { fail!(future) }
@@ -39,7 +39,7 @@ pub fn Permissions() -> Element {
                                                 if let Some(permission) = permission.as_str() {
                                                     api_task.send(
                                                         ApiRequestAction::DeleteThenMessage(
-                                                            url!("permission",  permission),
+                                                            url!(API_PERMISSION,  permission),
                                                             None,
                                                         )
                                                     )

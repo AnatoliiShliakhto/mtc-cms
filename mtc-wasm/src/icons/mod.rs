@@ -44,6 +44,11 @@ mod user_check;
 mod folder;
 mod people;
 mod description;
+mod pen;
+mod eye_slash;
+mod eye;
+mod database;
+mod database_lock;
 
 pub mod prelude {
     pub use super::{
@@ -98,13 +103,18 @@ pub enum Icons {
     Folder,
     People,
     Description,
+    Pen,
+    Eye,
+    EyeSlash,
+    Database,
+    DatabaseLock,
 }
 
 #[component]
 pub fn Icon(
     #[props]
     icon: Icons,
-    #[props(default)]
+    #[props(into)]
     class: &'static str,
 ) -> Element {
     match icon {
@@ -152,5 +162,10 @@ pub fn Icon(
         Icons::Folder => folder::FolderIcon(class),
         Icons::People => people::PeopleIcon(class),
         Icons::Description => description::DescriptionIcon(class),
+        Icons::Pen => pen::PenIcon(class),
+        Icons::Eye => eye::EyeIcon(class),
+        Icons::EyeSlash => eye_slash::EyeSlashIcon(class),
+        Icons::Database => database::DatabaseIcon(class),
+        Icons::DatabaseLock => database_lock::DatabaseLockIcon(class),
     }
 }

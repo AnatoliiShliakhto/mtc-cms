@@ -2,17 +2,20 @@ use super::*;
 
 #[component]
 pub fn GroupEdit(
-    #[props]
-    id: ReadOnlySignal<String>
+    #[props(into)]
+    id: String,
 ) -> Element {
+    let id = use_memo(use_reactive!(|id| id));
+
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
     let api_task = use_coroutine_handle::<ApiRequestAction>();
     let auth_state = use_auth_state();
+
     page_init!("menu-groups", PERMISSION_GROUPS_READ, auth_state);
 
     let future =
         use_resource(move || async move {
-            request_fetch_task(url!("group", &id())).await
+            request_fetch_task(url!(API_GROUP, &id())).await
         });
 
     let response = future.suspend()?;
@@ -20,7 +23,7 @@ pub fn GroupEdit(
 
     let submit = move |event: Event<FormData>| {
         api_task.send(ApiRequestAction::PostThenBack(
-            url!("group"),
+            url!(API_GROUP),
             Some(json!({
                 "id": event.get_str("id"),
                 "slug": event.get_str("slug"),
@@ -31,7 +34,7 @@ pub fn GroupEdit(
 
     let delete = move |event: MouseEvent| {
         api_task.send(ApiRequestAction::DeleteThenBack(
-            url!("group",  &id()),
+            url!(API_GROUP, &id()),
             None,
         ))
     };

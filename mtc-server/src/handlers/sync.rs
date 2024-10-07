@@ -31,6 +31,12 @@ pub async fn sync_handler(
                     .unwrap_or((PERMISSION_PUBLIC, "")).0.to_owned().into())
             .collect::<BTreeSet<Cow<'static, str>>>();
 
+        if auth_state.has_role(ROLE_WRITER) {
+            let pages = state
+                .repository.find_pages_entries(user_custom_permissions.clone()).await?;
+            json_obj.insert("pages".into(), json!(pages));
+        }
+
         let search_idx = state
             .repository
             .find_search_idx(user_custom_permissions).await?;

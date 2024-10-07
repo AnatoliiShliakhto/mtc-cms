@@ -14,7 +14,7 @@ mod schema_kind;
 mod schema;
 mod search_kind;
 mod search_idx;
-mod storage_entry;
+mod asset;
 mod system_info;
 mod user_details;
 mod user_state;
@@ -40,7 +40,7 @@ pub mod prelude {
         schema_entry_details::*,
         search_kind::*,
         search_idx::*,
-        storage_entry::*,
+        asset::*,
         system_info::*,
         user_details::*,
         user_state::*,

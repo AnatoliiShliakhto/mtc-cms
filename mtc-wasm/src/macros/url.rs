@@ -2,19 +2,19 @@
 macro_rules! url {
     ($first:expr) => {
         {
-            [API_URL, $first].join("/").into()
+            [API_ENDPOINT, $first].join("/").into()
         }
     };
 
     ($first:expr, $second:expr) => {
         {
-            [API_URL, $first, $second].join("/").into()
+            [API_ENDPOINT, $first, $second].join("/").into()
         }
     };
 
     ($first:expr, $second:expr, $third:expr) => {
         {
-            [API_URL, $first, $second, $third].join("/").into()
+            [API_ENDPOINT, $first, $second, $third].join("/").into()
         }
     };
 }

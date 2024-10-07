@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use super::*;
 
 #[derive(Routable, Clone, Debug, PartialEq)]
 #[rustfmt::skip]
@@ -36,4 +36,12 @@ pub enum Route {
     Schemas {},
     #[route("/administrator/schema/edit/:id")]
     SchemaEdit { id: String },
+    #[route("/list/:schema")]
+    ContentList { schema: String },
+    #[route("/view/:schema/:slug")]
+    ContentView { schema: String, slug: String },
+    #[route("/view/:schema/:slug/:arg")]
+    ContentViewWithArg { schema: String, slug: String, arg: String },
+    #[route("/edit/:schema/:slug")]
+    ContentEdit { schema: String, slug: String },
 }

@@ -265,3 +265,10 @@ impl From<FormRejection> for Error {
         Self::from(GenericError::BadRequest)
     }
 }
+
+impl From<axum::extract::multipart::MultipartError> for Error {
+    fn from(err: axum::extract::multipart::MultipartError) -> Self {
+        error!("Upload: {err:#?}");
+        Self::from(GenericError::BadRequest)
+    }
+}

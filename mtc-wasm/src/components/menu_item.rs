@@ -2,10 +2,10 @@ use super::*;
 
 #[component]
 pub fn MenuItem(
-    #[props]
+    #[props(into)]
     route: Route,
     #[props(into)]
-    title: Cow<'static, str>,
+    title: String,
     #[props]
     permission: Option<String>,
     #[props]

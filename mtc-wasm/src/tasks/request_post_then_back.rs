@@ -5,10 +5,11 @@ pub fn request_post_then_back_task(
     value: Option<Value>,
 ) {
     let message_box_task = use_coroutine_handle::<MessageBoxAction>();
+    let api_client = use_api_client();
 
     if let Some(value) = value {
         spawn(async move {
-            match use_api_client()
+            match api_client()
                 .post(&*url)
                 .json(&value)
                 .send()
@@ -29,7 +30,7 @@ pub fn request_post_then_back_task(
         });
     } else {
         spawn(async move {
-            match use_api_client()
+            match api_client()
                 .post(&*url)
                 .send()
                 .await

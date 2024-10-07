@@ -1,42 +1,41 @@
 <!DOCTYPE html>
 <html lang="uk" style="scroll-padding-top: 5rem; scroll-behavior: smooth;">
 <head>
-    <title>{app_title}</title>
     <meta charset="UTF-8">
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-    <link rel="icon" href="/assets/logo.png">
-    <link rel="stylesheet" href="/assets/ckeditor/ckeditor5.css"/>
-    <link rel="stylesheet" href="/assets/tailwind.css"/>
-    <script src="/assets/mtc-cms.js"></script>
-    {style_include}
+    <link rel="icon" href="/./assets/logo.png"/>
+    <link rel="stylesheet" href="/./assets/ckeditor/ckeditor5.css"/>
+    <link rel="stylesheet" href="/./assets/tailwind.css"/>
+    <link rel="preload" href="/./assets/dioxus/mtc-wasm_bg.wasm" as="fetch" type="application/wasm"/>
+    <link rel="preload" href="/./assets/dioxus/mtc-wasm.js" as="script"/>
+    <script src="/./assets/mtc-cms.js"></script>
 </head>
 <body>
 <div id="main">
     <div id="wasm-preloader" class="grid place-items-center" style="width: 100vw; height: 100vh;">
         <div class="flex flex-col gap-5 items-center">
-            <img class="w-36 h-36" src="/assets/logo.png" alt="{app_title}">
+            <img class="w-36 h-36" src="/./assets/logo.png" alt="{app_title}">
             <span class="text-2xl font-semibold">{app_title}</span>
             <div class="inline-flex items-center gap-3">
                 <span class="loading loading-bars loading-lg"></span>
-                <span>Завантаження...</span>
+                <span>Loading...</span>
             </div>
         </div>
     </div>
 </div>
-<script type="importmap">{ "imports": { "ckeditor5": "/assets/ckeditor/ckeditor5.js", "ckeditor5/": "/assets/ckeditor5/" } }</script>
-<script type="module">
-    import init from "/{base_path}/assets/dioxus/{app_name}.js";
-
-    init("/{base_path}/assets/dioxus/{app_name}_bg.wasm").then(wasm => {
-        const element = document.getElementById("wasm-preloader");
-        element.remove();
-        if (wasm.__wbindgen_start == undefined) {
-            wasm.main();
+<script>
+    import("/./assets/dioxus/mtc-wasm.js").then(
+        ({ default: init }) => {
+            init("/./assets/dioxus/mtc-wasm_bg.wasm").then((wasm) => {
+                document.getElementById("wasm-preloader").remove();
+                if (wasm.__wbindgen_start == undefined) {
+                    wasm.main();
+                }
+            });
         }
-    });
+    );
 </script>
-{script_include}
 </body>
 </html>

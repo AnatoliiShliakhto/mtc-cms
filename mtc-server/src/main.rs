@@ -25,7 +25,7 @@ pub mod prelude {
             async_trait,
             extract::{
                 DefaultBodyLimit, rejection::{FormRejection, JsonRejection},
-                FromRequest, Request, State, Path,
+                FromRequest, Request, State, Path, Multipart,
             },
             http::{
                 header::{
@@ -36,7 +36,7 @@ pub mod prelude {
                 HeaderValue, status::StatusCode},
             middleware::{from_fn, Next}, Router, Form, Json,
             response::{Response, IntoResponse},
-            routing::{get, post},
+            routing::{get, post, delete},
         },
         axum_server::tls_rustls::RustlsConfig,
         /*
@@ -179,8 +179,8 @@ async fn main() {
         ]);
 
     let app = Router::new()
-        .nest_service(PROTECTED_STORAGE_PATH, protected_storage_service)
-        .layer(from_fn(middleware_protected_storage_handler))
+        .nest_service(PRIVATE_ASSETS_PATH, protected_storage_service)
+        //.layer(from_fn(middleware_protected_storage_handler))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
             HeaderValue::from_str(&state.config.protected_cache_control).unwrap())
@@ -192,7 +192,7 @@ async fn main() {
             CACHE_CONTROL,
             HeaderValue::from_str(&state.config.api_cache_control).unwrap())
         )
-        .nest_service(PUBLIC_STORAGE_PATH, public_storage_service)
+        .nest_service(PUBLIC_ASSETS_PATH, public_storage_service)
         .fallback_service(fallback_service)
         .layer(comression_layer)
         .layer(static_headers)
@@ -200,7 +200,7 @@ async fn main() {
         .layer(DefaultBodyLimit::max(state.config.max_body_limit));
 
     info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{0}:{1}\x1b[0m -> https://{2}:{3}",
-        &state.config.host, &state.config.https_port, 
+        &state.config.host, &state.config.https_port,
         &state.config.front_end_url, &state.config.https_port);
 
     let https_host: SocketAddr = format!("{}:{}", &state.config.host, &state.config.https_port)

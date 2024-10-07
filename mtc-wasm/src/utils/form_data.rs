@@ -6,6 +6,7 @@ pub trait FormDataUtils {
     fn get_str_array(&self, field: &str) -> Option<Vec<Cow<'static, str>>>;
     fn get_i64(&self, field: &str) -> Option<i64>;
     fn get_fields_array(&self) -> Option<Vec<Field>>;
+    fn get_links_array(&self, field: &str) -> Vec<LinkEntry>;
 }
 
 impl FormDataUtils for Event<FormData> {
@@ -59,5 +60,27 @@ impl FormDataUtils for Event<FormData> {
 
         if fields.is_empty() { return None }
         Some(fields)
+    }
+
+    fn get_links_array(&self, field: &str) -> Vec<LinkEntry> {
+        let links_str = self.get_str(field).unwrap_or_default();
+        if links_str.is_empty() { return vec![] }
+
+        let mut links = Vec::<LinkEntry>::new();
+
+        let mut reader = csv::ReaderBuilder::new()
+            .delimiter(b';')
+            .has_headers(false)
+            .flexible(true)
+            .trim(csv::Trim::All)
+            .from_reader(links_str.as_bytes());
+
+        for item in reader.deserialize::<LinkEntry>() {
+            if let Ok(item) = item {
+                links.push(item);
+            }
+        }
+
+        links
     }
 }

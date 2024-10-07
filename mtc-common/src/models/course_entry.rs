@@ -6,7 +6,7 @@ pub struct CourseEntry {
     pub title: Cow<'static, str>,
     pub description: Cow<'static, str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub links: Cow<'static, Option<Value>>,
+    pub links: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub childs: Cow<'static, Option<Vec<usize>>>,
+    pub childs: Option<Vec<usize>>,
 }

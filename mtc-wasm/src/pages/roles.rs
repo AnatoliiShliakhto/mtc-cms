@@ -8,10 +8,9 @@ pub fn Roles() -> Element {
 
     let future =
         use_resource(move || async move {
-            request_fetch_entries_task(url!("roles")).await
+            request_fetch_entries_task(url!(API_ROLES)).await
         });
     let response = future.suspend()?;
-
     if response().is_none() { fail!(future) }
 
     rsx! {

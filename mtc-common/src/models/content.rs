@@ -5,7 +5,8 @@ pub struct Content {
     pub id: Cow<'static, str>,
     pub slug: Cow<'static, str>,
     pub title: Cow<'static, str>,
-    pub data: Cow<'static, Option<Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<Value>,
     pub published: bool,
     pub created_at: Cow<'static, Datetime>,
     pub updated_at: Cow<'static, Datetime>,
