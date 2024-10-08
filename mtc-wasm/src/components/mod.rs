@@ -31,6 +31,7 @@ mod storage_actions;
 mod storage_box;
 mod published_action;
 mod form_text_area_field;
+mod content_list_actions;
 
 pub mod prelude {
     pub use super::{
@@ -44,6 +45,7 @@ pub mod prelude {
         loading::*,
         entries_actions::*,
         content_actions::*,
+        content_list_actions::*,
         storage_actions::*,
         published_action::*,
         form_text_field::*,

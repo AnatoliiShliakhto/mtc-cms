@@ -8,6 +8,7 @@ mod search_idx;
 mod schemas;
 mod storage_utils;
 mod content;
+mod system;
 
 pub mod prelude {
     pub use super::{
@@ -20,6 +21,7 @@ pub mod prelude {
         search_idx::*,
         storage_utils::*,
         content::*,
+        system::*,
     };
 }
 

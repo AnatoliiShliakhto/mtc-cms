@@ -20,12 +20,9 @@ pub trait JsonValueUtils {
 
 impl JsonValueUtils for Value {
     fn has_key(&self, key: &str) -> bool {
-        match self
+        self
             .as_object()
-            .map(|obj| obj.contains_key(key)) {
-            None => false,
-            Some(_) => true,
-        }
+            .map(|obj| obj.contains_key(key)).unwrap_or_else(|| false)
     }
 
     fn insert_string(&mut self, key: &str, string: Cow<'static, str>) {

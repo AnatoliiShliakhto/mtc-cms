@@ -84,13 +84,9 @@ pub fn ContentList(
                     }}
                 }
                 if is_writer && schema().ne("page") && schema().ne("course") {
-                    EntriesActions {
+                    ContentListActions {
                         future,
-                        route: Route::ContentEdit {
-                            schema: schema(),
-                            slug: ID_CREATE.to_string()
-                        }.to_string(),
-                        permission: PERMISSION_PUBLIC_WRITE
+                        schema: schema()
                     }
                 }
             }

@@ -62,7 +62,7 @@ pub fn ContentView(
                         },
                         FieldKind::Course => rsx! {
                             ViewCourseField {
-                                schema,
+                                slug,
                                 value: content.get_object::<Value>(&field.slug),
                                 arg: arg()
                             }

@@ -19,10 +19,13 @@ pub fn MessageBox(
             div {
                 class: "modal-box",
                 onclick: |event| event.stop_propagation(),
-                button {
-                    class: "absolute top-2 right-2 btn btn-sm btn-circle btn-ghost",
-                    onclick: close_message_box_task,
-                    "✕"
+                div {
+                    class: "absolute top-0 right-0 join rounded-none",
+                    button {
+                        class: "btn btn-sm btn-ghost join-item hover:text-error",
+                        onclick: close_message_box_task,
+                        Icon { icon: Icons::Close, class: "size-4" }
+                    }
                 }
 
                 match kind {
