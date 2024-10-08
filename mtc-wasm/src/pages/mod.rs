@@ -19,6 +19,7 @@ mod content_list;
 mod content_view;
 mod content_view_with_arg;
 mod content_edit;
+mod course_edit;
 
 pub mod prelude {
     pub use super::{
@@ -41,5 +42,6 @@ pub mod prelude {
         content_view::*,
         content_view_with_arg::*,
         content_edit::*,
+        course_edit::*,
     };
 }

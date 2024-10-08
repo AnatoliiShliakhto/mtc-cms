@@ -120,10 +120,6 @@ pub fn FormFieldsField(
                         value: "links",
                         { t!("field-links") }
                     }
-                    option {
-                        value: "course",
-                        { t!("field-course") }
-                    }
                 }
             }
             div {

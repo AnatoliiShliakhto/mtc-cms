@@ -48,7 +48,8 @@ pub fn routes(
             .delete(sign_out_handler)
             .patch(change_password_handler)
         )
-        
+
+        .route("/system", get(find_system_info_handler))
         .route("/sync", post(sync_handler))
         
         .with_state(state)

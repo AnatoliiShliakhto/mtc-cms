@@ -70,7 +70,7 @@ pub fn ContentEdit(
             "data": data
         });
 
-        ///todo research MutBorrow bug bit later
+        //todo research MutBorrow bug bit later
         spawn(async move {
             match api_client()
                 .post(&*url)
@@ -169,10 +169,10 @@ pub fn ContentEdit(
                             }
                         },
                         FieldKind::Links => {
-                            let links_obj =
+                            let links_arr =
                             content.get_object::<Vec<LinkEntry>>(&field.slug).unwrap_or(vec![]);
                             let mut links_strings: Vec<String> = vec![];
-                            for link in links_obj {
+                            for link in links_arr {
                                 links_strings
                                 .push(format!("{}; {}", link.title.trim(), link.url.trim()));
                             }

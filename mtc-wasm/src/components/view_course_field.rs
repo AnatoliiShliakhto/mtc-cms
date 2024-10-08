@@ -2,7 +2,7 @@ use super::*;
 
 #[component]
 pub fn ViewCourseField(
-    schema: Memo<String>,
+    slug: Memo<String>,
     value: Option<Value>,
     arg: Option<String>,
 ) -> Element {
@@ -16,7 +16,7 @@ pub fn ViewCourseField(
     );
 
     let auth_state = use_auth_state();
-    let is_writer = auth_state().has_role(ROLE_WRITER);
+    let is_writer = auth_state().has_permission(PERMISSION_COURSE_WRITE);
 
     let course_entries: Vec<CourseEntry> =
         serde_json::from_value(value()).unwrap_or(vec![CourseEntry::default()]);
@@ -36,21 +36,15 @@ pub fn ViewCourseField(
     let mut course_tree: Vec<(String, usize)> = vec![];
     let mut cursor = arg();
     if arg() > 0 {
-        while cursor > 0 {
-            for (id, item) in course.iter() {
-                if let Some(childs) = &item.childs {
-                    if childs.iter().any(|value| value == &cursor) {
-                        course_tree.insert(0, (item.title.to_string(), id.to_owned()));
-                        cursor = id.to_owned();
-                        break
-                    }
-                }
-            }
+        loop {
+            let Some(item) = course.get(&cursor) else { break };
+            course_tree.insert(0, (item.title.to_string(), item.id));
+            cursor = item.parent
         }
     }
 
     rsx! {
-        if arg() > 0 {
+        if !course_tree.is_empty() {
             div {
                 class: "flex w-full flex-col gap-2",
                 for (count, item) in course_tree.iter().enumerate() {{
@@ -72,31 +66,39 @@ pub fn ViewCourseField(
             div { class: "divider" }
         }
 
+        if !current_entry.title.is_empty() {
+            div { class: "text-lg font-medium gap-2",
+                { current_entry.title.clone() }
+            }
+        }
         if is_writer {
             div {
-                class: "flex w-full flex-nowrap justify-end gap-2",
+                class: "flex flex-nowrap gap-2",
                 button {
                     class: "btn btn-sm btn-outline btn-accent",
                     onclick: move |_| {
-//                        navigator().push(Route::CourseEditorPage { schema_prop: schema_slug().clone(), course_id_prop: course_id().to_string(), is_new_prop: true });
+                        navigator().push(Route::CourseEdit {
+                            slug: slug(),
+                            id: arg(),
+                            is_new: true
+                        });
                     },
                     Icon { icon: Icons::Plus, class: "size-4" }
                 }
                 button {
                     class: "btn btn-sm btn-outline btn-warning",
                     onclick: move |_| {
-    //                        navigator().push(Route::CourseEditorPage { schema_prop: schema_slug().clone(), course_id_prop: course_id().to_string(), is_new_prop: false });
+                        navigator().push(Route::CourseEdit {
+                            slug: slug(),
+                            id: arg(),
+                            is_new: false
+                        });
                     },
                     Icon { icon: Icons::Pen, class: "size-4" }
                 }
             }
         }
 
-        if !current_entry.title.is_empty() {
-            div { class: "text-lg font-medium gap-2",
-                { current_entry.title.clone() }
-            }
-        }
         if !current_entry.description.is_empty() {
             p { class: "whitespace-pre-line ml-3 text-sm",
                 { current_entry.description.clone() }
@@ -109,12 +111,10 @@ pub fn ViewCourseField(
                 }
             }
         }
-        if let Some(childs) = current_entry.childs {
-            div {
-                class: "course-childs",
-                for child in childs.iter() {
-                    { CourseChildView(&course, child.clone(), arg(), schema, is_writer) }
-                }
+        div {
+            class: "course-childs",
+            for (id, _) in course.iter().filter(|(_, item)| item.parent == arg()) {
+                { CourseChildView(&course, *id, slug, is_writer) }
             }
         }
     }
@@ -123,8 +123,7 @@ pub fn ViewCourseField(
 fn CourseChildView(
     course: &std::sync::Arc<BTreeMap<usize, CourseEntry>>,
     id: usize,
-    parent_id: usize,
-    schema: Memo<String>,
+    slug: Memo<String>,
     is_writer: bool,
 ) -> Element {
     if !course.contains_key(&id) {
@@ -138,7 +137,7 @@ fn CourseChildView(
             class: "collapse collapse-arrow",
             input {
                 r#type: "radio",
-                name: parent_id.to_string()
+                name: current_entry.parent.to_string()
             }
             div {
                 class: "collapse-title font-semibold gap-2",
@@ -147,41 +146,50 @@ fn CourseChildView(
             div { class: "collapse-content ml-3 pr-0",
                 if is_writer {
                     div {
-                        class: "flex w-full flex-nowrap justify-end gap-2",
+                        class: "flex flex-nowrap gap-2",
                         button {
                             class: "btn btn-sm btn-outline btn-accent",
                             onclick: move |_| {
-                                //                        navigator().push(Route::CourseEditorPage { schema_prop: schema_slug().clone(), course_id_prop: course_id().to_string(), is_new_prop: true });
+                                navigator().push(Route::CourseEdit {
+                                    slug: slug(),
+                                    id,
+                                    is_new: true,
+                                });
                             },
                             Icon { icon: Icons::Plus, class: "size-4" }
                         }
                         button {
                             class: "btn btn-sm btn-outline btn-warning",
                             onclick: move |_| {
-                                //                        navigator().push(Route::CourseEditorPage { schema_prop: schema_slug().clone(), course_id_prop: course_id().to_string(), is_new_prop: false });
+                                navigator().push(Route::CourseEdit {
+                                    slug: slug(),
+                                    id,
+                                    is_new: false,
+                                });
                             },
                             Icon { icon: Icons::Pen, class: "size-4" }
                         }
                     }
                 }
-                if !current_entry.description.is_empty() {
-                    p {
-                        class: "whitespace-pre-line text-sm",
-                        { current_entry.description.as_ref() }
+                div {
+                    class: "border-l-[1px] border-neutral",
+                    if !current_entry.description.is_empty() {
+                        p {
+                            class: "whitespace-pre-line text-sm pl-5",
+                            { current_entry.description.as_ref() }
+                        }
                     }
-                }
-                if current_entry.links.is_some() {
-                    div { class: "prose prose-base mt-4 max-w-full",
-                        ViewLinksField {
-                            value: current_entry.links
+                    if current_entry.links.is_some() {
+                        div { class: "prose prose-base mt-4 max-w-full",
+                            ViewLinksField {
+                                value: current_entry.links
+                            }
                         }
                     }
                 }
-                if let Some(childs) = current_entry.childs {
-                    div { class: "program-childs",
-                        for child in childs.iter() {
-                            { CourseChildView(&course, *child, id, schema, is_writer) }
-                        }
+                div { class: "program-childs",
+                    for (id, _) in course.iter().filter(|(_, item)| item.parent == id) {
+                        { CourseChildView(&course, *id, slug, is_writer) }
                     }
                 }
             }

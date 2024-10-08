@@ -1,6 +1,6 @@
 use super::*;
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq, Default)]
-pub struct SystemInfoModel {
+pub struct SystemInfo {
     pub pages: i32,
     pub media: i32,
     pub files: i32,

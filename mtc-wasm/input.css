@@ -5,17 +5,11 @@
 @layer components {
 
     body {
-        @apply antialiased;
-        @apply forced-color-adjust-none;
-        @apply touch-manipulation;
+        @apply antialiased forced-color-adjust-none touch-manipulation;
     }
 
     .div-centered {
-        @apply flex;
-        @apply w-full;
-        @apply min-h-screen;
-        @apply justify-center;
-        @apply items-center;
+        @apply flex w-full min-h-screen justify-center items-center;
         min-height: calc(100dvh - 11rem);
     }
 
@@ -24,9 +18,7 @@
     }
 
     .input-field {
-        @apply input;
-        @apply input-bordered;
-        @apply focus:input-primary
+        @apply input input-bordered focus:input-primary
     }
 
     .ck-content .table table {
@@ -45,29 +37,19 @@
     }
 
     .file-stack dt span {
-        @apply text-lg;
-        @apply font-semibold;
-        @apply text-wrap;
+        @apply text-lg font-semibold text-wrap;
     }
 
     .file-stack dd {
-        @apply flex;
-        @apply flex-nowrap;
-        @apply mt-2.5;
-        @apply sm:mt-1.5;
-        @apply gap-3;
-        @apply items-start;
+        @apply flex flex-nowrap mt-2.5 sm:mt-1.5 gap-3 items-start;
     }
 
     .file-stack dd svg {
-        @apply w-5 min-w-5 aspect-square opacity-50 mt-[0.3rem];
+        @apply w-5 min-w-5 aspect-square opacity-50 mt-[0.4rem];
     }
 
     .file-stack dd a {
-        @apply transition-colors duration-500 ease-in-out;
-        @apply no-underline;
-        @apply text-wrap;
-        @apply font-normal;
+        @apply transition-colors duration-500 ease-in-out no-underline text-wrap font-normal;
     }
 
     .file-stack dd a:hover {
@@ -82,11 +64,8 @@
     }
 
     .course-childs:before {
-        @apply absolute;
-        @apply bottom-7;
-        @apply top-3.5;
+        @apply absolute bottom-7 top-3.5 w-[1px];
         inset-inline-start: 0;
-        @apply w-[1px];
         --tw-bg-opacity: 1;
         background-color: var(--fallback-bc, oklch(var(--bc) / var(--tw-bg-opacity)));
         opacity: 0.1;
@@ -94,49 +73,28 @@
     }
 
     .entry-table {
-        @apply table;
-        @apply table-fixed;
-        @apply w-full;
+        @apply table table-fixed w-full;
     }
 
     .entry-table tbody tr {
-        @apply cursor-pointer;
-        @apply hover:bg-base-200;
-        @apply hover:shadow-md;
+        @apply cursor-pointer hover:bg-base-200 hover:shadow-md;
     }
 
     .action-right-panel {
-        @apply bg-base-200;
-        @apply fixed;
-        @apply w-36;
-        @apply -right-20;
-        @apply transition-transform;
-        @apply ease-in-out;
-        @apply duration-300;
-        @apply hover:-translate-x-20;
-        @apply rounded-l-lg;
-        @apply rounded-r-none;
-        @apply shadow-md;
-        @apply z-[10];
+        @apply bg-base-200 fixed w-36 -right-20 transition-transform ease-in-out duration-300 hover:-translate-x-20;
+        @apply rounded-l-lg rounded-r-none shadow-md z-[10];
     }
 
     .action-right-panel button {
-        @apply btn;
-        @apply justify-start;
-        @apply gap-3;
-        @apply flex;
-        @apply flex-nowrap;
+        @apply btn justify-start gap-3 flex flex-nowrap;
     }
 
     .action-right-panel :where(span) {
-        @apply transition-opacity;
-        @apply ease-in-out;
-        @apply duration-300;
+        @apply transition-opacity ease-in-out duration-300;
     }
 
     .menu :where(svg) {
-        @apply -translate-x-4;
-        @apply sm:-translate-x-2;
+        @apply -translate-x-4 sm:-translate-x-2;
     }
 }
 

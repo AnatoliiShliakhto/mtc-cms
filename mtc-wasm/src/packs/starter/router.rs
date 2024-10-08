@@ -44,4 +44,6 @@ pub enum Route {
     ContentViewWithArg { schema: String, slug: String, arg: String },
     #[route("/edit/:schema/:slug")]
     ContentEdit { schema: String, slug: String },
+    #[route("/course/edit/:slug/:id/:is_new")]
+    CourseEdit { slug: String, id: usize, is_new: bool },
 }

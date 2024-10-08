@@ -56,6 +56,13 @@ pub fn SchemaEdit(
                     name: "id",
                     initial_value: response().get_string("id")
                 }
+                if id().ne(ID_CREATE) {
+                    input {
+                        r#type: "hidden",
+                        name: "kind",
+                        initial_value: response().get_schema_kind().to_string()
+                    }
+                }
                 div {
                     class: "grid w-full grid-cols-1 sm:grid-cols-2 gap-5",
                     FormSchemaKindField {

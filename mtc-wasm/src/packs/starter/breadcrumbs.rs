@@ -48,6 +48,11 @@ pub fn build_breadcrumbs(slug: &str) {
                 (t!("menu-content-edit"), "")
             ],
 
+            "menu-course-edit" => vec![
+                (t!("menu-course"), ""),
+                (t!("menu-course-edit"), "")
+            ],
+
             _ => vec![],
         };
 

@@ -200,42 +200,43 @@ pub fn StorageBox(
                                         }
                                     }
                                 }
-
-                                for item in serde_json::from_value::<Vec<Asset>>(response)
-                                .unwrap_or(vec![]).iter() {{
-                                    let file_name = item.name.clone();
-                                    let file_path = format!("{}/{}", path(), item.name);
-                                    let file_size = item.size;
-                                    rsx! {
-                                        tr {
-                                            onclick: move |_| {
-                                                match UseEval::new(document()
-                                                .new_evaluator(EVAL_COPY_TO_CLIPBOARD.to_string()))
-                                                .send(file_path.clone().into()) {
-                                                    Ok(_) => is_show.set(false),
-                                                    Err(_) => {}
-                                                }
-                                            },
-                                            td { { file_name.clone() } }
-                                            td { { human_bytes(file_size as f64) } }
-                                            if can_delete {
-                                                td {
-                                                    class: "p-0",
-                                                    onclick: move |event| event.stop_propagation(),
-                                                    button {
-                                                        class: "btn btn-xs btn-ghost text-error",
-                                                        onclick: move |_|
-                                                        delete_file(file_name.to_string()),
-                                                        Icon {
-                                                            icon: Icons::Close,
-                                                            class: "size-4"
+                                tbody {
+                                    for item in serde_json::from_value::<Vec<Asset>>(response)
+                                    .unwrap_or(vec![]).iter() {{
+                                        let file_name = item.name.clone();
+                                        let file_path = format!("{}/{}", path(), item.name);
+                                        let file_size = item.size;
+                                        rsx! {
+                                            tr {
+                                                onclick: move |_| {
+                                                    match UseEval::new(document()
+                                                        .new_evaluator(EVAL_COPY_TO_CLIPBOARD.to_string()))
+                                                    .send(file_path.clone().into()) {
+                                                        Ok(_) => is_show.set(false),
+                                                        Err(_) => {}
+                                                    }
+                                                },
+                                                td { { file_name.clone() } }
+                                                td { { human_bytes(file_size as f64) } }
+                                                if can_delete {
+                                                    td {
+                                                        class: "p-0",
+                                                        onclick: move |event| event.stop_propagation(),
+                                                        button {
+                                                            class: "btn btn-xs btn-ghost text-error",
+                                                            onclick: move |_|
+                                                            delete_file(file_name.to_string()),
+                                                            Icon {
+                                                                icon: Icons::Close,
+                                                                class: "size-4"
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                }}
+                                    }}
+                                }
                             }
                         },
                         None => rsx! { Loading {} },

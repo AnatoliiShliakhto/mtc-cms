@@ -70,6 +70,14 @@ impl SchemasRepository for Repository {
         let permission = payload.get_str("permission").unwrap_or_default();
         let fields = payload.get_schema_fields().unwrap_or(vec![]);
 
+        let content_slug = self
+            .database
+            .query(r#"SELECT VALUE slug FROM ONLY type::record("schemas:" + $id);"#)
+            .bind(("id", id.clone()))
+            .await?
+            .take::<Option<Cow<'static, str>>>(0)?
+            .unwrap_or_default();
+
         if payload.has_key("id") && !id.is_empty() {
             sql.push(r#"
             LET $rec_id = UPDATE type::record("schemas:" + $id) MERGE {
@@ -149,14 +157,28 @@ impl SchemasRepository for Repository {
             }
         }
 
+        if !id.is_empty() && slug.ne(&content_slug) && kind == SchemaKind::Page {
+            sql.push(r#"
+            UPDATE page SET slug = $slug WHERE slug = $content_slug;
+            "#);
+        }
+
+        if !id.is_empty() && slug.ne(&content_slug) && kind == SchemaKind::Course {
+            sql.push(r#"
+            UPDATE course SET slug = $slug WHERE slug = $content_slug;
+            "#);
+        }
+
         sql.push("RETURN record::id($rec_id[0].id);\n");
         sql.push("COMMIT TRANSACTION;");
 
+        error!("{:#?}", sql.concat());
         let content_id = self
             .database
             .query(sql.concat())
             .bind(("id", id.clone()))
             .bind(("slug", slug))
+            .bind(("content_slug", content_slug))
             .bind(("title", title))
             .bind(("kind", kind.clone()))
             .bind(("permission", permission))

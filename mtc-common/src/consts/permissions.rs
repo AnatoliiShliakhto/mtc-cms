@@ -32,3 +32,8 @@ pub static PERMISSION_SCHEMAS: &str = "schemas";
 pub static PERMISSION_SCHEMAS_READ: &str = "schemas::read";
 pub static PERMISSION_SCHEMAS_WRITE: &str = "schemas::write";
 pub static PERMISSION_SCHEMAS_DELETE: &str = "schemas::delete";
+
+pub static PERMISSION_COURSE: &str = "course";
+pub static PERMISSION_COURSE_READ: &str = "course::read";
+pub static PERMISSION_COURSE_WRITE: &str = "course::write";
+pub static PERMISSION_COURSE_DELETE: &str = "course::delete";

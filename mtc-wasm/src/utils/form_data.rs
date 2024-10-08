@@ -5,6 +5,7 @@ pub trait FormDataUtils {
     fn get_bool(&self, field: &str) -> bool;
     fn get_str_array(&self, field: &str) -> Option<Vec<Cow<'static, str>>>;
     fn get_i64(&self, field: &str) -> Option<i64>;
+    fn get_usize(&self, field: &str) -> Option<usize>;
     fn get_fields_array(&self) -> Option<Vec<Field>>;
     fn get_links_array(&self, field: &str) -> Vec<LinkEntry>;
 }
@@ -36,6 +37,15 @@ impl FormDataUtils for Event<FormData> {
     fn get_i64(&self, field: &str) -> Option<i64> {
         if let Some(FormValue(value)) = self.values().get(field) {
             if let Ok(value) = value[0].parse::<i64>() {
+                return Some(value);
+            }
+        }
+        None
+    }
+
+    fn get_usize(&self, field: &str) -> Option<usize> {
+        if let Some(FormValue(value)) = self.values().get(field) {
+            if let Ok(value) = value[0].parse::<usize>() {
                 return Some(value);
             }
         }

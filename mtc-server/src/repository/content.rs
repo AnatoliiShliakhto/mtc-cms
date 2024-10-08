@@ -116,13 +116,15 @@ impl ContentRepository for Repository {
         };
         "#);
 
-        if !id.is_empty() & table.eq("page") & current_slug.ne(&slug) {
+        if !id.is_empty() & payload.has_key("slug") & table.eq("page")
+            & current_slug.ne(&slug) {
             sql.push(r#"
             UPDATE schemas SET slug = $slug WHERE slug = $current_slug;
             "#)
         }
 
-        if !id.is_empty() & table.eq("course") & current_slug.ne(&slug) {
+        if !id.is_empty() & payload.has_key("slug") & table.eq("course")
+            & current_slug.ne(&slug) {
             sql.push(r#"
             UPDATE schemas SET slug = $slug WHERE slug = $current_slug;
             "#)
