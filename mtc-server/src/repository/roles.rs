@@ -33,7 +33,7 @@ impl RolesRepository for Repository {
     async fn find_custom_role_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
             SELECT record::id(id) as id, slug, title FROM roles
-            WHERE slug NOT IN ["anonymous", "administrator", "writer"] ORDER BY slug;
+            WHERE slug NOT IN ["anonymous", "administrator"] ORDER BY slug;
             "#;
 
         let roles = self.database.query(sql)

@@ -18,6 +18,8 @@ pub trait StorageTrait {
         path: &str,
         data: axum::extract::multipart::Field<'_>
     ) -> Result<()>;
+    async fn get_migration_files(&self) -> Result<BTreeSet<Cow<'static, str>>>;
+    async fn get_migration_file(&self, file_name: &str) -> Result<Cow<'static, str>>;
 }
 
 #[async_trait]
@@ -104,5 +106,25 @@ impl StorageTrait for Repository {
         fs::write(&asset_path, data.bytes().await?).await?;
 
         Ok(())
+    }
+
+    async fn get_migration_files(&self) -> Result<BTreeSet<Cow<'static, str>>> {
+        let mut files = BTreeSet::<Cow<'static, str>>::new();
+        if let Ok(mut folder) = fs::read_dir(&self.config.migration_path.to_string()).await {
+            while let Ok(Some(child)) = folder.next_entry().await {
+                if let Ok(meta) = child.metadata().await {
+                    let file_name = child.file_name().into_string().unwrap_or_default();
+                    if meta.is_file() && file_name.contains(".sql") {
+                        files.insert(file_name.into());
+                    }
+                }
+            }
+        }
+
+        Ok(files)
+    }
+
+    async fn get_migration_file(&self, file_name: &str) -> Result<Cow<'static, str>> {
+        Ok(fs::read_to_string([&self.config.migration_path, file_name].join("/")).await?.into())
     }
 }

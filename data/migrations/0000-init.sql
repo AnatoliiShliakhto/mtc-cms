@@ -8,12 +8,10 @@ DEFINE FIELD kind ON TABLE schemas TYPE int default 0;
 DEFINE FIELD title ON TABLE schemas TYPE string;
 DEFINE FIELD permission ON TABLE schemas TYPE string DEFAULT 'public';
 DEFINE FIELD fields ON TABLE schemas FLEXIBLE TYPE option<array>;
-DEFINE FIELD is_public ON TABLE schemas TYPE bool DEFAULT false;
 DEFINE FIELD created_at ON TABLE schemas TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE schemas TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE schemas TYPE string;
 DEFINE FIELD updated_by ON TABLE schemas TYPE string;
-DEFINE INDEX idx_schemas_created ON TABLE schemas COLUMNS created_at;
 DEFINE INDEX idx_schemas_slug ON TABLE schemas COLUMNS slug UNIQUE;
 
 CREATE schemas CONTENT {
@@ -77,8 +75,6 @@ DEFINE FIELD updated_at ON TABLE users TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE users TYPE string;
 DEFINE FIELD updated_by ON TABLE users TYPE string;
 DEFINE INDEX idx_users_login ON TABLE users COLUMNS login UNIQUE;
-DEFINE INDEX idx_users_access_level ON TABLE users COLUMNS access_level;
-DEFINE INDEX idx_users_access_level_blocked ON TABLE users COLUMNS access_level, blocked;
 
 CREATE users CONTENT {
     id: 'sa',
@@ -108,7 +104,6 @@ DEFINE FIELD created_at ON TABLE roles TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE roles TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE roles TYPE string;
 DEFINE FIELD updated_by ON TABLE roles TYPE string;
-DEFINE INDEX idx_roles_created ON TABLE roles COLUMNS created_at;
 DEFINE INDEX idx_roles_slug ON TABLE roles COLUMNS slug UNIQUE;
 
 CREATE roles CONTENT {
@@ -347,7 +342,6 @@ DEFINE FIELD created_at ON TABLE groups TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE groups TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE groups TYPE string;
 DEFINE FIELD updated_by ON TABLE groups TYPE string;
-DEFINE INDEX idx_groups_created ON TABLE groups COLUMNS created_at;
 DEFINE INDEX idx_groups_slug ON TABLE groups COLUMNS slug UNIQUE;
 
 REMOVE TABLE IF EXISTS user_groups;
@@ -383,7 +377,6 @@ DEFINE FIELD created_at ON TABLE page TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE page TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE page TYPE string;
 DEFINE FIELD updated_by ON TABLE page TYPE string;
-DEFINE INDEX idx_page_created ON TABLE page COLUMNS created_at;
 DEFINE INDEX idx_page_slug ON TABLE page COLUMNS slug UNIQUE;
 
 CREATE schemas CONTENT {
@@ -413,7 +406,6 @@ DEFINE FIELD created_at ON TABLE course TYPE datetime DEFAULT time::now();
 DEFINE FIELD updated_at ON TABLE course TYPE datetime VALUE time::now();
 DEFINE FIELD created_by ON TABLE course TYPE string;
 DEFINE FIELD updated_by ON TABLE course TYPE string;
-DEFINE INDEX idx_links_created ON TABLE course COLUMNS created_at;
 DEFINE INDEX idx_links_slug ON TABLE course COLUMNS slug UNIQUE;
 
 REMOVE TABLE IF EXISTS search_index;
