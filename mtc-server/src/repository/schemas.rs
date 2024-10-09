@@ -129,7 +129,6 @@ impl SchemasRepository for Repository {
             DEFINE FIELD updated_at ON TABLE {0} TYPE datetime VALUE time::now();
             DEFINE FIELD created_by ON TABLE {0} TYPE string;
             DEFINE FIELD updated_by ON TABLE {0} TYPE string;
-            DEFINE INDEX idx_{0}_create ON TABLE {0} COLUMNS created_at;
             DEFINE INDEX idx_{0}_slug ON TABLE {0} COLUMNS slug UNIQUE;
             "#, slug);
 

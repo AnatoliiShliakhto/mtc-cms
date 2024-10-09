@@ -143,7 +143,8 @@ fn CourseChildView(
                 class: "collapse-title font-semibold gap-2",
                 { current_entry.title.as_ref() }
             }
-            div { class: "collapse-content ml-3 pr-0",
+            div {
+                class: "collapse-content ml-3 pr-0",
                 if is_writer {
                     div {
                         class: "flex flex-nowrap gap-2",
@@ -171,23 +172,20 @@ fn CourseChildView(
                         }
                     }
                 }
-                div {
-                    class: "border-l-[1px] border-neutral",
-                    if !current_entry.description.is_empty() {
-                        p {
-                            class: "whitespace-pre-line text-sm pl-5",
-                            { current_entry.description.as_ref() }
-                        }
+                if !current_entry.description.is_empty() {
+                    p {
+                        class: "whitespace-pre-line text-sm pl-5",
+                        { current_entry.description.as_ref() }
                     }
-                    if current_entry.links.is_some() {
-                        div { class: "prose prose-base mt-4 max-w-full",
-                            ViewLinksField {
-                                value: current_entry.links
-                            }
+                }
+                if current_entry.links.is_some() {
+                    div { class: "prose prose-base mt-4 max-w-full",
+                        ViewLinksField {
+                            value: current_entry.links
                         }
                     }
                 }
-                div { class: "program-childs",
+                div { class: "course-childs",
                     for (id, _) in course.iter().filter(|(_, item)| item.parent == id) {
                         { CourseChildView(&course, *id, slug, is_writer) }
                     }

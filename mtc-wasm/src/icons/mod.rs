@@ -49,6 +49,7 @@ mod eye_slash;
 mod eye;
 mod database;
 mod database_lock;
+mod camera;
 
 pub mod prelude {
     pub use super::{
@@ -108,6 +109,7 @@ pub enum Icons {
     EyeSlash,
     Database,
     DatabaseLock,
+    Camera,
 }
 
 #[component]
@@ -167,5 +169,6 @@ pub fn Icon(
         Icons::EyeSlash => eye_slash::EyeSlashIcon(class),
         Icons::Database => database::DatabaseIcon(class),
         Icons::DatabaseLock => database_lock::DatabaseLockIcon(class),
+        Icons::Camera => camera::CameraIcon(class),
     }
 }

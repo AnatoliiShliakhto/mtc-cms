@@ -32,6 +32,7 @@ mod storage_box;
 mod published_action;
 mod form_text_area_field;
 mod content_list_actions;
+mod init_box;
 
 pub mod prelude {
     pub use super::{
@@ -67,5 +68,6 @@ pub mod prelude {
         view_course_field::*,
         view_links_field::*,
         storage_box::*,
+        init_box::*,
     };
 } 
