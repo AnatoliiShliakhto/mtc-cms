@@ -7,4 +7,6 @@ pub struct SystemInfo {
     pub links: i32,
     pub users: i32,
     pub active_users: i32,
+    pub courses: i32,
+    pub indexes: i32,
 }

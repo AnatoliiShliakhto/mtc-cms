@@ -59,3 +59,17 @@ pub async fn migration_handler(
 
     Ok(StatusCode::OK)
 }
+
+pub async fn search_idx_rebuild_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<impl IntoResponse> {
+    if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
+        Err(SessionError::AccessForbidden)?
+    }
+
+    state.repository.rebuild_search_idx().await?;
+
+    Ok(())
+}
+

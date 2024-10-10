@@ -18,6 +18,7 @@ pub trait UserRepository {
         by: Cow<'static, str>,
     ) -> Result<()>;
     async fn delete_user(&self, id: Cow<'static, str>) -> Result<()>;
+    async fn get_users_count(&self, only_active: bool) -> Result<i32>;
 }
 
 #[async_trait]
@@ -235,5 +236,16 @@ impl UserRepository for Repository {
             .await?;
 
         Ok(())
+    }
+
+    async fn get_users_count(&self, only_active: bool) -> Result<i32> {
+        Ok(self
+            .database
+            .query(match only_active {
+                false => r#"count(SELECT 1 FROM users);"#,
+                true => r#"count(SELECT 1 FROM users WHERE blocked=false);"#,
+            })
+            .await?
+            .take::<Option<i32>>(0)?.unwrap_or_default())
     }
 }

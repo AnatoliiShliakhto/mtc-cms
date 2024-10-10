@@ -11,6 +11,7 @@ pub trait SchemasRepository {
         &self,
         permissions: BTreeSet<Cow<'static, str>>,
     ) -> Result<Vec<Entry>>;
+    async fn find_schemas_records(&self) -> Result<Vec<Schema>>;
 }
 
 #[async_trait]
@@ -270,6 +271,18 @@ impl SchemasRepository for Repository {
             .bind(("permissions", permissions))
             .await?
             .take::<Vec<Entry>>(0)?;
+
+        Ok(schemas)
+    }
+
+    async fn find_schemas_records(&self) -> Result<Vec<Schema>> {
+        let sql = r#"
+            SELECT *, record::id(id) as id FROM schemas WHERE kind > 1;
+        "#;
+
+        let schemas = self.database.query(sql)
+            .await?
+            .take::<Vec<Schema>>(0)?;
 
         Ok(schemas)
     }

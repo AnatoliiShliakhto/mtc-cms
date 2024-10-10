@@ -36,7 +36,7 @@ pub fn SearchResult() -> Element {
                                 match item.kind {
                                     SearchKind::LocalLink => rsx! {
                                         Icon {
-                                            icon: Icons::Link45Deg,
+                                            icon: Icons::Description,
                                             class: "size-4 text-primary group-hover:animate-ping"
                                         }
                                     },
