@@ -2,6 +2,7 @@ pub static API_PATH: &str = "/api";
 
 pub static API_SYSTEM: &str = "system";
 pub static API_MIGRATE: &str = "system/migrate";
+pub static API_IDX_REBUILD: &str = "system/rebuild";
 pub static API_AUTH: &str = "auth";
 pub static API_SCHEMA: &str = "schema";
 pub static API_SCHEMAS: &str = "schemas";

@@ -49,6 +49,7 @@ pub fn routes(
             .patch(change_password_handler)
         )
 
+        .route("/system/rebuild", get(search_idx_rebuild_handler))
         .route("/system/migrate", post(migration_handler))
         .route("/system", get(find_system_info_handler))
         .route("/sync", post(sync_handler))
