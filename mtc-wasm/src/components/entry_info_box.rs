@@ -14,7 +14,8 @@ pub fn EntryInfoBox(
 
     rsx! {
         div {
-            class: "fixed top-24 right-0 dropdown dropdown-hover dropdown-left",
+            class: "fixed top-24 right-0 dropdown dropdown-hover dropdown-left \
+            opacity-50 xl:opacity-100 hover:opacity-100",
             div {
                 tabindex: "0",
                 role: "button",

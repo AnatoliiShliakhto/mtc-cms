@@ -119,7 +119,7 @@ pub fn ContentEdit(
 
     rsx! {
         section {
-            class: "flex grow select-none flex-row gap-6 px-3 pr-20 sm:pr-16",
+            class: "flex grow select-none flex-row gap-6 px-3 pr-20 xl:pr-16",
             form {
                 class: "flex grow flex-col items-center gap-3",
                 id: "content-edit-form",
