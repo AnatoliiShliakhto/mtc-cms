@@ -71,13 +71,16 @@ impl SchemasRepository for Repository {
         let permission = payload.get_str("permission").unwrap_or_default();
         let fields = payload.get_schema_fields().unwrap_or(vec![]);
 
-        let content_slug = self
-            .database
-            .query(r#"SELECT VALUE slug FROM ONLY type::record("schemas:" + $id);"#)
-            .bind(("id", id.clone()))
-            .await?
-            .take::<Option<Cow<'static, str>>>(0)?
-            .unwrap_or_default();
+
+        let content_slug: Cow<'static, str> = if id.is_empty() { "".into() } else {
+            self
+                .database
+                .query(r#"SELECT VALUE slug FROM ONLY type::record("schemas:" + $id);"#)
+                .bind(("id", id.clone()))
+                .await?
+                .take::<Option<Cow<'static, str>>>(0)?
+                .unwrap_or_default()
+        };
 
         if payload.has_key("id") && !id.is_empty() {
             sql.push(r#"
@@ -172,7 +175,6 @@ impl SchemasRepository for Repository {
         sql.push("RETURN record::id($rec_id[0].id);\n");
         sql.push("COMMIT TRANSACTION;");
 
-        error!("{:#?}", sql.concat());
         let content_id = self
             .database
             .query(sql.concat())

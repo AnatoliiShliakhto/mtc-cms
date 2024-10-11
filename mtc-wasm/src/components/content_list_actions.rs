@@ -47,7 +47,7 @@ pub fn ContentListActions<T: PartialEq + 'static>(
     rsx! {
         div {
             class: "action-right-panel top-24 group join join-vertical \
-            opacity-50 sm:opacity-100 hover:opacity-100",
+            opacity-50 xl:opacity-100 hover:opacity-100",
             onclick: move |event| event.stop_propagation(),
             button {
                 class: "hover:btn-primary join-item",

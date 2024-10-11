@@ -140,8 +140,8 @@ impl SystemTrait for Repository {
                         self.find_content_list(schema.slug.clone(), false).await {
                         for page in pages {
                             self.search_idx_scan_page(
-                                page.slug,
                                 schema.slug.clone(),
+                                page.slug,
                                 &schema,
                                 &mut info
                             ).await;
@@ -347,9 +347,13 @@ impl SystemTrait for Repository {
         self.database
             .query(
                 r#"
-                UPDATE mtc_system MERGE {
+                BEGIN TRANSACTION;
+                DELETE FROM mtc_system WHERE c_key = $key;
+                CREATE mtc_system CONTENT {
+                    c_key: $key,
 	                c_value: $value,
-                } WHERE c_key = $key;
+                };
+                COMMIT TRANSACTION;
                 "#,
             )
             .bind(("key", key))

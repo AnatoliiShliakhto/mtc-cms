@@ -8,7 +8,7 @@ pub fn PublishedAction(
 
     rsx! {
         div {
-            class: "fixed top-80 right-0 opacity-50 sm:opacity-100 hover:opacity-100",
+            class: "fixed top-80 right-0 opacity-50 xl:opacity-100 hover:opacity-100",
             label {
                 class: "swap h-12 w-16 bg-base-200 hover:bg-neutral rounded-l-lg shadow-md",
                 input {

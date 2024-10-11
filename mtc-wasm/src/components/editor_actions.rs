@@ -13,7 +13,8 @@ pub fn EditorActions(
 
     rsx! {
         div {
-            class: "action-right-panel group join join-vertical top-40",
+            class: "action-right-panel group join join-vertical top-40 \
+            opacity-50 xl:opacity-100 hover:opacity-100",
             onclick: move |event| event.stop_propagation(),
 
             button {
