@@ -68,17 +68,17 @@ impl ContentRepository for Repository {
     ) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
         let id =
-            payload.get_str("id").unwrap_or_default();
+            payload.key_str("id").unwrap_or_default();
         let slug =
-            payload.get_str("slug").unwrap_or_default();
+            payload.key_str("slug").unwrap_or_default();
         let title =
-            payload.get_str("title").unwrap_or_default();
+            payload.key_str("title").unwrap_or_default();
         let published =
-            payload.get_bool("published").unwrap_or_default();
+            payload.key_bool("published").unwrap_or_default();
         let data =
-            payload.get_object::<Value>("data").unwrap_or_default();
+            payload.key_obj::<Value>("data").unwrap_or_default();
 
-        if payload.has_key("id") && !id.is_empty() {
+        if payload.contains_key("id") && !id.is_empty() {
             sql.push(r#"UPDATE type::record($table + ":" + $id) MERGE {"#)
         } else {
             sql.push(r#"
@@ -87,25 +87,25 @@ impl ContentRepository for Repository {
             "#)
         }
 
-        if payload.has_key("slug") {
+        if payload.contains_key("slug") {
             sql.push(r#"
             slug: $slug,
             "#)
         }
 
-        if payload.has_key("title") {
+        if payload.contains_key("title") {
             sql.push(r#"
             title: $title,
             "#)
         }
 
-        if payload.has_key("published") {
+        if payload.contains_key("published") {
             sql.push(r#"
             published: $published,
             "#)
         }
 
-        if payload.has_key("data") {
+        if payload.contains_key("data") {
             sql.push(r#"
             data: $data,
             "#)
@@ -116,14 +116,14 @@ impl ContentRepository for Repository {
         };
         "#);
 
-        if !id.is_empty() & payload.has_key("slug") & table.eq("page")
+        if !id.is_empty() & payload.contains_key("slug") & table.eq("page")
             & current_slug.ne(&slug) {
             sql.push(r#"
             UPDATE schemas SET slug = $slug WHERE slug = $current_slug;
             "#)
         }
 
-        if !id.is_empty() & payload.has_key("slug") & table.eq("course")
+        if !id.is_empty() & payload.contains_key("slug") & table.eq("course")
             & current_slug.ne(&slug) {
             sql.push(r#"
             UPDATE schemas SET slug = $slug WHERE slug = $current_slug;

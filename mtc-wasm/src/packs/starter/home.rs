@@ -1,9 +1,9 @@
 use super::*;
 
 pub fn Home() -> Element {
-    drop_breadcrumbs();
+    breadcrumbs!();
 
-    rsx!{ 
+    rsx! {
         InitBox {}
     }
 }

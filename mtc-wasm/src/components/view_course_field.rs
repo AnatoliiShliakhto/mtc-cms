@@ -2,7 +2,7 @@ use super::*;
 
 #[component]
 pub fn ViewCourseField(
-    slug: Memo<String>,
+    slug: ReadOnlySignal<String>,
     value: Option<Value>,
     arg: Option<String>,
 ) -> Element {
@@ -18,8 +18,8 @@ pub fn ViewCourseField(
     let auth_state = use_auth_state();
     let is_writer = auth_state().has_permission(PERMISSION_COURSE_WRITE);
 
-    let course_entries: Vec<CourseEntry> =
-        serde_json::from_value(value()).unwrap_or(vec![CourseEntry::default()]);
+    let course_entries = value().self_obj::<Vec<CourseEntry>>()
+        .unwrap_or(vec![CourseEntry::default()]);
     let course = std::sync::Arc::new(
         course_entries
             .iter()
@@ -123,7 +123,7 @@ pub fn ViewCourseField(
 fn CourseChildView(
     course: &std::sync::Arc<BTreeMap<usize, CourseEntry>>,
     id: usize,
-    slug: Memo<String>,
+    slug: ReadOnlySignal<String>,
     is_writer: bool,
 ) -> Element {
     if !course.contains_key(&id) {

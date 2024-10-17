@@ -1,22 +1,29 @@
 use super::*;
 
+#[component]
 pub fn Permissions() -> Element {
-    let auth_state = use_auth_state();
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_task = use_coroutine_handle::<ApiRequestAction>();
+    let auth = use_auth_state();
 
-    page_init!("menu-permissions", PERMISSION_ROLES_READ, auth_state);
+    breadcrumbs!("menu-permissions");
+    check_permission!(PERMISSION_ROLES_READ);
 
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_PERMISSIONS)).await
-        });
+    let mut future = value_future!(url!(API_PERMISSIONS));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
+
+    let delete = move |slug: &str| {
+        let slug = slug.to_owned();
+        spawn(async move {
+            if delete_request!(url!(API_PERMISSION, &slug)) {
+                success_dialog!("message-success-deletion");
+                future.restart()
+            }
+        });
+    };
 
     rsx! {
         section { 
-            class: "w-full flex-grow sm:pr-16",
+            class: "w-full flex-grow xl:pr-16",
             table { 
                 class: "entry-table",
                 thead {
@@ -26,39 +33,35 @@ pub fn Permissions() -> Element {
                     }
                 }
                 tbody {
-                    for item in response().as_array().unwrap_or(&vec![]).iter() {{
-                        let permission = item.to_owned();
 
+                    for permission in response()
+                    .self_obj::<Vec<Cow<'static, str>>>()
+                    .unwrap_or_default().iter() {{
+                        let slug = permission.to_owned();
                         rsx! {
                             tr {
                                 td {
-                                    if auth_state().has_permission(PERMISSION_ROLES_DELETE) {
+                                    if auth().has_permission(PERMISSION_ROLES_DELETE) {
                                         button {
                                             class: "btn btn-xs btn-ghost",
                                             onclick: move |_| {
-                                                if let Some(permission) = permission.as_str() {
-                                                    api_task.send(
-                                                        ApiRequestAction::DeleteThenMessage(
-                                                            url!(API_PERMISSION,  permission),
-                                                            None,
-                                                        )
-                                                    )
-                                                }
+                                                delete(&slug)
                                             },
                                             Icon { icon: Icons::Close, class: "size-4 text-error" }
                                         }
                                     }
                                 }
                                 td {
-                                    { item.as_str() }
+                                    { permission }
                                 }
                             }
                         }
                     }}
+
                 }
                 EntriesActions {
                     future,
-                    route: Route::PermissionCreate {}.to_string(),
+                    route: Route::PermissionCreate {},
                     permission: PERMISSION_ROLES_WRITE,
                 }
             }

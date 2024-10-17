@@ -6,7 +6,7 @@ mod change_password;
 mod administrator;
 mod permissions;
 mod permission_create;
-mod search_result;
+mod search;
 mod groups;
 mod group_edit;
 mod roles;
@@ -31,7 +31,7 @@ pub mod prelude {
         permission_create::*,
         groups::*,
         group_edit::*,
-        search_result::*,
+        search::*,
         roles::*,
         role_edit::*,
         users::*,

@@ -4,19 +4,19 @@ pub fn WorkIcon(class: &'static str) -> Element {
     rsx! {
         svg {
             class,
-            "stroke-linejoin": "miter",
-            "xmlns": "http://www.w3.org/2000/svg",
-            "stroke-width": "0",
-            "stroke-linecap": "butt",
-            "viewBox": "0 0 24 24",
-            "fill": "currentColor",
-            "stroke": "none",
+            "viewBox": "-2 -2 20 20",
+            fill: "currentColor",
+            xmlns: "http://www.w3.org/2000/svg",
             path {
-                "fill-rule": "evenodd",
-                "d": "M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 \
-                2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 \
-                0 2 .89 2 2v2h4z"
+                d: "M6.5 1A1.5 1.5 0 0 0 5 2.5V3H1.5A1.5 1.5 0 0 0 0 4.5v1.384l7.614 2.03a1.5 \
+                1.5 0 0 0 .772 0L16 5.884V4.5A1.5 1.5 0 0 0 14.5 3H11v-.5A1.5 1.5 0 0 0 9.5 1zm0 \
+                1h3a.5.5 0 0 1 .5.5V3H6v-.5a.5.5 0 0 1 .5-.5"
             }
+            path {
+                d: "M0 12.5A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5V6.85L8.129 8.947a.5.5 \
+                0 0 1-.258 0L0 6.85z"
+            }
+
         }
     }
 } 

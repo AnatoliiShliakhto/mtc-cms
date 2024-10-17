@@ -1,1 +1,1 @@
-setInterval(() => dioxus.send(), 30000);
+setInterval(() => dioxus.send(0), 30000);

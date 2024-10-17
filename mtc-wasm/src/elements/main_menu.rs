@@ -1,10 +1,11 @@
 use super::*;
 
+#[component]
 pub fn MainMenu() -> Element {
     let mut menu_state = use_menu_state();
     
     rsx! {
-        aside { 
+        aside {
             class: "flex flex-col bg-base-200 min-h-screen w-full sm:w-80",
             div { 
                 class: "bg-base-200 sticky top-0 z-20 flex items-center justify-center \
@@ -35,7 +36,6 @@ pub fn MainMenu() -> Element {
                 }
             }
             ul { class: "menu menu-lg sm:menu-md",
-                Menu {}
                 SideMenu {}
             }
             div { class: "flex flex-col grow justify-end",

@@ -2,44 +2,41 @@ use super::*;
 
 #[component]
 pub fn UserEdit(
-    #[props]
+    #[props(into)]
     id: String,
 ) -> Element {
     let id = use_memo(use_reactive!(|id| id));
 
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_task = use_coroutine_handle::<ApiRequestAction>();
-    let auth_state = use_auth_state();
+    breadcrumbs!("menu-users");
+    check_permission!(PERMISSION_USERS_READ);
 
-    page_init!("menu-users", PERMISSION_USERS_READ, auth_state);
-
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_USER, &id())).await
-        });
-
+    let future = value_future!(url!(API_USER, &id()));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
     let submit = move |event: Event<FormData>| {
-        api_task.send(ApiRequestAction::PostThenBack(
-            url!(API_USER),
-            Some(json!({
-                "id": event.get_str("id"),
-                "login": event.get_str("login"),
-                "password": event.get_str("password"),
-                "group": event.get_str("group"),
-                "blocked": event.get_bool("blocked"),
-                "roles": event.get_str_array("roles").unwrap_or(vec![]),
-            })),
-        ))
+        let payload = json!({
+            "id": event.get_str("id"),
+            "login": event.get_str("login"),
+            "password": event.get_str("password"),
+            "group": event.get_str("group"),
+            "blocked": event.get_bool("blocked"),
+            "roles": event.get_str_array("roles").unwrap_or(vec![])
+        });
+
+        spawn(async move {
+            if post_request!(url!(API_USER), payload) {
+                navigator().replace(Route::Users {});
+            }
+        });
     };
 
     let delete = move |event: MouseEvent| {
-        api_task.send(ApiRequestAction::DeleteThenBack(
-            url!(API_USER, &id()),
-            None,
-        ))
+        spawn(async move {
+            if delete_request!(url!(API_USER, &id())) {
+                navigator().replace(Route::Users {});
+            }
+        });
     };
 
     rsx! {
@@ -54,13 +51,13 @@ pub fn UserEdit(
                 input {
                     r#type: "hidden",
                     name: "id",
-                    initial_value: response().get_string("id")
+                    initial_value: response().key_string("id")
                 }
                 FormTextField {
                     name: "login",
                     title: "field-login",
                     required: true,
-                    initial_value: response().get_string("login")
+                    initial_value: response().key_string("login")
                 }
                 FormTextField {
                     name: "password",
@@ -69,22 +66,24 @@ pub fn UserEdit(
                 FormSelectField {
                     name: "group",
                     title: "field-group",
-                    selected: response().get_string("group").unwrap_or_default(),
-                    items: response().get_entries("groups_set").unwrap_or(vec![]),
+                    selected: response().key_string("group").unwrap_or_default(),
+                    items: response().key_obj::<Vec<Entry>>("groups_set").unwrap_or_default(),
                 }
                 FormEntriesField {
                     name: "roles",
                     title: "field-roles",
-                    items: response().get_str_array("roles").unwrap_or(vec![]),
-                    entries: response().get_entries("roles_set").unwrap_or(vec![]),
+                    items: response().key_obj::<Vec<Cow<'static, str>>>("roles")
+                    .unwrap_or_default(),
+                    entries: response().key_obj::<Vec<Entry>>("roles_set")
+                    .unwrap_or_default()
                 }
             }
         }
         EntryInfoBox {
-            created_by: response().get_string("created_by"),
-            created_at: response().get_datetime("created_at"),
-            updated_by: response().get_string("updated_by"),
-            updated_at: response().get_datetime("updated_at"),
+            created_by: response().key_string("created_by"),
+            created_at: response().key_datetime("created_at"),
+            updated_by: response().key_string("updated_by"),
+            updated_at: response().key_datetime("updated_at"),
         }
         if id().eq(ID_CREATE) {
             EditorActions {
@@ -94,12 +93,12 @@ pub fn UserEdit(
         } else {
             EditorActions {
                 form: "user-edit-form",
-                delete_event: delete,
+                delete_handler: delete,
                 permission: PERMISSION_USERS_WRITE,
             }
         }
         UserBlockAction {
-            checked: response().get_bool("blocked").unwrap_or_default(),
+            checked: response().key_bool("blocked").unwrap_or_default(),
         }
     }
 }

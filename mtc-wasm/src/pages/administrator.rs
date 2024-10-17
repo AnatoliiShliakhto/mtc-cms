@@ -1,67 +1,33 @@
 use super::*;
 
+#[component]
 pub fn Administrator() -> Element {
-    build_breadcrumbs("menu-administrator");
+    breadcrumbs!("menu-administrator");
+    check_role!(ROLE_ADMINISTRATOR);
 
-    let auth_state = use_auth_state()();
-    if !auth_state.is_admin() {
-        return rsx! { AccessForbidden {} }
-    }
-
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_client = use_api_client();
-
-    let mut future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_SYSTEM)).await
-        });
-
+    let future = value_future!(url!(API_SYSTEM));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
-    let system_info = response().get_object::<SystemInfo>("info").unwrap_or_default();
+    let system_info = response().key_obj::<SystemInfo>("info").unwrap_or_default();
     let last_migration = if let Some(migration) = response()
-        .get_str_array("migrations").unwrap_or_default().last() {
+        .key_obj::<Vec<Cow<'static, str>>>("migrations").unwrap_or_default().last() {
         migration.clone()
-    } else { "0000-Init.sql".into() };
+    } else { "0000-init.surql".into() };
 
     let migrate = move |event: Event<MouseData>| {
-        let url: Cow<'static, str> = url!(API_MIGRATE);
         spawn(async move {
-            match api_client()
-                .post(&*url)
-                .json(&json!({}))
-                .send()
-                .await
-                .consume()
-                .await {
-                Ok(_) => {
-                    message_box_task
-                        .send(MessageBoxAction::Success(t!("message-success-post")));
-                    future.restart()
-                },
-                Err(e) =>
-                    message_box_task.send(MessageBoxAction::Error(e.message())),
+            let dummy = Value::Null;
+            if post_request!(url!(API_MIGRATE), dummy) {
+                success_dialog!("message-success-migration")
             }
         });
     };
 
     let rebuild = move |event: Event<MouseData>| {
-        let url: Cow<'static, str> = url!(API_IDX_REBUILD);
         spawn(async move {
-            match api_client()
-                .get(&*url)
-                .send()
-                .await
-                .consume()
-                .await {
-                Ok(_) => {
-                    message_box_task
-                        .send(MessageBoxAction::Success(t!("message-success-post")));
-                    future.restart()
-                },
-                Err(e) =>
-                    message_box_task.send(MessageBoxAction::Error(e.message())),
+            if post_request!(url!(API_IDX_REBUILD)) {
+                success_dialog!("message-success-index-rebuild")
             }
         });
     };

@@ -1,10 +1,12 @@
 use super::*;
 
+#[component]
 pub fn SideMenu() -> Element {
     let auth_state = &*use_auth_state().read_unchecked();
     let mut menu_state = use_menu_state();
-    
+
     rsx! {
+        Menu {}
         if auth_state.has_role(ROLE_WRITER) {
             div { class: "divider my-0" }
             li {
@@ -16,8 +18,8 @@ pub fn SideMenu() -> Element {
                     ul {
                         MenuItem {
                             route: Route::ContentList { schema: "page".to_string() },
-                            title: t!("menu-page"),
                             permission: PERMISSION_SCHEMAS_READ,
+                            { t!("menu-page") }
                         }
                         li {
                             details {
@@ -30,7 +32,7 @@ pub fn SideMenu() -> Element {
                                             route: Route::ContentList {
                                                 schema: page.slug.to_string()
                                             },
-                                            title: page.title,
+                                            { page.title }
                                         }
                                     }
                                 }
@@ -38,8 +40,8 @@ pub fn SideMenu() -> Element {
                         }
                         MenuItem {
                             route: Route::ContentList { schema: "course".to_string() },
-                            title: t!("menu-course"),
                             permission: PERMISSION_SCHEMAS_READ,
+                            { t!("menu-course") }
                         }
                     }
                 }
@@ -56,28 +58,28 @@ pub fn SideMenu() -> Element {
                     ul {
                         MenuItem {
                             route: Route::Schemas {},
-                            title: t!("menu-schemas"),
                             permission: PERMISSION_SCHEMAS_READ,
+                            { t!("menu-schemas") }
                         }
                         MenuItem {
                             route: Route::Permissions {},
-                            title: t!("menu-permissions"),
                             permission: PERMISSION_ROLES_READ,
+                            { t!("menu-permissions") }
                         }
                         MenuItem {
                             route: Route::Groups {},
-                            title: t!("menu-groups"),
-                            permission: PERMISSION_GROUPS_READ
+                            permission: PERMISSION_GROUPS_READ,
+                            { t!("menu-groups") }
                         }
                         MenuItem {
                             route: Route::Roles {},
-                            title: t!("menu-roles"),
-                            permission: PERMISSION_ROLES_READ
+                            permission: PERMISSION_ROLES_READ,
+                            { t!("menu-roles") }
                         }
                         MenuItem {
                             route: Route::Users {},
-                            title: t!("menu-users"),
-                            permission: PERMISSION_USERS_READ
+                            permission: PERMISSION_USERS_READ,
+                            { t!("menu-users") }
                         }
                     }
                 }
@@ -87,8 +89,8 @@ pub fn SideMenu() -> Element {
         if auth_state.is_authenticated() {
             MenuItem {
                 route: Route::ChangePassword {},
-                title: t!("menu-settings"),
-                Icon { icon: Icons::Settings, class: "size-8 sm:size-6" }
+                Icon { icon: Icons::Settings, class: "size-8 sm:size-6 text-neutral" }
+                { t!("menu-settings") }
             }
             li {
                 a {
@@ -104,8 +106,8 @@ pub fn SideMenu() -> Element {
         } else {
             MenuItem {
                 route: Route::SignIn {},
-                title: t!("menu-sign-in"),
                 Icon { icon: Icons::SignIn, class: "size-8 sm:size-6 text-accent" }
+                { t!("menu-sign-in") }
             }
         }
     }

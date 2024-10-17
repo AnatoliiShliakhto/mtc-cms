@@ -7,18 +7,13 @@ pub fn ContentList(
 ) -> Element {
     let schema = use_memo(use_reactive!(|schema| schema));
 
-    let auth_state = use_auth_state();
-    let is_writer = auth_state().has_role(ROLE_WRITER);
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
+    let is_writer = use_auth_state()().has_role(ROLE_WRITER);
+    let menu_item = format!("menu-{}", schema());
+    breadcrumbs!(&menu_item);
 
-    page_init!(&format!("menu-{}", schema()));
-
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_CONTENTS, &schema())).await
-        });
+    let future = value_future!(url!(API_CONTENTS, &schema()));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
     rsx! {
         section {
@@ -28,8 +23,9 @@ pub fn ContentList(
                 "w-full max-w-full flex flex-wrap grow mt-3 px-4 sm:px-0 ck-content justify-center"
             },
             h3 {
-                class: "flex w-full flex-wrap pb-4 sm:pb-6 justify-center text-2xl font-semibold",
-                { response().get_string("title") }
+                class: "flex w-full flex-wrap pb-4 sm:pb-6",
+                class: "justify-center text-2xl font-semibold text-center",
+                { response().key_string("title") }
             }
 
             table {
@@ -43,7 +39,8 @@ pub fn ContentList(
                     }
                 }
                 tbody {
-                    for item in response().get_entries("entries").unwrap_or(vec![]).iter() {{
+                    for item in response().key_obj::<Vec<Entry>>("entries")
+                    .unwrap_or_default().iter() {{
                         let published = item.variant.clone().unwrap_or_default()
                         .as_bool().unwrap_or(false);
                         let slug = item.slug.to_owned();

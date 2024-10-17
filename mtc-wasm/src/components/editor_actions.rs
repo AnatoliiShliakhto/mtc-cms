@@ -5,7 +5,7 @@ pub fn EditorActions(
     #[props(into)]
     form: String,
     #[props]
-    delete_event: Option<EventHandler<MouseEvent>>,
+    delete_handler: Option<EventHandler<MouseEvent>>,
     #[props]
     permission: Option<String>,
 ) -> Element {
@@ -44,13 +44,15 @@ pub fn EditorActions(
             }
 
             button {
-                class: if delete_event.is_some() {
+                class: if delete_handler.is_some() {
                     "hover:btn-error join-item"
                 } else {
                     "btn-disabled join-item"
                 },
-                onclick: if let Some(delete) = delete_event { delete } else {
-                    EventHandler::<MouseEvent>::default()
+                onclick: move |event| {
+                    if let Some(handler) = delete_handler {
+                        alert_dialog!("message-confirm-deletion", handler)
+                    }
                 },
                 Icon { icon: Icons::Trash, class: "size-6" }
                 span {

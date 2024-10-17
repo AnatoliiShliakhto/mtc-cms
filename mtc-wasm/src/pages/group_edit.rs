@@ -7,36 +7,33 @@ pub fn GroupEdit(
 ) -> Element {
     let id = use_memo(use_reactive!(|id| id));
 
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_task = use_coroutine_handle::<ApiRequestAction>();
-    let auth_state = use_auth_state();
+    breadcrumbs!("menu-groups");
+    check_permission!(PERMISSION_GROUPS_READ);
 
-    page_init!("menu-groups", PERMISSION_GROUPS_READ, auth_state);
-
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_GROUP, &id())).await
-        });
-
+    let future = value_future!(url!(API_GROUP, &id()));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
     let submit = move |event: Event<FormData>| {
-        api_task.send(ApiRequestAction::PostThenBack(
-            url!(API_GROUP),
-            Some(json!({
-                "id": event.get_str("id"),
-                "slug": event.get_str("slug"),
-                "title": event.get_str("title")
-            })),
-        ))
+        let payload = json!({
+            "id": event.get_str("id"),
+            "slug": event.get_str("slug"),
+            "title": event.get_str("title")
+        });
+
+        spawn(async move {
+            if post_request!(url!(API_GROUP), payload) {
+                navigator().replace(Route::Groups {});
+            }
+        });
     };
 
-    let delete = move |event: MouseEvent| {
-        api_task.send(ApiRequestAction::DeleteThenBack(
-            url!(API_GROUP, &id()),
-            None,
-        ))
+    let delete = move |event: Event<MouseData>| {
+        spawn(async move {
+            if delete_request!(url!(API_GROUP, &id())) {
+                navigator().replace(Route::Groups {});
+            }
+        });
     };
 
     rsx! {
@@ -51,29 +48,29 @@ pub fn GroupEdit(
                 input {
                     r#type: "hidden",
                     name: "id",
-                    initial_value: response().get_string("id")
+                    initial_value: response().key_string("id")
                 }
                 FormTextField {
                     name: "slug",
                     title: "field-slug",
                     pattern: SLUG_PATTERN,
                     required: true,
-                    initial_value: response().get_string("slug")
+                    initial_value: response().key_string("slug")
                 }
                 FormTextField {
                     name: "title",
                     title: "field-title",
                     pattern: TITLE_PATTERN,
                     required: true,
-                    initial_value: response().get_string("title")
+                    initial_value: response().key_string("title")
                 }
             }
         }
         EntryInfoBox {
-            created_by: response().get_string("created_by"),
-            created_at: response().get_datetime("created_at"),
-            updated_by: response().get_string("updated_by"),
-            updated_at: response().get_datetime("updated_at"),
+            created_by: response().key_string("created_by"),
+            created_at: response().key_datetime("created_at"),
+            updated_by: response().key_string("updated_by"),
+            updated_at: response().key_datetime("updated_at"),
         }
         if id().eq(ID_CREATE) {
             EditorActions {
@@ -83,7 +80,7 @@ pub fn GroupEdit(
         } else {
             EditorActions {
                 form: "group-edit-form",
-                delete_event: delete,
+                delete_handler: delete,
                 permission: PERMISSION_GROUPS_WRITE,
             }
         }

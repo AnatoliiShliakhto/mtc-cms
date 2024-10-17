@@ -142,12 +142,13 @@ impl UserRepository for Repository {
         by: Cow<'static, str>,
     ) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
-        let id = payload.get_str("id").unwrap_or_default();
-        let login = payload.get_str("login").unwrap_or_default();
-        let mut password = payload.get_str("password").unwrap_or_default();
-        let group = payload.get_str("group").unwrap_or_default();
-        let blocked = payload.get_bool("blocked").unwrap_or_default();
-        let roles = payload.get_str_array("roles").unwrap_or(vec![]);
+        let id = payload.key_str("id").unwrap_or_default();
+        let login = payload.key_str("login").unwrap_or_default();
+        let mut password = payload.key_str("password").unwrap_or_default();
+        let group = payload.key_str("group").unwrap_or_default();
+        let blocked = payload.key_bool("blocked").unwrap_or_default();
+        let roles = payload.key_obj::<Vec<Cow<'static, str>>>("roles")
+            .unwrap_or_default();
         let access_level = self.find_roles_max_access_level(&roles).await?;
 
         if !password.is_empty() {
@@ -164,7 +165,7 @@ impl UserRepository for Repository {
             password = password_hash.to_string().into();
         }
 
-        if payload.has_key("id") && !id.is_empty() {
+        if payload.contains_key("id") && !id.is_empty() {
             sql.push(r#"LET $rec_id = UPDATE type::record("users:" + $id) MERGE {"#)
         } else {
             sql.push(r#"
@@ -174,7 +175,7 @@ impl UserRepository for Repository {
             "#)
         }
 
-        if payload.has_key("login") {
+        if payload.contains_key("login") {
             sql.push(r#"
             login: $login,
             "#)
@@ -186,7 +187,7 @@ impl UserRepository for Repository {
             "#)
         }
 
-        if payload.has_key("blocked") {
+        if payload.contains_key("blocked") {
             sql.push(r#"
             blocked: $blocked,
             "#)

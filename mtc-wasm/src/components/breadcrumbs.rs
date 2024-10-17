@@ -1,5 +1,6 @@
 use super::*;
 
+#[component]
 pub fn Breadcrumbs() -> Element {
     let breadcrumbs = use_breadcrumbs();
 

@@ -1,21 +1,17 @@
 use super::*;
 
+#[component]
 pub fn Schemas() -> Element {
-    let auth_state = use_auth_state();
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    page_init!("menu-schemas", PERMISSION_SCHEMAS_READ, auth_state);
+    breadcrumbs!("menu-schemas");
+    check_permission!(PERMISSION_SCHEMAS_READ);
 
-    let future =
-        use_resource(move || async move {
-            request_fetch_entries_task(url!(API_SCHEMAS)).await
-        });
+    let future = value_future!(url!(API_SCHEMAS));
     let response = future.suspend()?;
-
-    if response().is_none() { fail!(future) }
+    check_response!(response, future);
 
     rsx! {
         section {
-            class: "w-full flex-grow sm:pr-16",
+            class: "w-full flex-grow xl:pr-16",
             table {
                 class: "entry-table",
                 thead {
@@ -36,12 +32,13 @@ pub fn Schemas() -> Element {
                     }
                 }
                 tbody {
-                    for item in response().unwrap_or(vec![]).iter() {{
-                        let id = item.id.to_owned();
-                        let details = serde_json::from_value::<SchemaEntryDetails>(item
-                        .variant
-                        .to_owned()
-                        .unwrap_or_default())
+                    for schema in response()
+                    .self_obj::<Vec<Entry>>()
+                    .unwrap_or_default().iter() {{
+                        let id = schema.id.to_owned();
+                        let details = schema.variant.clone()
+                        .unwrap_or_default()
+                        .self_obj::<SchemaEntryDetails>()
                         .unwrap_or_default();
 
                         rsx! {
@@ -74,10 +71,10 @@ pub fn Schemas() -> Element {
                                     }
                                 }
                                 td {
-                                    { item.slug.as_ref() }
+                                    { schema.slug.as_ref() }
                                 }
                                 td {
-                                    { item.title.as_ref() }
+                                    { schema.title.as_ref() }
                                 }
                                 td {
                                     { details.permission }
@@ -88,7 +85,7 @@ pub fn Schemas() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::SchemaEdit { id: ID_CREATE.to_string() }.to_string(),
+                    route: Route::SchemaEdit { id: ID_CREATE.to_string() },
                     permission: PERMISSION_SCHEMAS_WRITE,
                 }
             }

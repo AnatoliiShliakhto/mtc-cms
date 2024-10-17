@@ -114,7 +114,7 @@ impl StorageTrait for Repository {
             while let Ok(Some(child)) = folder.next_entry().await {
                 if let Ok(meta) = child.metadata().await {
                     let file_name = child.file_name().into_string().unwrap_or_default();
-                    if meta.is_file() && file_name.contains(".sql") {
+                    if meta.is_file() && file_name.contains(".surql") {
                         files.insert(file_name.into());
                     }
                 }

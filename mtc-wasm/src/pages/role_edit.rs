@@ -7,39 +7,36 @@ pub fn RoleEdit(
 ) -> Element {
     let id = use_memo(use_reactive!(|id| id));
 
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_task = use_coroutine_handle::<ApiRequestAction>();
-    let auth_state = use_auth_state();
+    breadcrumbs!("menu-roles");
+    check_permission!(PERMISSION_ROLES_READ);
 
-    page_init!("menu-roles", PERMISSION_ROLES_READ, auth_state);
-
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_ROLE, &id())).await
-        });
-
+    let future = value_future!(url!(API_ROLE, &id()));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
     let submit = move |event: Event<FormData>| {
-        api_task.send(ApiRequestAction::PostThenBack(
-            url!(API_ROLE),
-            Some(json!({
-                "id": event.get_str("id"),
-                "slug": event.get_str("slug"),
-                "title": event.get_str("title"),
-                "user_access_all": event.get_bool("user_access_all"),
-                "user_access_level": event.get_i64("user_access_level").unwrap_or(999),
-                "permissions": event.get_str_array("permissions")
-            })),
-        ))
+        let payload = json!({
+            "id": event.get_str("id"),
+            "slug": event.get_str("slug"),
+            "title": event.get_str("title"),
+            "user_access_all": event.get_bool("user_access_all"),
+            "user_access_level": event.get_i64("user_access_level").unwrap_or(999),
+            "permissions": event.get_str_array("permissions")
+        });
+
+        spawn(async move {
+            if post_request!(url!(API_ROLE), payload) {
+                navigator().replace(Route::Roles {});
+            }
+        });
     };
 
     let delete = move |event: MouseEvent| {
-        api_task.send(ApiRequestAction::DeleteThenBack(
-            url!(API_ROLE, &id()),
-            None,
-        ))
+        spawn(async move {
+            if delete_request!(url!(API_ROLE, &id())) {
+                navigator().replace(Route::Roles {});
+            }
+        });
     };
 
     rsx! {
@@ -54,21 +51,21 @@ pub fn RoleEdit(
                 input {
                     r#type: "hidden",
                     name: "id",
-                    initial_value: response().get_string("id")
+                    initial_value: response().key_string("id")
                 }
                 FormTextField {
                     name: "slug",
                     title: "field-slug",
                     pattern: SLUG_PATTERN,
                     required: true,
-                    initial_value: response().get_string("slug")
+                    initial_value: response().key_string("slug")
                 }
                 FormTextField {
                     name: "title",
                     title: "field-title",
                     pattern: TITLE_PATTERN,
                     required: true,
-                    initial_value: response().get_string("title")
+                    initial_value: response().key_string("title")
                 }
                 FormNumField {
                     name: "user_access_level",
@@ -78,27 +75,30 @@ pub fn RoleEdit(
                     step: "1",
                     required: true,
                     initial_value: response()
-                        .get_i64("user_access_level").unwrap_or(999).to_string()
+                    .key_i64("user_access_level")
+                    .unwrap_or(999).to_string()
                 }
                 FormToggleField {
                     name: "user_access_all",
                     title: "field-user-all-access",
                     checked: response()
-                        .get_bool("user_access_all").unwrap_or_default()
+                        .key_bool("user_access_all").unwrap_or_default()
                 }
                 FormEntriesField {
                     name: "permissions",
                     title: "field-permissions",
-                    items: response().get_str_array("permissions").unwrap_or(vec![]),
-                    entries: response().get_entries("permissions_set").unwrap_or(vec![]),
+                    items: response().key_obj::<Vec<Cow<'static, str>>>("permissions")
+                    .unwrap_or_default(),
+                    entries: response().key_obj::<Vec<Entry>>("permissions_set")
+                    .unwrap_or_default(),
                 }
             }
         }
         EntryInfoBox {
-            created_by: response().get_string("created_by"),
-            created_at: response().get_datetime("created_at"),
-            updated_by: response().get_string("updated_by"),
-            updated_at: response().get_datetime("updated_at"),
+            created_by: response().key_string("created_by"),
+            created_at: response().key_datetime("created_at"),
+            updated_by: response().key_string("updated_by"),
+            updated_at: response().key_datetime("updated_at"),
         }
         if id().eq(ID_CREATE) {
             EditorActions {
@@ -108,7 +108,7 @@ pub fn RoleEdit(
         } else {
             EditorActions {
                 form: "role-edit-form",
-                delete_event: delete,
+                delete_handler: delete,
                 permission: PERMISSION_ROLES_WRITE,
             }
         }

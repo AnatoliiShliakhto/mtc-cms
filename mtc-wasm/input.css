@@ -33,7 +33,7 @@
     }
 
     .file-stack dt {
-        @apply mb-2;
+        @apply ps-0 mb-2;
     }
 
     .file-stack dt span {
@@ -41,7 +41,7 @@
     }
 
     .file-stack dd {
-        @apply flex flex-nowrap mt-2.5 sm:mt-1.5 gap-3 items-start;
+        @apply flex flex-nowrap ps-2 mt-2.5 sm:mt-1.5 gap-3 items-start;
     }
 
     .file-stack dd svg {

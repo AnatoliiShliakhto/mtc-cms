@@ -1,6 +1,7 @@
 use super::*;
 
-pub fn SearchResult() -> Element {
+#[component]
+pub fn SearchBox() -> Element {
     let search_results = use_search_engine();
 
     rsx! {
@@ -11,15 +12,14 @@ pub fn SearchResult() -> Element {
                 class: "flex grow flex-col max-w-full lg:max-w-4xl overflow-x-auto",
                 div {
                     class: "flex grow gap-5 justify-center items-center",
-                    h3 {
-                        class: "ml-10",
+                    div {
+                        class: "w-full divider text-xl",
                         { t!("caption-search-results") }
-                    }
-                    button {
-                        class: "btn btn-sm btn-circle btn-ghost text-neutral \
-                        hover:text-error hover:animate-ping",
-                        onclick: move |_| use_search_engine_drop(),
-                        Icon { icon: Icons::Close, class: "size-6" }
+                        button {
+                            class: "btn btn-sm btn-circle btn-ghost text-neutral hover:text-error",
+                            onclick: move |_| use_search_engine_drop(),
+                            Icon { icon: Icons::Close, class: "size-6" }
+                        }
                     }
                 }
                 if search_results().is_empty() {
@@ -79,7 +79,7 @@ pub fn SearchResult() -> Element {
                                     SearchKind::Course => rsx! {
                                         Icon {
                                             icon: Icons::Diagram3,
-                                            class: "size-4 text-accent group-hover:animate-ping"
+                                            class: "size-4 text-info group-hover:animate-ping"
                                         }
                                     },
                                 }

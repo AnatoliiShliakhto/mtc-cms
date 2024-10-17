@@ -34,7 +34,7 @@ pub mod prelude {
                     CONTENT_TYPE, COOKIE, ACCEPT_ENCODING,
                 },
                 HeaderValue, status::StatusCode},
-            middleware::{from_fn, Next}, Router, Form, Json,
+            middleware::Next, Router, Form, Json,
             response::{Response, IntoResponse},
             routing::{get, post, delete},
         },
@@ -85,7 +85,7 @@ pub mod prelude {
 #[tokio::main]
 async fn main() {
     let config = Provider::config_init();
-    info!("\x1b[38;5;11m🌟 242 MTC-CMS Server 🌟\x1b[0m");
+    info!("\x1b[38;5;11m🌟 MTC-CMS Server 🌟\x1b[0m");
 
     //crypto provider init
     rustls::crypto::aws_lc_rs::default_provider()

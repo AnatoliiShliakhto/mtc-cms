@@ -426,4 +426,8 @@ DEFINE FIELD permission ON TABLE search_index TYPE string;
 DEFINE INDEX idx_search_url ON TABLE search_index COLUMNS url UNIQUE;
 DEFINE INDEX idx_search_permission ON TABLE search_index COLUMNS permission;
 
+DEFINE ANALYZER search_lowercase TOKENIZERS blank, class, punct
+FILTERS lowercase, ascii, ngram(1,20), snowball(russian), snowball(english);
+DEFINE INDEX idx_search_title ON search_index FIELDS title SEARCH ANALYZER search_lowercase BM25;
+
 COMMIT TRANSACTION;

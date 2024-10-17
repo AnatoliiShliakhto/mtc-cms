@@ -62,14 +62,15 @@ impl SchemasRepository for Repository {
 
     async fn update_schema(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
-        let id = payload.get_str("id").unwrap_or_default();
+        let id = payload.key_str("id").unwrap_or_default();
         let kind =
-            SchemaKind::from_str(&payload.get_str("kind").unwrap_or_default())
+            SchemaKind::from_str(&payload.key_str("kind").unwrap_or_default())
             .unwrap_or_default();
-        let slug = payload.get_str("slug").unwrap_or_default();
-        let title = payload.get_str("title").unwrap_or_default();
-        let permission = payload.get_str("permission").unwrap_or_default();
-        let fields = payload.get_schema_fields().unwrap_or(vec![]);
+        let slug = payload.key_str("slug").unwrap_or_default();
+        let title = payload.key_str("title").unwrap_or_default();
+        let permission = payload.key_str("permission").unwrap_or_default();
+        let fields = payload.key_obj::<Vec<Field>>("fields")
+            .unwrap_or_default();
 
 
         let content_slug: Cow<'static, str> = if id.is_empty() { "".into() } else {
@@ -82,7 +83,7 @@ impl SchemasRepository for Repository {
                 .unwrap_or_default()
         };
 
-        if payload.has_key("id") && !id.is_empty() {
+        if payload.contains_key("id") && !id.is_empty() {
             sql.push(r#"
             LET $rec_id = UPDATE type::record("schemas:" + $id) MERGE {
             "#)
@@ -94,25 +95,25 @@ impl SchemasRepository for Repository {
             "#)
         }
 
-        if payload.has_key("slug") {
+        if payload.contains_key("slug") {
             sql.push(r#"
             slug: $slug,
             "#)
         }
 
-        if payload.has_key("title") {
+        if payload.contains_key("title") {
             sql.push(r#"
             title: $title,
             "#)
         }
 
-        if payload.has_key("permission") {
+        if payload.contains_key("permission") {
             sql.push(r#"
             permission: $permission,
             "#)
         }
 
-        if payload.has_key("fields") {
+        if payload.contains_key("fields") {
             sql.push(r#"
             fields: $fields,
             "#)

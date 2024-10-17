@@ -25,7 +25,7 @@ pub async fn migration_handler(
     let mut password = Cow::Borrowed("");
 
     if migrations.is_empty() {
-        let pwd = payload.get_str("password").unwrap_or(ROLE_ADMINISTRATOR.into());
+        let pwd = payload.key_str("password").unwrap_or(ROLE_ADMINISTRATOR.into());
         let salt = SaltString::from_b64(&state.config.password_salt).unwrap();
 
         let argon2 = Argon2::default();
@@ -33,7 +33,7 @@ pub async fn migration_handler(
             Err(SessionError::PasswordHash)?
         };
         password = Cow::Owned(password_hash.to_string());
-        login = payload.get_str("login").unwrap_or(ROLE_ADMINISTRATOR.into());
+        login = payload.key_str("login").unwrap_or(ROLE_ADMINISTRATOR.into());
     } else {
         if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
             Err(SessionError::AccessForbidden)?
@@ -73,3 +73,34 @@ pub async fn search_idx_rebuild_handler(
     Ok(())
 }
 
+///todo RegEx sanitizer
+pub async fn search_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+    Payload(payload): Payload<Value>,
+) -> Result<impl IntoResponse> {
+    let Some(payload) = payload.as_str() else {
+        Err(GenericError::BadRequest)?
+    };
+    let payload = payload.to_string();
+
+    let auth_state = session
+        .get_auth_state()
+        .await
+        .unwrap_or_default();
+
+    let user_custom_permissions = auth_state
+        .permissions
+        .iter()
+        .map(|permission| permission
+            .split_once("::")
+            .unwrap_or((PERMISSION_PUBLIC, "")).0.to_owned().into())
+        .collect::<BTreeSet<Cow<'static, str>>>();
+
+    let search_idx = state
+        .repository
+        .search_content(payload.into(), user_custom_permissions)
+        .await?;
+
+    search_idx.to_response()
+}
