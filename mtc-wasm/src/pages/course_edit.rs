@@ -9,32 +9,23 @@ pub fn CourseEdit(
     #[props]
     is_new: bool,
 ) -> Element {
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_task = use_coroutine_handle::<ApiRequestAction>();
-    let auth_state = use_auth_state();
-    let api_client = use_api_client();
-
-    page_init!("menu-course-edit", PERMISSION_COURSE_WRITE, auth_state);
-
     let slug = use_memo(use_reactive!(|slug| slug));
     let id = use_memo(use_reactive!(|id| id));
     let is_new = use_memo(use_reactive!(|is_new| is_new));
     let mut current_item = use_signal(CourseEntry::default);
 
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_CONTENT, "course", &slug())).await
-        });
+    breadcrumbs!("menu-course-edit");
+    check_permission!(PERMISSION_COURSE_WRITE);
 
+    let future = value_future!(url!(API_CONTENT, API_COURSE, &slug()));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
-    let content_id = response().get_string("id").unwrap_or_default();
-    let content = response().get_object::<Value>("data").unwrap_or_default();
-    let fields = response().get_schema_fields().unwrap_or_default();
+    let content_id = response().key_string("id").unwrap_or_default();
+    let content = response().key_obj::<Value>("data").unwrap_or_default();
+    let fields = response().key_obj::<Vec<Field>>("fields").unwrap_or_default();
 
-    let course_entries =
-        content.get_object::<Vec<CourseEntry>>("course")
+    let course_entries = content.key_obj::<Vec<CourseEntry>>(API_COURSE)
             .unwrap_or(vec![CourseEntry::default()]);
     let course = std::sync::Arc::new(
         course_entries
@@ -54,8 +45,7 @@ pub fn CourseEdit(
 
     let links = if let Some(links_obj) = current_item().links {
         let mut links: Vec<String> = vec![];
-        let links_arr =
-            serde_json::from_value::<Vec<LinkEntry>>(links_obj).unwrap_or(vec![]);
+        let links_arr = links_obj.self_obj::<Vec<LinkEntry>>().unwrap_or_default();
         for link in links_arr {
             links
                 .push(format!("{}; {}", link.title.trim(), link.url.trim()));
@@ -65,7 +55,7 @@ pub fn CourseEdit(
         vec![]
     };
 
-    SessionStorage::set("contentId", &response().get_string("id").unwrap_or_default())
+    SessionStorage::set("contentId", &response().key_string("id").unwrap_or_default())
         .map_err(|e| error!("{e:#?}"))
         .ok();
 
@@ -90,33 +80,17 @@ pub fn CourseEdit(
 
         course.insert(course_id, course_entry);
         let course = course.values().cloned().collect::<Vec<CourseEntry>>();
-        data.insert_value("course", json!(course));
+        data.insert_value(API_COURSE, json!(course));
 
-        let url: String = url!(API_CONTENT, "course", &slug());
-        let json_obj = json!({
+        let payload = json!({
             "id": event.get_str("id"),
             "published": event.get_bool("published"),
             "data": data
         });
 
         spawn(async move {
-            match api_client()
-                .post(&*url)
-                .json(&json_obj)
-                .send()
-                .await
-                .consume()
-                .await {
-                Ok(_) =>
-                    if navigator().can_go_back() {
-                        message_box_task.send(MessageBoxAction::Clear);
-                        navigator().go_back()
-                    } else {
-                        message_box_task
-                            .send(MessageBoxAction::Success(t!("message-success-post")))
-                    }
-                Err(e) =>
-                    message_box_task.send(MessageBoxAction::Error(e.message())),
+            if post_request!(url!(API_CONTENT, API_COURSE, &slug()), payload) {
+                navigator().go_back();
             }
         });
     };
@@ -142,32 +116,16 @@ pub fn CourseEdit(
         let mut data = json!({});
 
         let course = course.values().cloned().collect::<Vec<CourseEntry>>();
-        data.insert_value("course", json!(course));
+        data.insert_value(API_COURSE, json!(course));
 
-        let url: String = url!(API_CONTENT, "course", &slug());
-        let json_obj = json!({
+        let payload = json!({
             "id": content_id,
             "data": data
         });
 
         spawn(async move {
-            match api_client()
-                .post(&*url)
-                .json(&json_obj)
-                .send()
-                .await
-                .consume()
-                .await {
-                Ok(_) =>
-                    if navigator().can_go_back() {
-                        message_box_task.send(MessageBoxAction::Clear);
-                        navigator().go_back()
-                    } else {
-                        message_box_task
-                            .send(MessageBoxAction::Success(t!("message-success-post")))
-                    }
-                Err(e) =>
-                    message_box_task.send(MessageBoxAction::Error(e.message())),
+            if post_request!(url!(API_CONTENT, API_COURSE, &slug()), payload) {
+                navigator().go_back();
             }
         });
     };
@@ -184,7 +142,7 @@ pub fn CourseEdit(
                 input {
                     r#type: "hidden",
                     name: "id",
-                    initial_value: response().get_string("id")
+                    initial_value: response().key_string("id")
                 }
                 input {
                     r#type: "hidden",
@@ -215,10 +173,10 @@ pub fn CourseEdit(
             }
         }
         EntryInfoBox {
-            created_by: response().get_string("created_by"),
-            created_at: response().get_datetime("created_at"),
-            updated_by: response().get_string("updated_by"),
-            updated_at: response().get_datetime("updated_at"),
+            created_by: response().key_string("created_by"),
+            created_at: response().key_datetime("created_at"),
+            updated_by: response().key_string("updated_by"),
+            updated_at: response().key_datetime("updated_at"),
         }
         if is_new() {
             EditorActions {
@@ -228,13 +186,13 @@ pub fn CourseEdit(
         } else {
             EditorActions {
                 form: "content-edit-form",
-                delete_event: delete,
+                delete_handler: delete,
                 permission: PERMISSION_COURSE_WRITE,
             }
         }
         PublishedAction {
-            checked: response().get_bool("published").unwrap_or_default()
+            checked: response().key_bool("published").unwrap_or_default()
         }
-        StorageActions { id: response().get_string("id").unwrap_or_default() }
+        StorageActions { id: response().key_string("id").unwrap_or_default() }
     }
 }

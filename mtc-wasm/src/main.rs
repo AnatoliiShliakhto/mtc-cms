@@ -1,4 +1,5 @@
 #![allow(non_snake_case, unused_variables)]
+
 use prelude::*;
 
 mod repository;
@@ -8,9 +9,7 @@ mod pages;
 mod hooks;
 mod elements;
 mod icons;
-mod utils;
 mod components;
-mod tasks;
 mod macros;
 mod packs;
 mod js_eval;
@@ -25,18 +24,13 @@ pub mod prelude {
         icons::prelude::*,
         repository::prelude::*,
         services::prelude::*,
-        tasks::prelude::*,
-        utils::prelude::*,
         pages::prelude::*,
+        macros::prelude::*,
         js_eval::*,
-        t,
-        page_init,
-        url,
-        fail,
     };
 
     pub use mtc_model::prelude::*;
-    pub use dioxus::prelude::*;
+    pub use dioxus::prelude::{*, document::{eval, Title}};
     pub use reqwest::{Client, Response};
     pub use chrono::{DateTime, Local};
     pub use futures_util::StreamExt;
@@ -59,64 +53,57 @@ pub mod prelude {
 
 fn main() {
     dioxus_logger::init(tracing::Level::INFO).expect("failed to init logger");
-    launch(app);
-}
+    launch(|| {
+        let auth_state = use_init_auth_state();
+        use_init_i18n(I18N_UK_UA);
+        use_init_dialog_box();
+        use_init_api_client();
+        use_init_breadcrumbs();
+        use_init_search_engine();
+        use_init_pages_entries();
 
-pub fn app() -> Element {
-    let auth_state = use_init_auth_state();
-    use_init_i18n(I18N_UK_UA);
-    use_init_message_box();
-    use_init_api_client();
-    use_init_breadcrumbs();
-    use_init_search_engine();
-    use_init_pages_entries();
+        use_coroutine(sync_service);
 
-    /*
-        use_init_i18n(|| {
-            I18nConfig::new(langid!("en-US"))
-                .with_locale(Locale::new_static(
-                    langid!("en-US"),
-                    include_str!("../../i18n/en-US.ftl"),
-                ))
-        });
-        let mut i18n = i18n();
+        let sync_task = use_coroutine_handle::<SyncAction>();
+        let mut sync_eval = eval(EVAL_SYNC);
 
-     */
+        use_hook(|| {
+            sync_task.send(SyncAction::RefreshState("".into()));
 
-    use_coroutine(sync_service);
-    use_coroutine(message_box_service);
-
-    let sync_eval = eval(EVAL_SYNC);
-    let sync_task = use_coroutine_handle::<SyncAction>();
-
-    use_hook(|| {
-        sync_task.send(SyncAction::RefreshState("".into()));
-
-        spawn(async move {
-            to_owned![sync_eval];
-            loop {
-                if sync_eval.recv().await.is_ok() {
-                    sync_task.send(SyncAction::RefreshState(auth_state().id))
-                }
-            }
-        })
-    });
-
-    rsx! {
-        Title { { t!("site-title") } }
-        ErrorBoundary {
-            handle_error: |errors: ErrorContext| {
-                match errors.show() {
-                    Some(view) => view,
-                    None => rsx! {
-                        pre {
-                            color: "red",
-                            "Oops, we ran into an error\n{errors:#?}"
-                        }
+            spawn(async move {
+                loop {
+                    if sync_eval.recv::<i32>().await.is_ok() {
+                        sync_task.send(SyncAction::RefreshState(auth_state().id))
                     }
                 }
-            },
-            Router::<Route> {}
+            })
+        });
+
+        rsx! {
+            Title { { t!("site-title") } }
+            ErrorBoundary {
+                handle_error: |errors: ErrorContext| {
+                    match errors.show() {
+                        Some(view) => view,
+                        None => rsx! {
+                            pre {
+                                color: "red",
+                                "Oops, we ran into an error\n{errors:#?}"
+                            }
+                        }
+                    }
+                },
+                Router::<Route> {}
+            }
+            button {
+                id: "scrollUpButton",
+                class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100 \
+            right-4 bottom-4 hidden",
+                "onclick": "window.scrollTo(0, 0);",
+                Icon { icon: Icons::ArrowUp, class: "size-8" }
+            }
+            script { { EVAL_SCROLL_UP } }
+            DialogBox {}
         }
-    }
+    });
 }

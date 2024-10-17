@@ -1,21 +1,17 @@
 use super::*;
 
+#[component]
 pub fn Groups() -> Element {
-    let auth_state = use_auth_state();
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
+    breadcrumbs!("menu-groups");
+    check_permission!(PERMISSION_GROUPS_READ);
 
-    page_init!("menu-groups", PERMISSION_GROUPS_READ, auth_state);
-
-    let future =
-        use_resource(move || async move {
-            request_fetch_entries_task(url!(API_GROUPS)).await
-        });
+    let future = value_future!(url!(API_GROUPS));
     let response = future.suspend()?;
-    if response().is_none() { fail!(future) }
+    check_response!(response, future);
 
     rsx! {
         section {
-            class: "w-full flex-grow sm:pr-16",
+            class: "w-full flex-grow xl:pr-16",
             table {
                 class: "entry-table",
                 thead {
@@ -25,8 +21,10 @@ pub fn Groups() -> Element {
                     }
                 }
                 tbody {
-                    for item in response().unwrap_or(vec![]).iter() {{
-                        let id = item.id.to_owned();
+                    for group in response()
+                    .self_obj::<Vec<Entry>>()
+                    .unwrap_or_default().iter() {{
+                        let id = group.id.to_owned();
 
                         rsx! {
                             tr {
@@ -35,10 +33,10 @@ pub fn Groups() -> Element {
                                     .push(Route::GroupEdit { id: id.to_string() });
                                 },
                                 td {
-                                    { item.slug.as_ref() }
+                                    { group.slug.as_ref() }
                                 }
                                 td {
-                                    { item.title.as_ref() }
+                                    { group.title.as_ref() }
                                 }
                             }
                         }
@@ -46,7 +44,7 @@ pub fn Groups() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::GroupEdit { id: ID_CREATE.to_string() }.to_string(),
+                    route: Route::GroupEdit { id: ID_CREATE.to_string() },
                     permission: PERMISSION_GROUPS_WRITE,
                 }
             }

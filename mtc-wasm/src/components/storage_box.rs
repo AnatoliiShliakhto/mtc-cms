@@ -12,15 +12,13 @@ pub fn StorageBox(
     if !is_show() { return rsx!{} }
 
     let auth_state = use_auth_state();
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
     let mut progress = use_signal(|| 0);
-    let api_client = use_api_client();
 
     let id = use_memo(use_reactive!(|id| id));
     let is_private = use_memo(use_reactive!(|is_private| is_private));
 
     let api = use_memo(move || {
-        let api: String = if is_private() {
+        let api = if is_private() {
             url!(API_PRIVATE_STORAGE, &id())
         } else {
             url!(API_PUBLIC_STORAGE, &id())
@@ -47,22 +45,13 @@ pub fn StorageBox(
         auth_state().has_permission(PERMISSION_PUBLIC_STORAGE_DELETE)
     };
 
-    let mut future =
-        use_resource(
-            move || async move {
-                request_fetch_task(api().into()).await
-            },
-        );
+    let mut future = value_future!(api());
 
     let delete_file = move |filename: String| {
+        let url = format!("{}/{}", api(), filename.clone());
         spawn(async move {
-            match api_client()
-                .delete(format!("{}/{}", api(), filename.clone()))
-                .send()
-                .await {
-                Ok(_) => future.restart(),
-                Err(e) =>
-                    message_box_task.send(MessageBoxAction::Error("error-file-delete".into())),
+            if delete_request!(url) {
+                future.restart()
             }
         });
     };
@@ -70,14 +59,13 @@ pub fn StorageBox(
     let upload_task = move |event: Event<FormData>| {
         spawn(async move {
             loop {
-                match UseEval::new(document()
-                    .new_evaluator(
+                match eval(
                         if is_private() {
                             EVAL_PRIVATE_FILE_UPLOAD
                         } else {
                             EVAL_PUBLIC_FILE_UPLOAD
-                        }.to_string()
-                    )).recv().await {
+                        }
+                    ).recv().await {
                     Ok(Value::Number(value)) => {
                         progress.set(value.as_i64().unwrap_or_default())
                     }
@@ -87,9 +75,8 @@ pub fn StorageBox(
                             if let Some(file_engine) = &event.files() {
                                 let files = file_engine.files();
                                 if files.len() == 1 {
-                                    match UseEval::new(document()
-                                        .new_evaluator(EVAL_COPY_TO_CLIPBOARD.to_string()))
-                                        .send(format!("{:0}/{:1}", path(), files[0]).into()) {
+                                    match eval(EVAL_COPY_TO_CLIPBOARD)
+                                        .send(format!("{:0}/{:1}", path(), files[0])) {
                                         Ok(_) => is_show.set(false),
                                         Err(_) => {}
                                     }
@@ -201,17 +188,16 @@ pub fn StorageBox(
                                     }
                                 }
                                 tbody {
-                                    for item in serde_json::from_value::<Vec<Asset>>(response)
-                                    .unwrap_or(vec![]).iter() {{
+                                    for item in response.self_obj::<Vec<Asset>>()
+                                    .unwrap_or_default().iter() {{
                                         let file_name = item.name.clone();
                                         let file_path = format!("{}/{}", path(), item.name);
                                         let file_size = item.size;
                                         rsx! {
                                             tr {
                                                 onclick: move |_| {
-                                                    match UseEval::new(document()
-                                                        .new_evaluator(EVAL_COPY_TO_CLIPBOARD.to_string()))
-                                                    .send(file_path.clone().into()) {
+                                                    match eval(EVAL_COPY_TO_CLIPBOARD)
+                                                    .send(file_path.clone()) {
                                                         Ok(_) => is_show.set(false),
                                                         Err(_) => {}
                                                     }

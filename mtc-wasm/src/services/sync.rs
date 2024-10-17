@@ -17,19 +17,17 @@ pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
                     .post([API_ENDPOINT, "sync"].join("/"))
                     .json(&json!({"id": auth_id}))
                     .send()
-                    .await
-                    .consume()
-                    .await else { continue };
+                    .await else { continue};
 
                 let Ok(value) = response.json::<Value>().await else { continue };
-                if let Some(auth) = value.get_object::<AuthState>("auth") {
+                if let Some(auth) = value.key_obj::<AuthState>("auth") {
                     *auth_state.write() = auth;
                 }
-                if let Some(pages) = value.get_object::<Vec<Entry>>("pages") {
+                if let Some(pages) = value.key_obj::<Vec<Entry>>("pages") {
                     *use_pages_entries().write() = pages;
                 }
                 if let Some(search) =
-                    value.get_object::<Vec<SearchIdxDto>>("search_idx") {
+                    value.key_obj::<Vec<SearchIdxDto>>("search_idx") {
                     let mut new_search_idx = simsearch::SimSearch::new();
                     search_list.write().clear();
 

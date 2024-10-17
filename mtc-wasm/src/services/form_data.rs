@@ -1,6 +1,6 @@
 use super::*;
 
-pub trait FormDataUtils {
+pub trait FormDataService {
     fn get_str(&self, field: &str) -> Option<Cow<'static, str>>;
     fn get_bool(&self, field: &str) -> bool;
     fn get_str_array(&self, field: &str) -> Option<Vec<Cow<'static, str>>>;
@@ -10,7 +10,7 @@ pub trait FormDataUtils {
     fn get_links_array(&self, field: &str) -> Vec<LinkEntry>;
 }
 
-impl FormDataUtils for Event<FormData> {
+impl FormDataService for Event<FormData> {
     fn get_str(&self, field: &str) -> Option<Cow<'static, str>> {
         if let Some(value) = self.values().get(field) {
             if !value.0.is_empty() {

@@ -204,13 +204,13 @@ impl SystemTrait for Repository {
         for field in fields {
             match field.kind {
                 FieldKind::Html => {
-                    if let Some(html) = data.get_str(&field.slug) {
+                    if let Some(html) = data.key_str(&field.slug) {
                         info.media += html.matches(r#"class="media""#).count() as i32;
                     }
                 }
                 FieldKind::Links => {
                     if let Some(links) =
-                        data.get_object::<Vec<LinkEntry>>(&field.slug) {
+                        data.key_obj::<Vec<LinkEntry>>(&field.slug) {
                         let _ = self.search_idx_scan_links(
                             &links,
                             schema.permission.clone(),
@@ -302,7 +302,7 @@ impl SystemTrait for Repository {
             match field.kind {
                 FieldKind::Course => {
                     let Some(course) =
-                        data.get_object::<Vec<CourseEntry>>(&field.slug) else { continue };
+                        data.key_obj::<Vec<CourseEntry>>(&field.slug) else { continue };
 
                     for item in course {
                         let _ = self.insert_search_idx(

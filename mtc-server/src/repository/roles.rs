@@ -95,19 +95,19 @@ impl RolesRepository for Repository {
     async fn update_role(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
         let id =
-            payload.get_str("id").unwrap_or_default();
+            payload.key_str("id").unwrap_or_default();
         let slug =
-            payload.get_str("slug").unwrap_or_default();
+            payload.key_str("slug").unwrap_or_default();
         let title =
-            payload.get_str("title").unwrap_or_default();
+            payload.key_str("title").unwrap_or_default();
         let user_access_level =
-            payload.get_i64("user_access_level").unwrap_or(999);
+            payload.key_i64("user_access_level").unwrap_or(999);
         let user_access_all =
-            payload.get_bool("user_access_all").unwrap_or_default();
+            payload.key_bool("user_access_all").unwrap_or_default();
         let permissions =
-            payload.get_str_array("permissions").unwrap_or(vec![]);
+            payload.key_obj::<Vec<Cow<'static,str>>>("permissions").unwrap_or_default();
 
-        if payload.has_key("id") && !id.is_empty() {
+        if payload.contains_key("id") && !id.is_empty() {
             sql.push(r#"LET $rec_id = UPDATE type::record("roles:" + $id) MERGE {"#)
         } else {
             sql.push(r#"
@@ -116,25 +116,25 @@ impl RolesRepository for Repository {
             "#)
         }
 
-        if payload.has_key("slug") {
+        if payload.contains_key("slug") {
             sql.push(r#"
             slug: $slug,
             "#)
         }
 
-        if payload.has_key("title") {
+        if payload.contains_key("title") {
             sql.push(r#"
             title: $title,
             "#)
         }
 
-        if payload.has_key("user_access_level") {
+        if payload.contains_key("user_access_level") {
             sql.push(r#"
             user_access_level: $user_access_level,
             "#)
         }
 
-        if payload.has_key("user_access_all") {
+        if payload.contains_key("user_access_all") {
             sql.push(r#"
             user_access_all: $user_access_all,
             "#)

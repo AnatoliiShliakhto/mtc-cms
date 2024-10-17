@@ -7,39 +7,36 @@ pub fn SchemaEdit(
 ) -> Element {
     let id = use_memo(use_reactive!(|id| id));
 
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let api_task = use_coroutine_handle::<ApiRequestAction>();
-    let auth_state = use_auth_state();
+    breadcrumbs!("menu-schemas");
+    check_permission!(PERMISSION_SCHEMAS_READ);
 
-    page_init!("menu-schemas", PERMISSION_SCHEMAS_READ, auth_state);
-
-    let future =
-        use_resource(move || async move {
-            request_fetch_task(url!(API_SCHEMA, &id())).await
-        });
-
+    let future = value_future!(url!(API_SCHEMA, &id()));
     let response = future.suspend()?;
-    if response().is_null() { fail!(future) }
+    check_response!(response, future);
 
     let submit = move |event: Event<FormData>| {
-        api_task.send(ApiRequestAction::PostThenBack(
-            url!(API_SCHEMA),
-            Some(json!({
-                "id": event.get_str("id"),
-                "slug": event.get_str("slug"),
-                "title": event.get_str("title"),
-                "kind": event.get_str("kind"),
-                "permission": event.get_str("permission"),
-                "fields": event.get_fields_array()
-            })),
-        ))
+        let payload = json!({
+            "id": event.get_str("id"),
+            "slug": event.get_str("slug"),
+            "title": event.get_str("title"),
+            "kind": event.get_str("kind"),
+            "permission": event.get_str("permission"),
+            "fields": event.get_fields_array()
+        });
+
+        spawn(async move {
+            if post_request!(url!(API_SCHEMA), payload) {
+                navigator().replace(Route::Schemas {});
+            }
+        });
     };
 
     let delete = move |event: MouseEvent| {
-        api_task.send(ApiRequestAction::DeleteThenBack(
-            url!(API_SCHEMA, &id()),
-            None,
-        ))
+        spawn(async move {
+            if delete_request!(url!(API_SCHEMA, &id())) {
+                navigator().replace(Route::Schemas {});
+            }
+        });
     };
 
     rsx! {
@@ -54,26 +51,27 @@ pub fn SchemaEdit(
                 input {
                     r#type: "hidden",
                     name: "id",
-                    initial_value: response().get_string("id")
+                    initial_value: response().key_string("id")
                 }
                 if id().ne(ID_CREATE) {
                     input {
                         r#type: "hidden",
                         name: "kind",
-                        initial_value: response().get_schema_kind().to_string()
+                        initial_value: response().key_obj::<SchemaKind>("kind")
+                        .unwrap_or_default().to_string()
                     }
                 }
                 div {
                     class: "grid w-full grid-cols-1 sm:grid-cols-2 gap-5",
                     FormSchemaKindField {
-                        init_kind: response().get_schema_kind(),
+                        init_kind: response().key_obj::<SchemaKind>("kind")
+                        .unwrap_or_default(),
                         disabled: !id().eq(ID_CREATE)
                     }
                     FormPermissionsField {
-                        init_permission: response().get_str("permission")
+                        init_permission: response().key_string("permission")
                         .unwrap_or(PERMISSION_PUBLIC.into()),
-                        permissions: response()
-                        .get_str_array("permissions")
+                        permissions: response().key_obj::<Vec<Cow<'static, str>>>("permissions")
                         .unwrap_or(vec![Cow::Borrowed(PERMISSION_PUBLIC)])
                     }
                 }
@@ -82,25 +80,25 @@ pub fn SchemaEdit(
                     title: "field-slug",
                     pattern: SLUG_PATTERN,
                     required: true,
-                    initial_value: response().get_string("slug")
+                    initial_value: response().key_string("slug")
                 }
                 FormTextField {
                     name: "title",
                     title: "field-title",
                     pattern: TITLE_PATTERN,
                     required: true,
-                    initial_value: response().get_string("title")
+                    initial_value: response().key_string("title")
                 }
             }
             FormFieldsField {
-                items: response().get_schema_fields().unwrap_or_default()
+                items: response().key_obj::<Vec<Field>>("fields").unwrap_or_default()
             }
         }
         EntryInfoBox {
-            created_by: response().get_string("created_by"),
-            created_at: response().get_datetime("created_at"),
-            updated_by: response().get_string("updated_by"),
-            updated_at: response().get_datetime("updated_at"),
+            created_by: response().key_string("created_by"),
+            created_at: response().key_datetime("created_at"),
+            updated_by: response().key_string("updated_by"),
+            updated_at: response().key_datetime("updated_at"),
         }
         if id().eq(ID_CREATE) {
             EditorActions {
@@ -110,7 +108,7 @@ pub fn SchemaEdit(
         } else {
             EditorActions {
                 form: "schema-edit-form",
-                delete_event: delete,
+                delete_handler: delete,
                 permission: PERMISSION_SCHEMAS_WRITE,
             }
         }

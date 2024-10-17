@@ -5,13 +5,13 @@ pub async fn sign_in_handler(
     session: Session,
     Payload(payload): Payload<Value>,
 ) -> Result<impl IntoResponse> {
-    let Some(login) = payload.get_str("login") else {
+    let Some(login) = payload.key_str("login") else {
         Err(GenericError::BadRequest)?
     };
     let login: Cow<'static, str> = login.to_uppercase().into();
 
 
-    let Some(password) = payload.get_str("password") else {
+    let Some(password) = payload.key_str("password") else {
         Err(GenericError::BadRequest)?
     };
 
@@ -76,10 +76,10 @@ pub async fn change_password_handler(
         Err(SessionError::AccessForbidden)?
     }
 
-    let Some(current_password) = payload.get_str("current_password") else {
+    let Some(current_password) = payload.key_str("current_password") else {
         Err(GenericError::BadRequest)?
     };
-    let Some(new_password) = payload.get_str("new_password") else {
+    let Some(new_password) = payload.key_str("new_password") else {
         Err(GenericError::BadRequest)?
     };
 

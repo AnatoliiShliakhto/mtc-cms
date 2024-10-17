@@ -1,6 +1,5 @@
 use crate::prelude::*;
 
-mod message_box;
 mod profile_controller;
 mod theme_switcher;
 mod menu_item;
@@ -33,13 +32,14 @@ mod published_action;
 mod form_text_area_field;
 mod content_list_actions;
 mod init_box;
+mod search_box;
+mod dialog_box;
 
 pub mod prelude {
     pub use super::{
         access_forbidden::*,
         breadcrumbs::*,
         menu_item::*,
-        message_box::*,
         profile_controller::*,
         something_wrong::*,
         theme_switcher::*,
@@ -69,5 +69,7 @@ pub mod prelude {
         view_links_field::*,
         storage_box::*,
         init_box::*,
+        search_box::*,
+        dialog_box::*,
     };
 } 

@@ -60,11 +60,11 @@ impl GroupsRepository for Repository {
 
     async fn update_group(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
         let mut sql = vec![];
-        let id = payload.get_str("id").unwrap_or_default();
-        let slug = payload.get_str("slug").unwrap_or_default();
-        let title = payload.get_str("title").unwrap_or_default();
+        let id = payload.key_str("id").unwrap_or_default();
+        let slug = payload.key_str("slug").unwrap_or_default();
+        let title = payload.key_str("title").unwrap_or_default();
 
-        if payload.has_key("id") && !id.is_empty() {
+        if payload.contains_key("id") && !id.is_empty() {
             sql.push(r#"UPDATE type::record("groups:" + $id) MERGE {"#)
         } else {
             sql.push(r#"
@@ -73,13 +73,13 @@ impl GroupsRepository for Repository {
             "#)
         }
 
-        if payload.has_key("slug") {
+        if payload.contains_key("slug") {
             sql.push(r#"
             slug: $slug,
             "#)
         }
 
-        if payload.has_key("title") {
+        if payload.contains_key("title") {
             sql.push(r#"
             title: $title,
             "#)

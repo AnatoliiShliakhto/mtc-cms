@@ -1,14 +1,38 @@
 use super::*;
 
+#[component]
 pub fn ChangePassword() -> Element {
-    build_breadcrumbs("menu-settings");
+    breadcrumbs!("menu-settings");
 
     if !use_auth_state()().is_authenticated() {
         navigator().push(Route::SignIn {});
         return rsx! { Loading {} }
     }
-    
-    let busy = use_init_busy();
+
+    let submit = move |event: Event<FormData>| {
+        let current_password =
+            event.get_str("current-password").unwrap_or_default();
+        let new_password =
+            event.get_str("new-password").unwrap_or_default();
+        let password_confirmation =
+            event.get_str("password-confirmation").unwrap_or_default();
+
+        if new_password.ne(&password_confirmation) {
+            error_dialog!("error-password-not-match");
+            return
+        }
+
+        let payload = json!({
+            "current_password": current_password,
+            "new_password": new_password
+        });
+
+        spawn(async move {
+            if patch_request!(url!(API_AUTH), payload) {
+                success_dialog!("message-password-changed")
+            }
+        });
+    };
 
     rsx!{
         div { 
@@ -34,7 +58,7 @@ pub fn ChangePassword() -> Element {
                             class: "card-body",
                             id: "password-form",
                             autocomplete: "off",
-                            onsubmit: change_password_task,
+                            onsubmit: submit,
 
                             FormTextField {
                                 r#type: "password",
@@ -57,24 +81,11 @@ pub fn ChangePassword() -> Element {
 
                             div { 
                                 class: "form-control mt-6",
-                                if busy() {
-                                    div { 
-                                        class: "flex flex-nowrap gap-4 \
-                                        self-center justify-center items-center",
-                                        span { 
-                                            class: "loading loading-spinner loading-md" 
-                                        }
-                                        span { 
-                                            { t!("action-processing") } "..." 
-                                        }
-                                    }
-                                } else {
-                                    button {
-                                        class: "btn btn-primary",
-                                        r#type: "submit",
-                                        Icon { icon: Icons::Lock, class: "size-6" }
-                                        { t!("action-change-password") }
-                                    }    
+                                button {
+                                    class: "btn btn-primary",
+                                    r#type: "submit",
+                                    Icon { icon: Icons::Lock, class: "size-6" }
+                                    { t!("action-change-password") }
                                 }
                             }
                         }

@@ -18,3 +18,5 @@ pub static API_CONTENT: &str = "content";
 pub static API_CONTENTS: &str = "contents";
 pub static API_PUBLIC_STORAGE: &str = "storage/public";
 pub static API_PRIVATE_STORAGE: &str = "storage/private";
+pub static API_SEARCH: &str = "search";
+pub static API_COURSE: &str = "course";

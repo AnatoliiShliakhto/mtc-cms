@@ -50,6 +50,8 @@ mod eye;
 mod database;
 mod database_lock;
 mod camera;
+mod mortar_board;
+mod journal_bookmark;
 
 pub mod prelude {
     pub use super::{
@@ -110,6 +112,8 @@ pub enum Icons {
     Database,
     DatabaseLock,
     Camera,
+    MortarBoard,
+    JournalBookmark,
 }
 
 #[component]
@@ -170,5 +174,7 @@ pub fn Icon(
         Icons::Database => database::DatabaseIcon(class),
         Icons::DatabaseLock => database_lock::DatabaseLockIcon(class),
         Icons::Camera => camera::CameraIcon(class),
+        Icons::MortarBoard  => mortar_board::MortarBoardIcon(class),
+        Icons::JournalBookmark  => journal_bookmark::JournalBookmarkIcon(class),
     }
 }

@@ -66,7 +66,7 @@ pub async fn update_content_handler(
 
     session.has_permission(&format!("{}::write", content_schema.permission)).await?;
 
-    let id = payload.get_str("id").unwrap_or_default();
+    let id = payload.key_str("id").unwrap_or_default();
     if (id.is_empty() | id.eq(ID_CREATE)) &&
         (content_schema.kind == SchemaKind::Page || content_schema.kind == SchemaKind::Course) {
         Err(GenericError::BadRequest)?

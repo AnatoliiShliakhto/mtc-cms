@@ -46,4 +46,6 @@ pub enum Route {
     ContentEdit { schema: String, slug: String },
     #[route("/course/edit/:slug/:id/:is_new")]
     CourseEdit { slug: String, id: usize, is_new: bool },
+    #[route("/search/:pattern")]
+    Search { pattern: String },
 }

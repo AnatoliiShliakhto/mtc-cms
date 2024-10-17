@@ -5,7 +5,7 @@ pub fn EntriesActions<T: PartialEq + 'static>(
     #[props]
     future: Resource<T>,
     #[props]
-    route: Option<String>,
+    route: Option<Route>,
     #[props]
     permission: Option<String>,
 ) -> Element {

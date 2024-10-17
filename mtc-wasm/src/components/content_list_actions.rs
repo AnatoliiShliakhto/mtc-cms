@@ -1,46 +1,32 @@
 use super::*;
 
 #[component]
-pub fn ContentListActions<T: PartialEq + 'static>(
+pub fn ContentListActions<T: PartialEq + Clone + 'static>(
     #[props]
     future: Resource<T>,
     #[props(into)]
     schema: String,
 ) -> Element {
-    let api_client = use_api_client();
-    let message_box_task = use_coroutine_handle::<MessageBoxAction>();
-    let mut is_show = use_signal(|| false);
     let schema = use_memo(use_reactive!(|schema| schema));
+
+    let mut is_show = use_signal(|| false);
 
     let submit = move |event: Event<FormData>| {
         let schema = event.get_str("schema").unwrap_or_default();
         let slug = event.get_str("slug").unwrap_or_default();
-        let url: String = url!(API_CONTENT, &schema, ID_CREATE);
-        let json_obj = json!({
+        let payload = json!({
             "slug": slug.clone(),
             "title": event.get_str("title")
         });
 
         spawn(async move {
-            match api_client()
-                .post(&*url)
-                .json(&json_obj)
-                .send()
-                .await
-                .consume()
-                .await {
-                Ok(_) => {
-                    is_show.set(false);
-                    navigator().push(Route::ContentEdit {
-                        schema: schema.to_string(),
-                        slug: slug.to_string(),
-                    });
-                },
-                Err(e) => {
-                    is_show.set(false);
-                    message_box_task.send(MessageBoxAction::Error(e.message()))
-                },
+            if post_request!(url!(API_CONTENT, &schema, ID_CREATE), payload) {
+                navigator().push(Route::ContentEdit {
+                    schema: schema.to_string(),
+                    slug: slug.to_string(),
+                });
             }
+            is_show.set(false);
         });
     };
 

@@ -7,6 +7,7 @@ pub fn Menu() -> Element {
         MenuItem {
             route: Route::Home {},
             title: t!("menu-home"),
+            permission: PERMISSION_PUBLIC_READ,
             Icon { icon: Icons::Home, class: "size-8 sm:size-6" }
         }
     }

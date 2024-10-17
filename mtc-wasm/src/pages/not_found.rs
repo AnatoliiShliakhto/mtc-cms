@@ -1,7 +1,8 @@
 use super::*;
 
+#[component]
 pub fn NotFound() -> Element {
-    drop_breadcrumbs();
+    breadcrumbs!();
 
     rsx! {
         div { 

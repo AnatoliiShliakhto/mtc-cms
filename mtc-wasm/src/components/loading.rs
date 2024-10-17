@@ -1,5 +1,6 @@
 use super::*;
 
+#[component]
 pub fn Loading() -> Element {
 
     rsx! {

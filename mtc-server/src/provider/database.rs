@@ -1,13 +1,5 @@
 use super::*;
 
-#[cfg(not(debug_assertions))]
-use surrealdb::engine::local::{Db, RocksDb};
-#[cfg(debug_assertions)]
-use surrealdb::engine::remote::ws::Ws;
-#[cfg(debug_assertions)]
-use surrealdb::opt::auth::Root;
-use surrealdb::Surreal;
-
 pub async fn database_init(config: &Config) -> Result<Database> {
     let db = db_pre_init(&match cfg!(debug_assertions) {
         true => "127.0.0.1:8000".into(),
@@ -29,8 +21,9 @@ pub async fn database_init(config: &Config) -> Result<Database> {
 
 #[cfg(debug_assertions)]
 async fn db_pre_init(database_path: &str) -> Result<Database> {
-    let db = Surreal::new::<Ws>(database_path).await?;
-    db.signin(Root {
+    let db =
+        surrealdb::Surreal::new::<surrealdb::engine::remote::ws::Ws>(database_path).await?;
+    db.signin(surrealdb::opt::auth::Root {
         username: "root",
         password: "root",
     }).await?;
@@ -38,6 +31,6 @@ async fn db_pre_init(database_path: &str) -> Result<Database> {
 }
 #[cfg(not(debug_assertions))]
 async fn db_pre_init(database_path: &str) -> Result<Database> {
-    let db = Database::new::<RocksDb>(database_path).await?;
+    let db = Database::new::<surrealdb::engine::local::RocksDb>(database_path).await?;
     Ok(db)
 }

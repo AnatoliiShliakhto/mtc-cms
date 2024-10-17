@@ -7,6 +7,7 @@ pub fn build_breadcrumbs(slug: &str) {
         let breadcrumbs: Vec<(Cow<str>, &str)> = match &*slug {
             "menu-sign-in" => vec![(t!("menu-sign-in"), "/sign-in")],
             "menu-settings" => vec![(t!("menu-settings"), "/change-password")],
+            "menu-search" => vec![(t!("menu-search"), "")],
 
             "menu-administrator" => vec![(t!("menu-administrator"), "/administrator")],
             "menu-permissions" => vec![
@@ -58,12 +59,6 @@ pub fn build_breadcrumbs(slug: &str) {
 
         use_breadcrumbs().set(breadcrumbs.into_iter()
             .map(|(key, value)| (key.into(), Cow::Borrowed(value.into())))
-            .collect::<BTreeMap<Cow<'static, str>, Cow<'static, str>>>())
+            .collect::<Vec<(Cow<'static, str>, Cow<'static, str>)>>())
     }));
-}
-
-pub fn drop_breadcrumbs() {
-    use_effect(move || {
-        use_breadcrumbs().set(BTreeMap::new());
-    });
 }

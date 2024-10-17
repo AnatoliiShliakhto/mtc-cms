@@ -1,5 +1,6 @@
 use super::*;
 
+#[component]
 pub fn Header() -> Element {
     let mut search_pattern = use_search_engine_pattern();
 
@@ -18,19 +19,34 @@ pub fn Header() -> Element {
                         r#for: "main-menu",
                         Icon { icon: Icons::Menu, class: "size-8 sm:size-6" }
                     }
-                    
-                    label { 
-                        class: "input input-bordered input-sm flex grow \
+                    form {
+                        class: "w-full",
+                        autocomplete: "off",
+                        onsubmit: move |event| {
+                            let pattern = event.get_str("pattern").unwrap_or_default().to_string();
+                            if pattern.is_empty() { return }
+                            use_search_engine_drop();
+                            navigator().push(Route::Search { pattern });
+                        },
+                        label {
+                            class: "input input-bordered input-sm flex grow \
                         mx-2 sm:mx-4 items-center gap-2",
-                        input { 
-                            class: "grow",
-                            style: "max-width: inherit; width: 100%",
-                            r#type: "search",
-                            placeholder: &*t!("message-search"),
-                            value: &*search_pattern(),
-                            oninput: move |event| search_pattern.set(event.value().into()),
+                            input {
+                                class: "grow peer",
+                                style: "max-width: inherit; width: 100%",
+                                r#type: "search",
+                                name: "pattern",
+                                placeholder: &*t!("message-search"),
+                                value: &*search_pattern(),
+                                oninput: move |event| search_pattern.set(event.value().into()),
+                            }
+                            button {
+                                class: "relative -right-3 btn btn-sm btn-ghost \
+                                opacity-30 peer-focus:opacity-100 \
+                                peer-focus:text-accent",
+                                Icon { icon: Icons::Search, class: "size-6" }
+                            }
                         }
-                        Icon { icon: Icons::Search, class: "size-6 sm:size-4 opacity-70" }
                     }
                 }
                 

@@ -1,14 +1,28 @@
 use super::*;
 
+#[component]
 pub fn SignIn() -> Element {
-    build_breadcrumbs("menu-sign-in");
+    let sync = use_coroutine_handle::<SyncAction>();
 
-    if use_auth_state()().is_authenticated() {
-        navigator().push(Route::ChangePassword {});
-        return rsx! { Loading {} }
-    }
+    breadcrumbs!("menu-sign-in");
 
-    let busy = use_init_busy();
+    let submit = move |event: Event<FormData>| {
+        let payload = json!({
+            "login": event.get_str("login"),
+            "password": event.get_str("password")
+        });
+        spawn(async move {
+            if post_request!(url!(API_AUTH), payload) {
+                sync.send(SyncAction::RefreshState("".into()));
+
+                if navigator().can_go_back() {
+                    navigator().go_back()
+                } else {
+                    navigator().replace(Route::Home {});
+                }
+            }
+        });
+    };
 
     rsx! {
         div {
@@ -33,7 +47,7 @@ pub fn SignIn() -> Element {
                         form {
                             class: "card-body",
                             autocomplete: "off",
-                            onsubmit: sign_in_task,
+                            onsubmit: submit,
 
                             FormTextField {
                                 name: "login",
@@ -49,24 +63,11 @@ pub fn SignIn() -> Element {
 
                             div {
                                 class: "form-control mt-6",
-                                if busy() {
-                                    div {
-                                        class: "flex flex-nowrap gap-4 \
-                                        self-center justify-center items-center",
-                                        span {
-                                            class: "loading loading-spinner loading-md"
-                                        }
-                                        span {
-                                            { t!("action-sign-in") } "..."
-                                        }
-                                    }
-                                } else {
-                                    button {
-                                        class: "btn btn-primary",
-                                        r#type: "submit",
-                                        Icon { icon: Icons::SignIn, class: "size-6" }
-                                        { t!("action-sign-in") }
-                                    }
+                                button {
+                                    class: "btn btn-primary",
+                                    r#type: "submit",
+                                    Icon { icon: Icons::SignIn, class: "size-6" }
+                                    { t!("action-sign-in") }
                                 }
                             }
                         }

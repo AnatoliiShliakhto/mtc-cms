@@ -11,7 +11,7 @@ pub async fn sync_handler(
         Duration::minutes(state.config.session_expiration)
     )));
 
-    let req_id = payload.get_str("id").unwrap_or_default();
+    let req_id = payload.key_str("id").unwrap_or_default();
 
     let mut json_obj = Map::new();
 

@@ -1,5 +1,6 @@
 use super::*;
 
+#[component]
 pub fn ProfileController() -> Element {
     let auth_state =  use_auth_state();
 
@@ -13,7 +14,7 @@ pub fn ProfileController() -> Element {
             }
         }    
     }
-    
+
     rsx! {
         div { 
             class: "dropdown dropdown-end dropdown-hover join-item",
@@ -45,13 +46,13 @@ pub fn ProfileController() -> Element {
                             { t!("menu-administrator") }
                         }
                     }
-                    div { class: "divider my-0" }
-                    li {
-                        a {
-                            onclick: sign_out_task,
-                            Icon { icon: Icons::SignOut, class: "size-6" }
-                            { t!("menu-sign-out") }
-                        }
+                }
+                div { class: "divider my-0" }
+                li {
+                    a {
+                        onclick: sign_out_task,
+                        Icon { icon: Icons::SignOut, class: "size-6" }
+                        { t!("menu-sign-out") }
                     }
                 }
             }

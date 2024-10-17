@@ -1,11 +1,20 @@
 use super::*;
 
+#[component]
 pub fn PermissionCreate() -> Element {
-    let auth_state = use_auth_state();
-    let api = use_coroutine_handle::<ApiRequestAction>();
+    breadcrumbs!("menu-permissions");
+    check_permission!(PERMISSION_ROLES_WRITE);
 
-    page_init!("menu-permissions", PERMISSION_ROLES_WRITE, auth_state);
-    
+    let submit = move |event: Event<FormData>| {
+        let Some(slug) = event.get_str("slug") else { return };
+
+        spawn(async move {
+            if post_request!(url!(API_PERMISSION, &slug)) {
+                navigator().replace(Route::Permissions {});
+            }
+        });
+    };
+
     rsx! {
         section { 
             class: "flex grow select-none flex-row px-3 gap-6",
@@ -13,13 +22,7 @@ pub fn PermissionCreate() -> Element {
                 class: "flex grow flex-col items-center gap-3",
                 id: "permission-form",
                 autocomplete: "off",
-                onsubmit: move |event| {
-                    let Some(slug) = event.get_str("slug") else { return };
-                    api.send(ApiRequestAction::PostThenBack(
-                        url!(API_PERMISSION, &slug),
-                        None
-                    ))
-                },
+                onsubmit: submit,
 
                 FormTextField {
                     name: "slug",
@@ -38,7 +41,9 @@ pub fn PermissionCreate() -> Element {
                     }
                     button { 
                         class: "btn btn-ghost text-error",
-                        onclick: move |_| navigator().go_back(),
+                        onclick: move |_| {
+                            navigator().replace(Route::Permissions {});
+                        },
                         Icon { icon: Icons::Cancel, class: "size-6" }
                         { t!("action-cancel") }
                     }

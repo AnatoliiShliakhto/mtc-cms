@@ -19,7 +19,6 @@ serde_json = { version = "1.0.128" }
 
 axum = { version = "0.7.7", features = ["multipart", "macros", "tokio"] }
 axum-server = { version = "0.7.1", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
-#axum-extra = { version = "0.9.4" }
 #axum_session = { version = "0.14.2", features = ["key-store"] }
 #axum_session_surreal = { version = "0.2.0" }
 
@@ -39,4 +38,4 @@ tracing-appender = { version = "0.2.3" }
 rustls = { version = "0.23.13" }
 
 [target.'cfg(unix)'.dependencies]
-openssl = { version = "0.10.66", features = ["vendored"] }
+openssl = { version = "0.10.68", features = ["vendored"] }

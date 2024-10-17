@@ -1,21 +1,15 @@
 use super::*;
 
 #[component]
-pub fn MessageBox(
-    #[props]
-    kind: MessageKind,
-    #[props(into)]
-    message: String,
-    #[props]
-    task: Option<MessageBoxFn>,
-    #[props]
-    task_args: Option<MessageBoxFnArgs>,
-) -> Element {
+pub fn DialogBox() -> Element {
+    let Some(args) = use_dialog_box()() else {
+        return rsx!{}
+    };
 
     rsx! {
         section {
             class: "modal modal-open",
-            onclick: close_message_box_task,
+            onclick: move |_| close_dialog!(),
             div {
                 class: "modal-box",
                 onclick: |event| event.stop_propagation(),
@@ -23,12 +17,12 @@ pub fn MessageBox(
                     class: "absolute top-0 right-0 join rounded-none",
                     button {
                         class: "btn btn-sm btn-ghost join-item hover:text-error",
-                        onclick: close_message_box_task,
+                        onclick: move |_| close_dialog!(),
                         Icon { icon: Icons::Close, class: "size-4" }
                     }
                 }
 
-                match kind {
+                match args.kind {
                     MessageKind::Alert => rsx! {
                         div {
                             class: "flex flex-row gap-4 text-lg font-bold wrap",
@@ -39,7 +33,7 @@ pub fn MessageBox(
                                 div { class: "divider my-0" }
                             }
                         }
-                    },    
+                    },
                     MessageKind::Info => rsx! {
                         div {
                             class: "flex flex-row gap-4 text-lg font-bold wrap text-info",
@@ -85,42 +79,42 @@ pub fn MessageBox(
                         }
                     }
                 }
-                
-                p { 
-                    class: "indent-14", 
-                    { message } 
+
+                p {
+                    class: "indent-14",
+                    { args.message }
                 }
-                div { 
+                div {
                     class: "card-actions mt-6 gap-6 justify-end",
-                    if let Some(task) = task {
+                    if let Some(handler) = args.handler {
                         button {
-                            class: match kind {
+                            class: match args.kind {
                                 MessageKind::Alert => "btn btn-primary",
                                 MessageKind::Info => "btn btn-info",
                                 MessageKind::Error => "btn btn-error",
                                 MessageKind::Success => "btn btn-success",
                                 MessageKind::Warning => "btn btn-warning",
                             },
-                            onclick: move |_| {
-                                let args = task_args.clone().unwrap_or_default();
-                                task(args.0, args.1)
+                            onclick: move |event| {
+                                close_dialog!();
+                                handler(event)
                             },
                             { t!("action-yes") }
                         }
                         button {
                             class: "btn btn-outline",
-                            onclick: close_message_box_task,
+                            onclick: move |_| close_dialog!(),
                             { t!("action-no") }
                         }
                     } else {
                         button {
                             class: "btn btn-primary",
-                            onclick: close_message_box_task,
+                            onclick: move |_| close_dialog!(),
                             { t!("action-close") }
                         }
-                    }    
+                    }
                 }
             }
-        }    
+        }
     }
 }

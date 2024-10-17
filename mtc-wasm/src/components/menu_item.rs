@@ -4,14 +4,12 @@ use super::*;
 pub fn MenuItem(
     #[props(into)]
     route: Route,
-    #[props(into)]
-    title: String,
     #[props]
     permission: Option<String>,
     #[props]
     children: Option<Element>,
 ) -> Element {
-    
+
     match permission {
         Some(permission) => rsx! {
             if use_auth_state()().has_permission(&permission) {
@@ -23,7 +21,6 @@ pub fn MenuItem(
                             use_menu_state().set(false)
                         },
                         { children }
-                        { title }
                     }
                 }
             }
@@ -37,7 +34,6 @@ pub fn MenuItem(
                         use_menu_state().set(false)
                     },
                     { children }
-                    { title }
                 }
             }
         },
