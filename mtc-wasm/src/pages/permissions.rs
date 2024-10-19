@@ -61,7 +61,7 @@ pub fn Permissions() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::PermissionCreate {},
+                    route: route!(API_ADMINISTRATOR, API_PERMISSION, ID_CREATE),
                     permission: PERMISSION_ROLES_WRITE,
                 }
             }

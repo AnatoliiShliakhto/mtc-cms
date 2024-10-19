@@ -97,8 +97,8 @@ fn main() {
             }
             button {
                 id: "scrollUpButton",
-                class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100 \
-            right-4 bottom-4 hidden",
+                class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100",
+                class: "right-4 bottom-4 hidden",
                 "onclick": "window.scrollTo(0, 0);",
                 Icon { icon: Icons::ArrowUp, class: "size-8" }
             }

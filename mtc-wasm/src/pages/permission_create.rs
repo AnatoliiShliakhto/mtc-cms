@@ -10,7 +10,7 @@ pub fn PermissionCreate() -> Element {
 
         spawn(async move {
             if post_request!(url!(API_PERMISSION, &slug)) {
-                navigator().replace(Route::Permissions {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_PERMISSIONS));
             }
         });
     };
@@ -42,7 +42,7 @@ pub fn PermissionCreate() -> Element {
                     button { 
                         class: "btn btn-ghost text-error",
                         onclick: move |_| {
-                            navigator().replace(Route::Permissions {});
+                            navigator().replace(route!(API_ADMINISTRATOR, API_PERMISSIONS));
                         },
                         Icon { icon: Icons::Cancel, class: "size-6" }
                         { t!("action-cancel") }

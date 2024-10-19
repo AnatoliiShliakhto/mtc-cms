@@ -5,10 +5,9 @@ pub fn Menu() -> Element {
 
     rsx! {
         MenuItem {
-            route: Route::Home {},
-            title: t!("menu-home"),
-            permission: PERMISSION_PUBLIC_READ,
-            Icon { icon: Icons::Home, class: "size-8 sm:size-6" }
+            route: route!(),
+            Icon { icon: Icons::Home, class: "size-8 sm:size-6 text-neutral" }
+            { t!("menu-home") }
         }
     }
 }

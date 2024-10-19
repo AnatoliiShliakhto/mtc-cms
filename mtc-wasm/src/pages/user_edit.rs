@@ -26,7 +26,7 @@ pub fn UserEdit(
 
         spawn(async move {
             if post_request!(url!(API_USER), payload) {
-                navigator().replace(Route::Users {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_USERS));
             }
         });
     };
@@ -34,7 +34,7 @@ pub fn UserEdit(
     let delete = move |event: MouseEvent| {
         spawn(async move {
             if delete_request!(url!(API_USER, &id())) {
-                navigator().replace(Route::Users {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_USERS));
             }
         });
     };

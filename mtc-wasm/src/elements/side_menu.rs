@@ -17,7 +17,7 @@ pub fn SideMenu() -> Element {
                     }
                     ul {
                         MenuItem {
-                            route: Route::ContentList { schema: "page".to_string() },
+                            route: route!(API_CONTENT, API_PAGE),
                             permission: PERMISSION_SCHEMAS_READ,
                             { t!("menu-page") }
                         }
@@ -29,9 +29,7 @@ pub fn SideMenu() -> Element {
                                 ul {
                                     for page in use_pages_entries()() {
                                         MenuItem {
-                                            route: Route::ContentList {
-                                                schema: page.slug.to_string()
-                                            },
+                                            route: route!(API_CONTENT, page.slug),
                                             { page.title }
                                         }
                                     }
@@ -39,7 +37,7 @@ pub fn SideMenu() -> Element {
                             }
                         }
                         MenuItem {
-                            route: Route::ContentList { schema: "course".to_string() },
+                            route: route!(API_CONTENT, API_COURSE),
                             permission: PERMISSION_SCHEMAS_READ,
                             { t!("menu-course") }
                         }
@@ -57,27 +55,27 @@ pub fn SideMenu() -> Element {
                     }
                     ul {
                         MenuItem {
-                            route: Route::Schemas {},
+                            route: route!(API_ADMINISTRATOR, API_SCHEMAS),
                             permission: PERMISSION_SCHEMAS_READ,
                             { t!("menu-schemas") }
                         }
                         MenuItem {
-                            route: Route::Permissions {},
+                            route: route!(API_ADMINISTRATOR, API_PERMISSIONS),
                             permission: PERMISSION_ROLES_READ,
                             { t!("menu-permissions") }
                         }
                         MenuItem {
-                            route: Route::Groups {},
+                            route: route!(API_ADMINISTRATOR, API_GROUPS),
                             permission: PERMISSION_GROUPS_READ,
                             { t!("menu-groups") }
                         }
                         MenuItem {
-                            route: Route::Roles {},
+                            route: route!(API_ADMINISTRATOR, API_ROLES),
                             permission: PERMISSION_ROLES_READ,
                             { t!("menu-roles") }
                         }
                         MenuItem {
-                            route: Route::Users {},
+                            route: route!(API_ADMINISTRATOR, API_USERS),
                             permission: PERMISSION_USERS_READ,
                             { t!("menu-users") }
                         }
@@ -88,7 +86,7 @@ pub fn SideMenu() -> Element {
         div { class: "divider my-0" }
         if auth_state.is_authenticated() {
             MenuItem {
-                route: Route::ChangePassword {},
+                route: route!("change-password"),
                 Icon { icon: Icons::Settings, class: "size-8 sm:size-6 text-neutral" }
                 { t!("menu-settings") }
             }
@@ -105,7 +103,7 @@ pub fn SideMenu() -> Element {
             }
         } else {
             MenuItem {
-                route: Route::SignIn {},
+                route: route!(API_SIGN_IN),
                 Icon { icon: Icons::SignIn, class: "size-8 sm:size-6 text-accent" }
                 { t!("menu-sign-in") }
             }

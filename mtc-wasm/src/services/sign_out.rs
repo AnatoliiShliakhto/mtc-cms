@@ -10,7 +10,7 @@ pub fn sign_out_task(event: Event<MouseData>) {
             if navigator().can_go_back() {
                 navigator().go_back()
             } else {
-                navigator().replace(Route::Home {});
+                navigator().replace(route!());
             }
         }
     });

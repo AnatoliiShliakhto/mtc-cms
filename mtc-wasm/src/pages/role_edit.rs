@@ -26,7 +26,7 @@ pub fn RoleEdit(
 
         spawn(async move {
             if post_request!(url!(API_ROLE), payload) {
-                navigator().replace(Route::Roles {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_ROLES));
             }
         });
     };
@@ -34,7 +34,7 @@ pub fn RoleEdit(
     let delete = move |event: MouseEvent| {
         spawn(async move {
             if delete_request!(url!(API_ROLE, &id())) {
-                navigator().replace(Route::Roles {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_ROLES));
             }
         });
     };

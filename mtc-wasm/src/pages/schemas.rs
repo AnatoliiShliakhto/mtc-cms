@@ -45,7 +45,7 @@ pub fn Schemas() -> Element {
                             tr {
                                 onclick: move |_| {
                                     navigator()
-                                    .push(Route::SchemaEdit { id: id.to_string() });
+                                    .push(route!(API_ADMINISTRATOR, API_SCHEMA, &id));
                                 },
                                 td {
                                     match details.kind {
@@ -85,7 +85,7 @@ pub fn Schemas() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::SchemaEdit { id: ID_CREATE.to_string() },
+                    route: route!(API_ADMINISTRATOR, API_SCHEMA, ID_CREATE),
                     permission: PERMISSION_SCHEMAS_WRITE,
                 }
             }

@@ -1,7 +1,7 @@
-site-title = Центр підготовки підрозділів
-site-short-title = MTC-CMS
-site-home-title = MTC-CMS
-site-home-description = Центр підготовки підрозділів
+site-title = 242 центр підготовки підрозділів
+site-short-title = 242 цпп
+site-home-title = 242 цпп
+site-home-description = 242 центр підготовки підрозділів
 site-copyright = 2024 © Працює на MTC-CMS
 
 action-add = Додати
@@ -50,8 +50,8 @@ error-db-delete = Помилка видалення запису
 error-db-not-found = Запис не знайдено
 error-db-something-went-wrong = Щось пійшло не так
 error-db-update = Помилка оновлення запису
-error-fetch = Невизначена відповідь серверу
-error-internal = Внутрішня помилка серверу
+error-fetch = Невизначена відповідь сервера
+error-internal = Внутрішня помилка сервера
 error-invalid-credentials = Недійсні облікові дані
 error-invalid-session = Недійсна сесія
 error-file-delete = Помилка видалення файлу

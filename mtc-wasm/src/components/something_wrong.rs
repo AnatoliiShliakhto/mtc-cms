@@ -23,7 +23,7 @@ pub fn SomethingWrong<T: PartialEq + 'static>(
                     class: "inline-flex divide-x divide-neutral",
                     button {
                         class: "link link-hover hover:text-primary pr-3",
-                        onclick: move |_| { navigator().push(Route::Home {}); },
+                        onclick: move |_| { navigator().push(route!()); },
                         { t!("action-home") }
                     }
                     if future.is_some() {
@@ -35,7 +35,7 @@ pub fn SomethingWrong<T: PartialEq + 'static>(
                     }
                     button {
                         class: "link link-hover hover:text-primary pl-3",
-                        onclick: move |_| { navigator().push(Route::SignIn {}); },
+                        onclick: move |_| { navigator().push(route!(API_SIGN_IN)); },
                         { t!("action-sign-in") }
                     }
                 }

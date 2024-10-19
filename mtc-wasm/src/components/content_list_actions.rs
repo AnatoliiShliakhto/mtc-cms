@@ -21,10 +21,7 @@ pub fn ContentListActions<T: PartialEq + Clone + 'static>(
 
         spawn(async move {
             if post_request!(url!(API_CONTENT, &schema, ID_CREATE), payload) {
-                navigator().push(Route::ContentEdit {
-                    schema: schema.to_string(),
-                    slug: slug.to_string(),
-                });
+                navigator().push(route!(API_EDITOR, &schema, &slug));
             }
             is_show.set(false);
         });

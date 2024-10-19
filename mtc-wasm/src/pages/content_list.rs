@@ -49,10 +49,7 @@ pub fn ContentList(
                             tr {
                                 onclick: move |_| {
                                     navigator()
-                                    .push(Route::ContentView {
-                                        schema: schema(),
-                                        slug: slug.to_string()
-                                    });
+                                    .push(route!(API_CONTENT, &schema(), &slug));
                                 },
                                 if is_writer {
                                     td {{

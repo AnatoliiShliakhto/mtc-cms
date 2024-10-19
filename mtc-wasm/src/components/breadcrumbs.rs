@@ -18,7 +18,7 @@ pub fn Breadcrumbs() -> Element {
                 ul {
                     li {
                         a { class: "gap-2",
-                            onclick: move |_| { navigator().push(Route::Home {}); },
+                            onclick: move |_| { navigator().push(route!()); },
                             Icon { icon: Icons::Home, class: "size-4" }
                             { t!("menu-home") }
                         }

@@ -30,7 +30,7 @@ pub fn Roles() -> Element {
                             tr {
                                 onclick: move |_| {
                                     navigator()
-                                    .push(Route::RoleEdit { id: id.to_string() });
+                                    .push(route!(API_ADMINISTRATOR, API_ROLE, &id));
                                 },
                                 td {
                                     { role.slug.as_ref() }
@@ -44,7 +44,7 @@ pub fn Roles() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::RoleEdit { id: ID_CREATE.to_string() },
+                    route: route!(API_ADMINISTRATOR, API_ROLE, ID_CREATE),
                     permission: PERMISSION_ROLES_WRITE,
                 }
             }

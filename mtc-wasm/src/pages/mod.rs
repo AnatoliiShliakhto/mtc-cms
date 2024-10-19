@@ -17,7 +17,6 @@ mod schemas;
 mod schema_edit;
 mod content_list;
 mod content_view;
-mod content_view_with_arg;
 mod content_edit;
 mod course_edit;
 
@@ -40,7 +39,6 @@ pub mod prelude {
         schema_edit::*,
         content_list::*,
         content_view::*,
-        content_view_with_arg::*,
         content_edit::*,
         course_edit::*,
     };

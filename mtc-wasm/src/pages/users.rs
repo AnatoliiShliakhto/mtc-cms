@@ -35,7 +35,7 @@ pub fn Users() -> Element {
                             tr {
                                 onclick: move |_| {
                                     navigator()
-                                    .push(Route::UserEdit { id: id.to_string() });
+                                    .push(route!(API_ADMINISTRATOR, API_USER, &id));
                                 },
                                 td {
                                     if blocked {
@@ -57,7 +57,7 @@ pub fn Users() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::UserEdit { id: ID_CREATE.to_string() },
+                    route: route!(API_ADMINISTRATOR, API_USER, ID_CREATE),
                     permission: PERMISSION_USERS_WRITE,
                 }
             }
