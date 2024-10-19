@@ -34,7 +34,7 @@ pub mod prelude {
                     CONTENT_TYPE, COOKIE, ACCEPT_ENCODING,
                 },
                 HeaderValue, status::StatusCode},
-            middleware::Next, Router, Form, Json,
+            middleware::{Next, from_fn}, Router, Form, Json,
             response::{Response, IntoResponse},
             routing::{get, post, delete},
         },
@@ -180,7 +180,7 @@ async fn main() {
 
     let app = Router::new()
         .nest_service(PRIVATE_ASSETS_PATH, protected_storage_service)
-        //.layer(from_fn(middleware_protected_storage_handler))
+        .layer(from_fn(middleware_protected_storage_handler))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
             HeaderValue::from_str(&state.config.protected_cache_control).unwrap())

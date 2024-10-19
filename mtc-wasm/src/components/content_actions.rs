@@ -15,10 +15,7 @@ pub fn ContentActions(
             button {
                 class: "hover:btn-warning rounded-r-none",
                 onclick: move |_| {
-                    navigator().push(Route::ContentEdit {
-                        schema: schema.clone(),
-                        slug: slug.clone()
-                    });
+                    navigator().push(route!(API_EDITOR, &schema, &slug));
                 },
                 Icon { icon: Icons::Pen, class: "size-6" }
                 span {

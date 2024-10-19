@@ -21,7 +21,7 @@ pub fn NotFound() -> Element {
                     class: "inline-flex divide-x divide-neutral",
                     button {
                         class: "link link-hover hover:text-primary pr-3",
-                        onclick: move |_| { navigator().push(Route::Home {}); },
+                        onclick: move |_| { navigator().push(route!()); },
                         { t!("action-home") }
                     }
                     if navigator().can_go_back() {
@@ -33,7 +33,7 @@ pub fn NotFound() -> Element {
                     }
                     button {
                         class: "link link-hover hover:text-primary pl-3",
-                        onclick: move |_| { navigator().push(Route::SignIn {}); },
+                        onclick: move |_| { navigator().push(route!(API_SIGN_IN)); },
                         { t!("action-sign-in") }
                     }
                 }

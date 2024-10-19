@@ -18,7 +18,7 @@ pub fn SignIn() -> Element {
                 if navigator().can_go_back() {
                     navigator().go_back()
                 } else {
-                    navigator().replace(Route::Home {});
+                    navigator().replace(route!());
                 }
             }
         });

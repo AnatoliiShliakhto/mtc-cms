@@ -71,7 +71,7 @@ pub fn ContentEdit(
     let delete = move |event: MouseEvent| {
         spawn(async move {
             if delete_request!(url!(API_CONTENT, &schema(), &slug())) {
-                navigator().replace(Route::Home {});
+                navigator().replace(route!());
             }
         });
     };

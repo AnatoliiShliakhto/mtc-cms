@@ -10,7 +10,7 @@ pub fn InitBox() -> Element {
         });
         spawn(async move {
             if post_request!(url!(API_MIGRATE), payload) {
-                navigator().replace(Route::SignIn {});
+                navigator().replace(route!(API_SIGN_IN));
             }
         });
     };

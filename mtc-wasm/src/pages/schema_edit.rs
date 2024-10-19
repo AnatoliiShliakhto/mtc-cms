@@ -26,7 +26,7 @@ pub fn SchemaEdit(
 
         spawn(async move {
             if post_request!(url!(API_SCHEMA), payload) {
-                navigator().replace(Route::Schemas {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_SCHEMAS));
             }
         });
     };
@@ -34,7 +34,7 @@ pub fn SchemaEdit(
     let delete = move |event: MouseEvent| {
         spawn(async move {
             if delete_request!(url!(API_SCHEMA, &id())) {
-                navigator().replace(Route::Schemas {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_SCHEMAS));
             }
         });
     };

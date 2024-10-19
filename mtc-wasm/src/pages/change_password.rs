@@ -5,7 +5,7 @@ pub fn ChangePassword() -> Element {
     breadcrumbs!("menu-settings");
 
     if !use_auth_state()().is_authenticated() {
-        navigator().push(Route::SignIn {});
+        navigator().push(route!(API_SIGN_IN));
         return rsx! { Loading {} }
     }
 

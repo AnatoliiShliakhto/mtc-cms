@@ -29,7 +29,8 @@ pub fn Layout() -> Element
                 Header {}
                 Breadcrumbs {}
                 div {
-                    class: "max-w-[100vw] pt-3 pb-16 sm:px-6 break-words overflow-x-auto",
+                    class: "flex-grow flex-col max-w-[100vw]",
+                    class: "pt-3 pb-16 sm:px-6 break-words overflow-x-auto",
                     SuspenseBoundary {
                         fallback: |context: SuspenseContext| rsx! {
                             Loading {}

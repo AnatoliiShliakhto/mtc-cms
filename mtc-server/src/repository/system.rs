@@ -192,7 +192,7 @@ impl SystemTrait for Repository {
         let _ = self.insert_search_idx(
             SearchKind::LocalLink,
             content.title.clone(),
-            format!("/view/{}/{}", table, content.slug).into(),
+            format!("/content/{}/{}", table, content.slug).into(),
             schema.permission.clone()
         ).await;
 
@@ -231,7 +231,7 @@ impl SystemTrait for Repository {
     ) {
         for link in links {
             if link.url.is_empty() { continue; }
-            if link.url.starts_with("/view") | link.url.starts_with("/list") {
+            if link.url.starts_with("/content") {
                 let _ = self.insert_search_idx(
                     SearchKind::LocalLink,
                     link.title.clone(),
@@ -289,7 +289,7 @@ impl SystemTrait for Repository {
         let _ = self.insert_search_idx(
             SearchKind::LocalLink,
             content.title.clone(),
-            format!("/view/course/{}", content.slug).into(),
+            format!("/content/course/{}", content.slug).into(),
             schema.permission.clone()
         ).await;
 
@@ -308,7 +308,7 @@ impl SystemTrait for Repository {
                         let _ = self.insert_search_idx(
                             SearchKind::Course,
                             item.title,
-                            format!("/view/course/{}/{}", content.slug, item.id).into(),
+                            format!("/content/course/{}/{}", content.slug, item.id).into(),
                             schema.permission.clone()
                         ).await;
                         if let Some(links) = item.links {

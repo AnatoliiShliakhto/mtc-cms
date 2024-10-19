@@ -16,7 +16,12 @@ pub static API_PERMISSION: &str = "permission";
 pub static API_PERMISSIONS: &str = "permissions";
 pub static API_CONTENT: &str = "content";
 pub static API_CONTENTS: &str = "contents";
+pub static API_PAGE: &str = "page";
 pub static API_PUBLIC_STORAGE: &str = "storage/public";
 pub static API_PRIVATE_STORAGE: &str = "storage/private";
 pub static API_SEARCH: &str = "search";
 pub static API_COURSE: &str = "course";
+pub static API_ADMINISTRATOR: &str = "administrator";
+pub static API_EDITOR: &str = "editor";
+pub static API_SIGN_IN: &str = "sign-in";
+

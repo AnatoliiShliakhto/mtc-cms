@@ -14,7 +14,12 @@ pub fn ContentView(
     let arg = use_memo(use_reactive!(|arg| arg.unwrap_or_default()));
 
     let is_writer = use_auth_state()().has_role(ROLE_WRITER);
-    let menu_item = format!("menu-{}", schema());
+    let menu_item = if schema().eq("page") || schema().eq("course") {
+        format!("menu-{}", slug())
+    } else {
+        format!("menu-{}", schema())
+    };
+
     breadcrumbs!(&menu_item);
 
     let future = value_future!(url!(API_CONTENT, &schema(), &slug()));

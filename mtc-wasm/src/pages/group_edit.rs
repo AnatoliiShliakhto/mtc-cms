@@ -23,7 +23,7 @@ pub fn GroupEdit(
 
         spawn(async move {
             if post_request!(url!(API_GROUP), payload) {
-                navigator().replace(Route::Groups {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_GROUPS));
             }
         });
     };
@@ -31,7 +31,7 @@ pub fn GroupEdit(
     let delete = move |event: Event<MouseData>| {
         spawn(async move {
             if delete_request!(url!(API_GROUP, &id())) {
-                navigator().replace(Route::Groups {});
+                navigator().replace(route!(API_ADMINISTRATOR, API_GROUPS));
             }
         });
     };

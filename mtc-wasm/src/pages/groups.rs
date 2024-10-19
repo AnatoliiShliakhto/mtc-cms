@@ -30,7 +30,7 @@ pub fn Groups() -> Element {
                             tr {
                                 onclick: move |_| {
                                     navigator()
-                                    .push(Route::GroupEdit { id: id.to_string() });
+                                    .push(route!(API_ADMINISTRATOR, API_GROUP, &id));
                                 },
                                 td {
                                     { group.slug.as_ref() }
@@ -44,7 +44,7 @@ pub fn Groups() -> Element {
                 }
                 EntriesActions {
                     future,
-                    route: Route::GroupEdit { id: ID_CREATE.to_string() },
+                    route: route!(API_ADMINISTRATOR, API_GROUP, ID_CREATE),
                     permission: PERMISSION_GROUPS_WRITE,
                 }
             }

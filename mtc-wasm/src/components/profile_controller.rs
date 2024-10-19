@@ -9,7 +9,7 @@ pub fn ProfileController() -> Element {
             Link {
                 class: "btn btn-ghost join-item",
                 onclick: move |_| use_search_engine_drop(),
-                to: Route::SignIn {},
+                to: route!(API_SIGN_IN),
                 Icon { icon: Icons::SignIn, class: "size-8 sm:size-6" }
             }
         }    
@@ -32,7 +32,7 @@ pub fn ProfileController() -> Element {
                 li {
                     Link {
                         onclick: move |_| use_search_engine_drop(),
-                        to: Route::ChangePassword {},
+                        to: route!("change-password"),
                         Icon { icon: Icons::Settings, class: "size-6" }
                         { t!("menu-settings") }
                     }
@@ -41,7 +41,7 @@ pub fn ProfileController() -> Element {
                     li {
                         Link {
                             onclick: move |_| use_search_engine_drop(),
-                            to: Route::Administrator {},
+                            to: route!(API_ADMINISTRATOR),
                             Icon { icon: Icons::ShieldPerson, class: "size-6" }
                             { t!("menu-administrator") }
                         }

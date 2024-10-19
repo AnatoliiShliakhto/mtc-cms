@@ -4,10 +4,12 @@ mod breadcrumbs;
 mod checks;
 mod requests;
 mod dialogs;
+mod route;
 
 pub mod prelude {
     pub use crate::{
         url,
+        route,
         t,
         breadcrumbs,
         value_future,

@@ -77,22 +77,14 @@ pub fn ViewCourseField(
                 button {
                     class: "btn btn-sm btn-outline btn-accent",
                     onclick: move |_| {
-                        navigator().push(Route::CourseEdit {
-                            slug: slug(),
-                            id: arg(),
-                            is_new: true
-                        });
+                        navigator().push(route!(API_COURSE, API_EDITOR, &slug(), &arg(), "true"));
                     },
                     Icon { icon: Icons::Plus, class: "size-4" }
                 }
                 button {
                     class: "btn btn-sm btn-outline btn-warning",
                     onclick: move |_| {
-                        navigator().push(Route::CourseEdit {
-                            slug: slug(),
-                            id: arg(),
-                            is_new: false
-                        });
+                        navigator().push(route!(API_COURSE, API_EDITOR, &slug(), &arg(), "false"));
                     },
                     Icon { icon: Icons::Pen, class: "size-4" }
                 }
@@ -151,22 +143,14 @@ fn CourseChildView(
                         button {
                             class: "btn btn-sm btn-outline btn-accent",
                             onclick: move |_| {
-                                navigator().push(Route::CourseEdit {
-                                    slug: slug(),
-                                    id,
-                                    is_new: true,
-                                });
+                                navigator().push(route!(API_COURSE, API_EDITOR, &slug(), &id, "true"));
                             },
                             Icon { icon: Icons::Plus, class: "size-4" }
                         }
                         button {
                             class: "btn btn-sm btn-outline btn-warning",
                             onclick: move |_| {
-                                navigator().push(Route::CourseEdit {
-                                    slug: slug(),
-                                    id,
-                                    is_new: false,
-                                });
+                                navigator().push(route!(API_COURSE, API_EDITOR, &slug(), &id, "false"));
                             },
                             Icon { icon: Icons::Pen, class: "size-4" }
                         }
