@@ -67,6 +67,7 @@ pub mod prelude {
             util::SubscriberInitExt, EnvFilter,
         },
         tokio::fs,
+        rand::Rng,
 
         super::{
             types::*,

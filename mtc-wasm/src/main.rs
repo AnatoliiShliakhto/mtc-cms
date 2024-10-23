@@ -55,12 +55,15 @@ fn main() {
     dioxus_logger::init(tracing::Level::INFO).expect("failed to init logger");
     launch(|| {
         let auth_state = use_init_auth_state();
-        use_init_i18n(I18N_UK_UA);
+        use_init_app_state();
+        use_init_i18n(I18N_EN_US);
         use_init_dialog_box();
         use_init_api_client();
         use_init_breadcrumbs();
         use_init_search_engine();
         use_init_pages_entries();
+        use_init_personnel();
+        use_init_personnel_columns();
 
         use_coroutine(sync_service);
 

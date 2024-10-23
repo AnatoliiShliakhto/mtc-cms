@@ -32,6 +32,28 @@ macro_rules! value_future {
 }
 
 #[macro_export]
+macro_rules! value_request {
+    ($url:expr) => {
+        use_api_client()()
+            .get(&$url)
+            .send()
+            .await
+            .get_value()
+            .await
+    };
+
+    ($url:expr, $value:ident) => {
+        use_api_client()()
+            .post(&$url)
+            .json(&$value)
+            .send()
+            .await
+            .get_value()
+            .await
+    };
+}
+
+#[macro_export]
 macro_rules! get_request {
     ($url:expr) => {
         use_api_client()()

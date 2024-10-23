@@ -50,7 +50,11 @@ pub async fn sign_in_handler(
         permissions: state.repository
             .find_permissions_by_login(login.clone()).await?.into_iter().collect(),
     };
-    let access = state.repository.find_user_access(login.clone()).await?;
+    let access = if auth_state.is_admin() {
+        Access { level: -1, full: true }
+    } else {
+        state.repository.find_user_access(login.clone()).await?
+    };
 
     state.repository.increment_user_access_count(login).await?;
     session.sign_in(&auth_state, &user.login, &access).await?;

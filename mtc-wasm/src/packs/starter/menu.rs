@@ -6,7 +6,7 @@ pub fn Menu() -> Element {
     rsx! {
         MenuItem {
             route: route!(),
-            Icon { icon: Icons::Home, class: "size-8 sm:size-6 text-neutral" }
+            Icon { icon: Icons::Home, class: "size-8 sm:size-6" }
             { t!("menu-home") }
         }
     }

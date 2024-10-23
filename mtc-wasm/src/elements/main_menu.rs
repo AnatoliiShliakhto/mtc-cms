@@ -36,7 +36,7 @@ pub fn MainMenu() -> Element {
                     }
                 }
             }
-            ul { class: "menu menu-lg sm:menu-md",
+            ul { class: "menu menu-lg sm:menu-md main-menu",
                 SideMenu {}
             }
             div { class: "flex flex-col grow justify-end",

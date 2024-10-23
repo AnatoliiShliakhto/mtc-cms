@@ -20,6 +20,7 @@ pub mod prelude {
         delete_request,
         post_request,
         patch_request,
+        value_request,
         close_dialog,
         alert_dialog,
         success_dialog,

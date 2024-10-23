@@ -19,6 +19,8 @@ mod content_list;
 mod content_view;
 mod content_edit;
 mod course_edit;
+mod personnel;
+mod personnel_add;
 
 pub mod prelude {
     pub use super::{
@@ -41,5 +43,7 @@ pub mod prelude {
         content_view::*,
         content_edit::*,
         course_edit::*,
+        personnel::*,
+        personnel_add::*,
     };
 }

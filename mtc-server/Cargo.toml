@@ -11,11 +11,11 @@ license.workspace = true
 [dependencies]
 mtc-model = { path = "../mtc-common" }
 
-thiserror = { version = "1.0.64" }
-tokio = { version = "1.40.0", features = ["full"] }
+thiserror = { version = "1.0.65" }
+tokio = { version = "1.41.0", features = ["full"] }
 surrealdb = { version = "2.0.4", features = ["kv-rocksdb"] }
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = { version = "1.0.131" }
+serde = { version = "1.0.213", features = ["derive"] }
+serde_json = { version = "1.0.132" }
 
 axum = { version = "0.7.7", features = ["multipart", "macros", "tokio"] }
 axum-server = { version = "0.7.1", features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
@@ -36,6 +36,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tracing-appender = { version = "0.2.3" }
 
 rustls = { version = "0.23.13" }
+rand = { version = "0.9.0-alpha.2" }
 
 [target.'cfg(unix)'.dependencies]
 openssl = { version = "0.10.68", features = ["vendored"] }

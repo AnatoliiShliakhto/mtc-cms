@@ -34,6 +34,9 @@ mod content_list_actions;
 mod init_box;
 mod search_box;
 mod dialog_box;
+mod personnel_actions;
+mod personnel_columns_chooser;
+mod form_checkbox_field;
 
 pub mod prelude {
     pub use super::{
@@ -59,9 +62,11 @@ pub mod prelude {
         form_permissions_field::*,
         form_html_field::*,
         form_text_area_field::*,
+        form_checkbox_field::*,
         entry_info_box::*,
         editor_actions::*,
         user_block_action::*,
+        personnel_actions::*,
         view_html_field::*,
         view_string_field::*,
         view_text_field::*,
@@ -71,5 +76,6 @@ pub mod prelude {
         init_box::*,
         search_box::*,
         dialog_box::*,
+        personnel_columns_chooser::*,
     };
 } 

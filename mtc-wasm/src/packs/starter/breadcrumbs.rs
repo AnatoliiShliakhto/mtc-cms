@@ -8,6 +8,7 @@ pub fn build_breadcrumbs(slug: &str) {
             "menu-sign-in" => vec![(t!("menu-sign-in"), "/sign-in")],
             "menu-settings" => vec![(t!("menu-settings"), "/change-password")],
             "menu-search" => vec![(t!("menu-search"), "")],
+            "menu-personnel" => vec![(t!("menu-personnel"), "")],
 
             "menu-administrator" => vec![(t!("menu-administrator"), "/administrator")],
             "menu-permissions" => vec![

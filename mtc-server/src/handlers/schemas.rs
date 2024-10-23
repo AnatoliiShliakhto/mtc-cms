@@ -27,7 +27,7 @@ pub async fn find_schema_handler(
             .. Default::default()
         }
     } else {
-        state.repository.find_schema(id).await.unwrap_or_default()
+        state.repository.find_schema(id).await?
     };
 
     let permissions = state.repository.find_custom_permissions().await?;

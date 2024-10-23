@@ -27,7 +27,7 @@ pub async fn find_role_handler(
             .. Default::default()
         }
     } else {
-        state.repository.find_role(id).await.unwrap_or_default()
+        state.repository.find_role(id).await?
     };
 
     let permissions = state.repository.find_permission_list().await?;
