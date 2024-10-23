@@ -9,6 +9,9 @@ pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
     let mut search_list = use_search_engine_list();
     let mut search_idx = use_search_engine_index();
     let api_client = use_api_client();
+    let app_state = use_app_state();
+    let mut state_roles = app_state.roles;
+    let mut state_groups = app_state.groups;
 
     while let Some(msg) = rx.next().await {
         match msg {
@@ -25,6 +28,12 @@ pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
                 }
                 if let Some(pages) = value.key_obj::<Vec<Entry>>("pages") {
                     *use_pages_entries().write() = pages;
+                }
+                if let Some(roles) = value.key_obj::<Vec<Entry>>("roles") {
+                    state_roles.set(roles)
+                }
+                if let Some(groups) = value.key_obj::<Vec<Entry>>("groups") {
+                    state_groups.set(groups)
                 }
                 if let Some(search) =
                     value.key_obj::<Vec<SearchIdxDto>>("search_idx") {

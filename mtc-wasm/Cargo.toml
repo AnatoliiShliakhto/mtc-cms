@@ -17,8 +17,8 @@ dioxus = { version = "0.6.0-alpha.3", features = ["web", "router"] }
 #dioxus-i18n = { version = "0.2.5" }
 dioxus-logger = { version = "0.5.1" }
 reqwest = { version = "0.12.8", features = ["json", "cookies", "zstd", "brotli"] }
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = { version = "1.0.131" }
+serde = { version = "1.0.213", features = ["derive"] }
+serde_json = { version = "1.0.132" }
 tracing = { version = "0.1.40" }
 gloo-storage = { version = "0.3.0" }
 futures-util = { version = "0.3.31" }

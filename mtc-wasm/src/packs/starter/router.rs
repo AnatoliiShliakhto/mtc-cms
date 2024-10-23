@@ -23,6 +23,8 @@ fn CustomRouter(
         "administrator" => return rsx! { Administrator {} },
         "sign-in" => return rsx! { SignIn {} },
         "change-password" => return rsx! { ChangePassword {} },
+        "personnel" => return rsx! { Personnel {} },
+        "personnel/add" => return rsx! { PersonnelAdd {} },
         "administrator/permissions" => return rsx! { Permissions {} },
         "administrator/groups" => return rsx! { Groups {} },
         "administrator/roles" => return rsx! { Roles {} },

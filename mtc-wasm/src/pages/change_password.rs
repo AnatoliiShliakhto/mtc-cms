@@ -45,11 +45,11 @@ pub fn ChangePassword() -> Element {
                         class: "text-center lg:text-left w-full sm:max-w-sm",
                         h1 { 
                             class: "text-3xl font-bold", 
-                            { t!("message-change-password-from-header") } 
+                            { t!("message-change-password-form-header") }
                         }
                         p { 
                             class: "py-6", 
-                            { t!("message-change-password-from-announcement") } 
+                            { t!("message-change-password-form-announcement") }
                         }
                     }
                     div { 

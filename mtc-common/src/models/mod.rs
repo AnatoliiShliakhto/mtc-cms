@@ -17,7 +17,6 @@ mod search_idx;
 mod asset;
 mod system_info;
 mod user_details;
-mod user_state;
 mod content;
 mod course_entry;
 mod search_idx_dto;
@@ -43,7 +42,6 @@ pub mod prelude {
         asset::*,
         system_info::*,
         user_details::*,
-        user_state::*,
         content::*,
         course_entry::*,
         search_idx_dto::*,

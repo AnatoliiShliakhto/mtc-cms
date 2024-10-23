@@ -37,11 +37,26 @@ pub async fn sync_handler(
             json_obj.insert("pages".into(), json!(pages));
         }
 
+        if auth_state.has_permission(PERMISSION_GROUPS_READ) {
+            let groups = state.repository.find_group_list().await?;
+            json_obj.insert("groups".into(), json!(groups));
+        }
+
+        if auth_state.has_permission(PERMISSION_ROLES_READ) {
+            let roles = state.repository.find_role_list().await?;
+            json_obj.insert("roles".into(), json!(roles));
+        }
+
         let search_idx = state
             .repository
             .find_search_idx(user_custom_permissions).await?;
 
         json_obj.insert("search_idx".into(), json!(search_idx));
+
+        if auth_id.ne(ROLE_ANONYMOUS) {
+            let login = session.get_user().await?;
+            state.repository.increment_user_access_count(login).await?;
+        }
     }
 
     json_obj.to_response()

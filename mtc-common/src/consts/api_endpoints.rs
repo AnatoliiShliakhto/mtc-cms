@@ -8,6 +8,7 @@ pub static API_SCHEMA: &str = "schema";
 pub static API_SCHEMAS: &str = "schemas";
 pub static API_USER: &str = "user";
 pub static API_USERS: &str = "users";
+pub static API_PERSONNEL: &str = "personnel";
 pub static API_GROUPS: &str = "groups";
 pub static API_GROUP: &str = "group";
 pub static API_ROLES: &str = "roles";
@@ -24,4 +25,3 @@ pub static API_COURSE: &str = "course";
 pub static API_ADMINISTRATOR: &str = "administrator";
 pub static API_EDITOR: &str = "editor";
 pub static API_SIGN_IN: &str = "sign-in";
-

@@ -86,6 +86,12 @@ pub fn SideMenu() -> Element {
         div { class: "divider my-0" }
         if auth_state.is_authenticated() {
             MenuItem {
+                route: route!(API_PERSONNEL),
+                permission: PERMISSION_USERS_READ,
+                Icon { icon: Icons::Personnel, class: "size-8 sm:size-6 text-info" }
+                { t!("menu-personnel") }
+            }
+            MenuItem {
                 route: route!("change-password"),
                 Icon { icon: Icons::Settings, class: "size-8 sm:size-6 text-neutral" }
                 { t!("menu-settings") }

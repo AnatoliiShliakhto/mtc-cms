@@ -21,7 +21,10 @@ pub fn routes(
         .route("/schema/:id", get(find_schema_handler)
             .delete(delete_schema_handler))
 
-        .route("/users", get(find_user_list_handler))
+        .route("/personnel", post(check_users_handler))
+
+        .route("/users/:login/:archive", get(find_user_list_handler))
+        .route("/users", get(find_user_list_handler).post(process_users_handler))
         .route("/user", post(update_user_handler))
         .route("/user/:id", get(find_user_handler)
             .delete(delete_user_handler)

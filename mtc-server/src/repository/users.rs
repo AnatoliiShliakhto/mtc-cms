@@ -2,7 +2,12 @@ use super::*;
 
 #[async_trait]
 pub trait UserRepository {
-    async fn find_user_list(&self, access: Access) -> Result<Vec<Entry>>;
+    async fn find_user_list(
+        &self,
+        access: Access,
+        login: Option<Cow<'static, str>>,
+        archive: Option<bool>,
+    ) -> Result<Vec<Entry>>;
     async fn find_user(&self, id: Cow<'static, str>, access: Access) -> Result<User>;
     async fn find_user_by_login(&self, login: Cow<'static, str>, access: Access) -> Result<User>;
     
@@ -19,11 +24,21 @@ pub trait UserRepository {
     ) -> Result<()>;
     async fn delete_user(&self, id: Cow<'static, str>) -> Result<()>;
     async fn get_users_count(&self, only_active: bool) -> Result<i32>;
+    async fn check_users(
+        &self,
+        logins: Vec<Cow<'static, str>>,
+        access: Access
+    ) -> Result<Vec<UserDetailsDto>>;
 }
 
 #[async_trait]
 impl UserRepository for Repository {
-    async fn find_user_list(&self, access: Access) -> Result<Vec<Entry>> {
+    async fn find_user_list(
+        &self,
+        access: Access,
+        login: Option<Cow<'static, str>>,
+        archive: Option<bool>,
+    ) -> Result<Vec<Entry>> {
         let mut sql = vec![r#"
             SELECT record::id(id) as id, login as slug,
             (SELECT VALUE title FROM ->user_groups->groups)[0] ?? "" as title,
@@ -35,6 +50,19 @@ impl UserRepository for Repository {
             sql.push(r#"
                 AND blocked = false
             "#)
+        } else if let Some(archive) = archive {
+            if !archive {
+                sql.push(r#"
+                    AND blocked = false
+                "#)
+            }
+        }
+
+        let login = login.unwrap_or_default();
+        if !login.is_empty() {
+            sql.push(r#"
+                AND login ?~ $login
+            "#)
         }
 
         sql.push("ORDER BY login START 0 LIMIT 50;");
@@ -42,6 +70,8 @@ impl UserRepository for Repository {
         let users = self
             .database
             .query(sql.concat())
+            .bind(("access_level", access.level))
+            .bind(("login", login))
             .await?
             .take::<Vec<Entry>>(0)?;
 
@@ -126,7 +156,9 @@ impl UserRepository for Repository {
     }
 
     async fn increment_user_access_count(&self, login: Cow<'static, str>) -> Result<()> {
-        let sql = r#"UPDATE users SET access_count += 1 WHERE login=$login;"#;
+        let sql = r#"
+        UPDATE users SET last_access = time::now(), access_count += 1 WHERE login=$login;
+        "#;
 
         self.database
             .query(sql)
@@ -248,5 +280,26 @@ impl UserRepository for Repository {
             })
             .await?
             .take::<Option<i32>>(0)?.unwrap_or_default())
+    }
+
+    async fn check_users(&self, logins: Vec<Cow<'static, str>>, access: Access
+    ) -> Result<Vec<UserDetailsDto>> {
+        let mut sql =
+            vec![r#"
+            SELECT record::id(id) as id, login, blocked, last_access, access_count, "" as password,
+            (SELECT VALUE title FROM ->user_groups->groups)[0] ?? "" as group
+            FROM users WHERE login in $logins AND access_level > $access_level
+            "#];
+
+        if !access.full {
+            sql.push(r#"AND blocked = false"#);
+        }
+
+        Ok(self.database
+            .query(sql.concat())
+            .bind(("logins", logins))
+            .bind(("access_level", access.level))
+            .await?
+            .take::<Vec<UserDetailsDto>>(0)?)
     }
 }

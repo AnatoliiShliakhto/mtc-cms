@@ -52,6 +52,13 @@ mod database_lock;
 mod camera;
 mod mortar_board;
 mod journal_bookmark;
+mod personnel;
+mod copy;
+mod paste;
+mod upload;
+mod incognito;
+mod columns;
+mod user_up;
 
 pub mod prelude {
     pub use super::{
@@ -114,6 +121,13 @@ pub enum Icons {
     Camera,
     MortarBoard,
     JournalBookmark,
+    Personnel,
+    Copy,
+    Paste,
+    Upload,
+    Incognito,
+    Columns,
+    UserUp,
 }
 
 #[component]
@@ -176,5 +190,12 @@ pub fn Icon(
         Icons::Camera => camera::CameraIcon(class),
         Icons::MortarBoard  => mortar_board::MortarBoardIcon(class),
         Icons::JournalBookmark  => journal_bookmark::JournalBookmarkIcon(class),
+        Icons::Personnel => personnel::PersonnelIcon(class),
+        Icons::Copy => copy::CopyIcon(class),
+        Icons::Paste => paste::PasteIcon(class),
+        Icons::Upload => upload::UploadIcon(class),
+        Icons::Incognito => incognito::IncognitoIcon(class),
+        Icons::Columns => columns::ColumnsIcon(class),
+        Icons::UserUp => user_up::UserUpIcon(class),
     }
 }

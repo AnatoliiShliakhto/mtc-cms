@@ -30,6 +30,9 @@ pub fn Permissions() -> Element {
                     tr {
                         th { class: "w-12" }
                         th { { t!("field-slug") } }
+                        th { { t!("field-read") } }
+                        th { { t!("field-write") } }
+                        th { { t!("field-delete") } }
                     }
                 }
                 tbody {
@@ -44,15 +47,25 @@ pub fn Permissions() -> Element {
                                     if auth().has_permission(PERMISSION_ROLES_DELETE) {
                                         button {
                                             class: "btn btn-xs btn-ghost",
-                                            onclick: move |_| {
-                                                delete(&slug)
-                                            },
+                                            onclick: move |_| delete(&slug),
                                             Icon { icon: Icons::Close, class: "size-4 text-error" }
                                         }
                                     }
                                 }
                                 td {
                                     { permission }
+                                }
+                                td {
+                                    class: "text-neutral",
+                                    { permission } { "::read" }
+                                }
+                                td {
+                                    class: "text-neutral",
+                                    { permission } { "::write" }
+                                }
+                                td {
+                                    class: "text-neutral",
+                                    { permission } { "::delete" }
                                 }
                             }
                         }
