@@ -1,5 +1,4 @@
-let api_url = '/api/storage/public/' +
-    sessionStorage.getItem('contentId').replaceAll('"', '');
+let api_url = '/api/storage/public/' + window.contentId;
 let formData = new FormData();
 let fileInput = document.getElementById('fileUpload');
 let file = fileInput.files[0];

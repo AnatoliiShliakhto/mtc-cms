@@ -9,6 +9,10 @@ pub fn FormHtmlField(
     #[props]
     initial_value: Option<String>,
 ) -> Element {
+    let ckeditor_eval = format!("CkEditorCreate('#{name}')");
+    use_effect(move || {
+        eval(&ckeditor_eval);
+    });
 
     rsx! {
         label {
@@ -27,10 +31,6 @@ pub fn FormHtmlField(
                     dangerous_inner_html: initial_value,
                 }
             }
-        }
-        script {
-            r#type: "module",
-            { EVAL_CKEDITOR.to_string().replace("{field_name}", &name) }
         }
     }
 }

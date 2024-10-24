@@ -13,12 +13,12 @@ pub fn PersonnelColumnsChooser() -> Element {
 
     rsx! {
         div {
-            class: "fixed top-24 right-0 dropdown dropdown-left \
-            opacity-50 xl:opacity-100 hover:opacity-100",
+            class: "fixed top-24 right-0 dropdown dropdown-left",
             div {
                 tabindex: "0",
                 role: "button",
                 class: "btn rounded-l-lg rounded-r-none shadow-md hover:btn-accent",
+                class: "opacity-50 xl:opacity-100 hover:opacity-100",
                 Icon { icon: Icons::Columns, class: "size-6 m-1" }
             }
             div {

@@ -82,6 +82,8 @@ fn main() {
             })
         });
 
+        use_effect(|| { eval(EVAL_SCROLL_UP); });
+
         rsx! {
             Title { { t!("site-title") } }
             ErrorBoundary {
@@ -102,10 +104,9 @@ fn main() {
                 id: "scrollUpButton",
                 class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100",
                 class: "right-4 bottom-4 hidden",
-                "onclick": "window.scrollTo(0, 0);",
+                "onclick": "window.scrollTo(0, 0)",
                 Icon { icon: Icons::ArrowUp, class: "size-8" }
             }
-            script { { EVAL_SCROLL_UP } }
             DialogBox {}
         }
     });

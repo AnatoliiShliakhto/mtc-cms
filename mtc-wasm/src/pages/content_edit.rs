@@ -76,9 +76,7 @@ pub fn ContentEdit(
         });
     };
 
-    SessionStorage::set("contentId", &id)
-        .map_err(|e| error!("{e:#?}"))
-        .ok();
+    eval(&format!("window.contentId = '{id}'"));
 
     rsx! {
         section {

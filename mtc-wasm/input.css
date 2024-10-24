@@ -96,9 +96,34 @@
     .main-menu :where(svg) {
         @apply -translate-x-4 sm:-translate-x-2;
     }
+
+    .personnel-list {
+        @apply py-6;
+    }
+    .personnel-list > li {
+        @apply flex flex-nowrap hover:bg-base-200 hover:cursor-pointer hover:shadow-md;
+    }
+    .personnel-list > li > div {
+        @apply grid w-full grid-cols-3 lg:grid-cols-5 content-center gap-2;
+    }
+    .personnel-list > li > pre {
+        @apply flex flex-nowrap px-3 py-2 gap-2;
+    }
+    .personnel-list :where(span) {
+        @apply py-2.5;
+    }
+    .personnel-list :where(button) {
+        @apply btn btn-xs btn-ghost hover:text-error mt-0.5;
+    }
+    .personnel-list :where(svg) {
+        @apply size-4;
+    }
+    .personnel-list :where(li:not(:last-child), li:first-child:last-child) {
+        @apply border-b-[1px] border-base-200;
+    }
 }
 
-.ck.ck-editor__main>.ck-editor__editable {
+.ck.ck-editor__main > .ck-editor__editable {
     background: transparent;
     border-radius: 0;
 }

@@ -21,7 +21,7 @@ pub fn MainMenu() -> Element {
                         },
                         img { 
                             class: "size-8 sm:size-6",
-                            src: "/assets/logo.png" 
+                            src: "/assets/logo.webp"
                         }
                         span { 
                             class: "flex flex-nowrap text-3xl sm:text-xl gap-3",
