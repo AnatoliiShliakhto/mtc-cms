@@ -14,18 +14,18 @@ pub fn EntryInfoBox(
 
     rsx! {
         div {
-            class: "fixed top-24 right-0 dropdown dropdown-hover dropdown-left \
-            opacity-50 xl:opacity-100 hover:opacity-100",
+            class: "fixed top-24 right-0 dropdown dropdown-hover dropdown-left",
             div {
                 tabindex: "0",
                 role: "button",
                 class: "btn text-accent rounded-l-lg rounded-r-none shadow-md hover:btn-accent",
+                class: "opacity-50 xl:opacity-100 hover:opacity-100",
                 Icon { icon: Icons::Info2, class: "size-8" }
             }
             div {
                 tabindex: "0",
                 class: "dropdown-content bg-base-100 rounded border input-bordered shadow-md \
-                flex flex-col min-w-44 mr-2 gap-1 label-text p-5 z-[1]",
+                flex flex-col min-w-44 mr-2 gap-1 label-text p-5 z-[10] opacity-100",
                 span {
                     class: "italic label-text text-primary",
                     { t!("field-created-at") } ":"

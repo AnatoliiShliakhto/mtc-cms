@@ -55,9 +55,8 @@ pub fn CourseEdit(
         vec![]
     };
 
-    SessionStorage::set("contentId", &response().key_string("id").unwrap_or_default())
-        .map_err(|e| error!("{e:#?}"))
-        .ok();
+    let content_id = response().key_string("id").unwrap_or_default();
+    eval(&format!("window.contentId = '{content_id}'"));
 
     let course_submit = course.clone();
     let submit = move |event: Event<FormData>| {

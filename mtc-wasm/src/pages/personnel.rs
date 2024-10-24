@@ -62,7 +62,7 @@ pub fn Personnel() -> Element {
                     div {
                         class: "collapse-content p-2",
                         form {
-                            class: "flex flex-wrap w-full px-4 sm:px-0",
+                            class: "flex flex-wrap w-full pl-4 sm:pl-0",
                             id: "personnel-form",
                             autocomplete: "off",
                             onsubmit: submit,
@@ -117,138 +117,93 @@ pub fn Personnel() -> Element {
                     }
                 }
             }
-            table {
-                class: "entry-table table-xs min-w-[750px] mt-6",
-                thead {
-                    tr {
-                        if column_actions() {
-                            th { class: "w-10" }
-                        }
-                        th { class: "w-8" }
-                        if column_login() {
-                            th {
-                                class: "w-28",
-                                { t!("field-login") }
+            ul {
+                class: "personnel-list",
+                for (login, user) in users() {{
+                    let login_cloned = login.clone();
+                    let id = user.id.clone();
+                    rsx! {
+                        li {
+                            pre {
+                                if column_actions() {
+                                    button {
+                                        onclick: move |_| delete(&login_cloned),
+                                        Icon {
+                                            icon: Icons::Close,
+                                            class: "size-4"
+                                        }
+                                    }
+                                }
+                                match user.state {
+                                    UserState::Active => rsx! {
+                                        Icon {
+                                            icon: Icons::UserCheck,
+                                            class: "mt-1.5 text-success"
+                                        }
+                                    },
+                                    UserState::Inactive => rsx! {
+                                        Icon {
+                                            icon: Icons::Ban,
+                                            class: "mt-1.5 text-error"
+                                        }
+                                    },
+                                    _ => rsx! {
+                                        Icon {
+                                            icon: Icons::Incognito,
+                                            class: "mt-1.5 text-neutral"
+                                        }
+                                    },
+                                }
                             }
-                        }
-                        if column_rank() {
-                            th {
-                                class: "w-32",
-                                { t!("field-rank") }
-                            }
-                        }
-                        if column_name() {
-                            th {
-                                class: "min-w-36 text-wrap",
-                                { t!("field-name") }
-                            }
-                        }
-                        if column_password() {
-                            th {
-                                class: "w-32",
-                                { t!("field-password") }
-                            }
-                        }
-                        if column_group() {
-                            th {
-                                class: "min-w-36",
-                                { t!("field-group") }
-                            }
-                        }
-                        if column_access() {
-                            th {
-                                class: "w-32",
-                                { t!("field-access") }
-                            }
-                        }
-                    }
-                }
-                tbody {
-                    for (login, user) in users() {{
-                        let login_cloned = login.clone();
-                        let id = user.id.clone();
-
-                        rsx! {
-                            tr {
+                            div {
                                 onclick: move |_| {
                                     if id.is_empty() { return }
                                     navigator()
                                     .push(route!(API_ADMINISTRATOR, API_USER, &id));
                                 },
-                                if column_actions() {
-                                    td {
-                                        class: "p-1",
-                                        onclick: move |event| event.stop_propagation(),
-                                        button {
-                                            class: "btn btn-xs btn-ghost hover:text-error",
-                                            onclick: move |_| delete(&login_cloned),
-                                            Icon {
-                                                icon: Icons::Close,
-                                                class: "size-4"
-                                            }
-                                        }
-                                    }
-                                }
-                                td {
-                                    class: "p-1 justify-items-center",
-                                    match user.state {
-                                        UserState::Active => rsx! {
-                                            Icon {
-                                                icon: Icons::UserCheck,
-                                                class: "size-4 text-success"
-                                            }
-                                        },
-                                        UserState::Inactive => rsx! {
-                                            Icon {
-                                                icon: Icons::Ban,
-                                                class: "size-4 text-error"
-                                            }
-                                        },
-                                        _ => rsx! {
-                                            Icon {
-                                                icon: Icons::Incognito,
-                                                class: "size-4 text-neutral"
-                                            }
-                                        },
-                                    }
-                                }
-                                if column_login() {
-                                    td {
-                                        { login }
-                                    }
-                                }
                                 if column_rank() {
-                                    td {
+                                    span {
+                                        class: "",
                                         { user.rank }
                                     }
                                 }
                                 if column_name() {
-                                    td {
+                                    span {
+                                        class: "col-span-2",
                                         { user.name }
                                     }
                                 }
-                                if column_password() {
-                                    td {
-                                        { user.password }
+                                if column_login() {
+                                    span {
+                                        class: "",
+                                        { login }
                                     }
                                 }
                                 if column_group() {
-                                    td {
+                                    span {
+                                        class: "text-sm col-span-2",
                                         { user.group }
                                     }
                                 }
+                                if column_password() {
+                                    span {
+                                        class: "text-sm",
+                                        { user.password }
+                                    }
+                                }
                                 if column_access() {
-                                    td {
+                                    span {
+                                        class: "text-sm",
                                         if let Some(access) = user.last_access {
-                                            { access.format("%d/%m/%Y").to_string() }
-                                            " (" { user.access_count.to_string() } ")"
+                                            { access.format("%d.%m.%y").to_string() }
+                                            " [" { user.access_count.to_string() } "]"
                                         }
                                     }
                                 }
                             }
                         }
-                    }}
-                }
+                    }
+                }}
             }
         }
         PersonnelActions {}

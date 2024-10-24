@@ -77,7 +77,11 @@ pub fn StorageBox(
                                 if files.len() == 1 {
                                     match eval(EVAL_COPY_TO_CLIPBOARD)
                                         .send(format!("{:0}/{:1}", path(), files[0])) {
-                                        Ok(_) => is_show.set(false),
+                                        Ok(_) => {
+                                            progress.set(0);
+                                            eval(EVAL_FILE_INPUTS_CLEAR);
+                                            is_show.set(false)
+                                        },
                                         Err(_) => {}
                                     }
                                 } else {
