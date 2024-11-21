@@ -4,7 +4,7 @@ macro_rules! value_future {
         use_resource(move || {
             let url = $url.clone();
             async move {
-                use_api_client()()
+                state!(client)
                     .get(&url)
                     .send()
                     .await
@@ -19,7 +19,7 @@ macro_rules! value_future {
             let url = $url.clone();
             let value = $value.clone();
             async move {
-                 use_api_client()()
+                 state!(client)
                     .post(&url)
                     .json(&value)
                     .send()
@@ -34,7 +34,7 @@ macro_rules! value_future {
 #[macro_export]
 macro_rules! value_request {
     ($url:expr) => {
-        use_api_client()()
+        state!(client)
             .get(&$url)
             .send()
             .await
@@ -43,7 +43,7 @@ macro_rules! value_request {
     };
 
     ($url:expr, $value:ident) => {
-        use_api_client()()
+        state!(client)
             .post(&$url)
             .json(&$value)
             .send()
@@ -56,7 +56,7 @@ macro_rules! value_request {
 #[macro_export]
 macro_rules! get_request {
     ($url:expr) => {
-        use_api_client()()
+        state!(client)
             .get(&$url)
             .send()
             .await
@@ -68,7 +68,7 @@ macro_rules! get_request {
 #[macro_export]
 macro_rules! post_request {
     ($url:expr) => {
-        use_api_client()()
+        state!(client)
             .post(&$url)
             .send()
             .await
@@ -77,7 +77,7 @@ macro_rules! post_request {
     };
 
     ($url:expr, $value:ident) => {
-        use_api_client()()
+        state!(client)
             .post(&$url)
             .json(&$value)
             .send()
@@ -90,7 +90,7 @@ macro_rules! post_request {
 #[macro_export]
 macro_rules! patch_request {
     ($url:expr) => {
-        use_api_client()()
+        state!(client)
             .patch(&$url)
             .send()
             .await
@@ -99,7 +99,7 @@ macro_rules! patch_request {
     };
 
     ($url:expr, $value:ident) => {
-        use_api_client()()
+        state!(client)
             .patch(&$url)
             .json(&$value)
             .send()
@@ -112,7 +112,7 @@ macro_rules! patch_request {
 #[macro_export]
 macro_rules! delete_request {
     ($url:expr) => {
-        use_api_client()()
+        state!(client)
             .delete(&$url)
             .send()
             .await
@@ -121,7 +121,7 @@ macro_rules! delete_request {
     };
 
     ($url:expr, $value:ident) => {
-        use_api_client()()
+        state!(client)
             .delete(&$url)
             .json(&$value)
             .send()

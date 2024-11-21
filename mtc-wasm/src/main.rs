@@ -6,37 +6,42 @@ mod repository;
 mod services;
 mod error;
 mod pages;
-mod hooks;
 mod elements;
 mod icons;
 mod components;
 mod macros;
 mod packs;
-mod js_eval;
+mod js;
+mod application;
+mod state;
 
 pub mod prelude {
+    pub static FRONT_END_URL: &str = env!("FRONT_END_URL");
+    pub static API_ENDPOINT: &str = dioxus_core::const_format::concatcp!(env!("FRONT_END_URL"), "/api");
+
     pub use crate::{
-        packs::prelude::*, // various site packs
+        state::prelude::*,
+        packs::prelude::*, // site packs
         components::prelude::*,
         elements::prelude::*,
         error::*,
-        hooks::prelude::*,
         icons::prelude::*,
         repository::prelude::*,
         services::prelude::*,
         pages::prelude::*,
         macros::prelude::*,
-        js_eval::*,
+        js::*,
+        application::prelude::*,
     };
 
-    pub use mtc_model::prelude::*;
+    pub use mtc_common::prelude::*;
     pub use dioxus::prelude::{*, document::{eval, Title}};
     pub use reqwest::{Client, Response};
     pub use chrono::{DateTime, Local};
     pub use futures_util::StreamExt;
     pub use gloo_storage::{LocalStorage, SessionStorage, Storage};
     pub use human_bytes::*;
-    //pub use dioxus_i18n::{prelude::*, t, unic_langid::langid};
+    pub use magic_crypt::{MagicCryptTrait, new_magic_crypt};
 
     pub use serde::{Deserialize, Serialize};
     pub use serde_json::{json, Value};
@@ -48,41 +53,61 @@ pub mod prelude {
         ffi::OsStr,
         path::Path,
     };
+    pub use wasm_bindgen::JsCast;
     pub use tracing::error;
 }
 
 fn main() {
     dioxus_logger::init(tracing::Level::INFO).expect("failed to init logger");
     launch(|| {
-        let auth_state = use_init_auth_state();
-        use_init_app_state();
-        use_init_i18n(I18N_EN_US);
-        use_init_dialog_box();
-        use_init_api_client();
-        use_init_breadcrumbs();
-        use_init_search_engine();
-        use_init_pages_entries();
-        use_init_personnel();
-        use_init_personnel_columns();
+        let session = use_init_state(I18N_UK_UA);
 
-        use_coroutine(sync_service);
+        // register ServiceWorker with SessionId
+        eval(&JS_SW_REGISTER.replace("{session}", &session()));
 
-        let sync_task = use_coroutine_handle::<SyncAction>();
-        let mut sync_eval = eval(EVAL_SYNC);
+        use_hook(move || spawn(async move {
+            if !is_tauri() { return }
+            let Ok(result) = tauri_invoke_without_args("get_platform")
+                .await else { return };
+            let Some(platform) = result.as_string() else { return };
+            set_tauri_session(session().to_string()).await;
+            state!(set_platform, platform.into());
+        }));
 
-        use_hook(|| {
-            sync_task.send(SyncAction::RefreshState("".into()));
+        use_effect(move || {
+            let search_engine = state_fn!(search_engine);
+            let pattern = search_engine.pattern;
+            let index = search_engine.index;
+            let list = search_engine.list;
+            let mut result = search_engine.result;
 
-            spawn(async move {
-                loop {
-                    if sync_eval.recv::<i32>().await.is_ok() {
-                        sync_task.send(SyncAction::RefreshState(auth_state().id))
-                    }
+            if pattern().is_empty() {
+                *result.write() = vec![];
+                return;
+            }
+
+            let mut search_res = vec![];
+            for idx in index().search(&pattern()).iter().take(30) {
+                if let Some(item) = list().get(&idx) {
+                    search_res.push(item.to_owned());
                 }
-            })
+            }
+            *result.write() = search_res;
         });
 
-        use_effect(|| { eval(EVAL_SCROLL_UP); });
+        let sync_task = use_coroutine(sync_service);
+
+        use_hook(move || {
+            spawn(async move {
+                if let Ok(Value::Bool(sw_present)) = eval(JS_SW_CHECK).recv().await {
+                    if sw_present {
+                        sync_task.send(SyncAction::RefreshState())
+                    } else {
+                        error_dialog!("error-sw-unsupported")
+                    }
+                }
+            });
+        });
 
         rsx! {
             Title { { t!("site-title") } }
@@ -100,12 +125,15 @@ fn main() {
                 },
                 Router::<Route> {}
             }
-            button {
-                id: "scrollUpButton",
-                class: "fixed btn btn-circle btn-neutral opacity-60 hover:opacity-100",
-                class: "right-4 bottom-4 hidden",
-                "onclick": "window.scrollTo(0, 0)",
-                Icon { icon: Icons::ArrowUp, class: "size-8" }
+            div {
+                class: "fixed right-4 bottom-4 qr-element",
+                button {
+                    id: "scrollUpButton",
+                    class: "btn btn-circle btn-neutral opacity-60 hover:opacity-100 hidden",
+                    onmounted: |_| { eval(JS_SCROLL_UP); },
+                    "onclick": "window.scrollTo(0, 0)",
+                    Icon { icon: Icons::ArrowUp, class: "size-8" }
+                }
             }
             DialogBox {}
         }

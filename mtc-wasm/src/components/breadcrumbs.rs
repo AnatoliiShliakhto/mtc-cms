@@ -2,9 +2,9 @@ use super::*;
 
 #[component]
 pub fn Breadcrumbs() -> Element {
-    let breadcrumbs = use_breadcrumbs();
+    let breadcrumbs = state!(breadcrumbs);
 
-    if breadcrumbs().is_empty() {
+    if breadcrumbs.is_empty() {
         return rsx! {}
     }
 
@@ -12,7 +12,7 @@ pub fn Breadcrumbs() -> Element {
         div {
             class: "bg-base-100 text-base-content sm:sticky top-12 z-[20] flex \
                     w-full px-5 bg-opacity-90 backdrop-blur transition-shadow \
-                    duration-100 [transform:translate3d(0,0,0)]",
+                    duration-100 [transform:translate3d(0,0,0)] qr-element",
             div {
                 class: "breadcrumbs",
                 ul {
@@ -23,7 +23,7 @@ pub fn Breadcrumbs() -> Element {
                             { t!("menu-home") }
                         }
                     }
-                    for item in breadcrumbs().into_iter() {
+                    for item in breadcrumbs.into_iter() {
                         if item.1.is_empty() {
                             li {
                                 span {

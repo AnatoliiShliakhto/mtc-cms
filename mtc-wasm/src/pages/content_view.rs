@@ -13,7 +13,7 @@ pub fn ContentView(
     let slug = use_memo(use_reactive!(|slug| slug));
     let arg = use_memo(use_reactive!(|arg| arg.unwrap_or_default()));
 
-    let is_writer = use_auth_state()().has_role(ROLE_WRITER);
+    let is_writer = state!(auth).has_role(ROLE_WRITER);
     let menu_item = if schema().eq("page") || schema().eq("course") {
         format!("menu-{}", slug())
     } else {

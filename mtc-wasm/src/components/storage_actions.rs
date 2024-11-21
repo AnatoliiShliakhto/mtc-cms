@@ -5,7 +5,7 @@ pub fn StorageActions(
     #[props(into)]
     id: String,
 ) -> Element {
-    let auth_state = use_auth_state();
+    let auth = state!(auth);
     let mut public_box_visible = use_signal(|| false);
     let mut private_box_visible = use_signal(|| false);
 
@@ -16,7 +16,7 @@ pub fn StorageActions(
             onclick: move |event| event.stop_propagation(),
 
             button {
-                class: if auth_state().has_permission(PERMISSION_PUBLIC_STORAGE_READ) {
+                class: if auth.has_permission(PERMISSION_PUBLIC_STORAGE_READ) {
                     "hover:btn-accent join-item"
                 } else {
                     "btn-disabled join-item"
@@ -29,7 +29,7 @@ pub fn StorageActions(
                 }
             }
             button {
-                class: if auth_state().has_permission(PERMISSION_PRIVATE_STORAGE_READ) {
+                class: if auth.has_permission(PERMISSION_PRIVATE_STORAGE_READ) {
                     "hover:btn-warning join-item"
                 } else {
                     "btn-disabled join-item"

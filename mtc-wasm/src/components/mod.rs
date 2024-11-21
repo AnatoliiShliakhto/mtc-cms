@@ -37,6 +37,7 @@ mod dialog_box;
 mod personnel_actions;
 mod personnel_columns_chooser;
 mod form_checkbox_field;
+mod view_links_search;
 
 pub mod prelude {
     pub use super::{
@@ -72,6 +73,7 @@ pub mod prelude {
         view_text_field::*,
         view_course_field::*,
         view_links_field::*,
+        view_links_search::*,
         storage_box::*,
         init_box::*,
         search_box::*,

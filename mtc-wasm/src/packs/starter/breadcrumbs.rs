@@ -5,10 +5,11 @@ pub fn build_breadcrumbs(slug: &str) {
 
     use_effect(use_reactive!(|(slug,)| {
         let breadcrumbs: Vec<(Cow<str>, &str)> = match &*slug {
-            "menu-sign-in" => vec![(t!("menu-sign-in"), "/sign-in")],
-            "menu-settings" => vec![(t!("menu-settings"), "/change-password")],
+            "menu-sign-in" => vec![(t!("menu-sign-in"), "/auth/sign-in")],
+            "menu-change-password" => vec![(t!("menu-change-password"), "/auth/change-password")],
             "menu-search" => vec![(t!("menu-search"), "")],
             "menu-personnel" => vec![(t!("menu-personnel"), "")],
+            "menu-linking-qr-code" => vec![(t!("menu-linking-qr-code"), "/auth/linking-qr-code")],
 
             "menu-administrator" => vec![(t!("menu-administrator"), "/administrator")],
             "menu-permissions" => vec![
@@ -37,12 +38,12 @@ pub fn build_breadcrumbs(slug: &str) {
 
             "menu-page" => vec![
                 (t!("menu-content"), ""),
-                (t!("menu-page"), "/list/page")
+                (t!("menu-page"), "/content/page")
             ],
 
             "menu-course" => vec![
                 (t!("menu-content"), ""),
-                (t!("menu-course"), "/list/course")
+                (t!("menu-course"), "/content/course")
             ],
 
             "menu-content-edit" => vec![
@@ -58,7 +59,7 @@ pub fn build_breadcrumbs(slug: &str) {
             _ => vec![],
         };
 
-        use_breadcrumbs().set(breadcrumbs.into_iter()
+        state!(set_breadcrumbs, breadcrumbs.into_iter()
             .map(|(key, value)| (key.into(), Cow::Borrowed(value.into())))
             .collect::<Vec<(Cow<'static, str>, Cow<'static, str>)>>())
     }));

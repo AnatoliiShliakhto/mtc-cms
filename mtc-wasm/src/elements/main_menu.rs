@@ -2,8 +2,7 @@ use super::*;
 
 #[component]
 pub fn MainMenu() -> Element {
-    let mut menu_state = use_menu_state();
-    
+
     rsx! {
         aside {
             class: "flex flex-col bg-base-200 min-h-screen w-full sm:w-80",
@@ -15,8 +14,8 @@ pub fn MainMenu() -> Element {
                     button { 
                         class: "grow btn btn-ghost gap-3 pl-12 lg:pl-0 rounded-none",
                         onclick: move |_| {
-                            menu_state.set(false);
-                            use_search_engine_drop();
+                            state!(set_menu, false);
+                            state_fn!(search_engine_clear);
                             navigator().push(route!());
                         },
                         img { 
@@ -31,7 +30,7 @@ pub fn MainMenu() -> Element {
                     }
                     button { 
                         class: "btn btn-ghost inline-flex lg:hidden rounded-none",
-                        onclick: move |_| menu_state.set(false),
+                        onclick: move |_| state!(set_menu, false),
                         Icon { icon: Icons::Close, class: "size-6" }
                     }
                 }

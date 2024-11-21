@@ -1,7 +1,7 @@
 use super::*;
 
 pub fn Menu() -> Element {
-    let auth_state = &*use_auth_state().read_unchecked();
+    let auth = state!(auth);
 
     rsx! {
         MenuItem {

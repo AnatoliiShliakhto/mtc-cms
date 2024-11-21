@@ -8,11 +8,11 @@ name = "mtc-wasm"
 default_platform = "web"
 
 # `build` & `serve` dist path
-out_dir = "data/www"
+out_dir = "../data/www"
 
 # resource (assets) file folder
-asset_dir = "assets"
-#sub_package = "mtc-web"
+asset_dir = "../assets"
+#sub_package = "mtc-wasm"
 
 [web.app]
 
@@ -25,14 +25,14 @@ title = "Military Training Center CMS"
 reload_html = true
 
 # which files or dirs will be watcher monitoring
-watch_path = ["src", "assets"]
+watch_path = ["src", "../assets"]
 
 # include `assets` in web platform
 [web.resource]
 
 # CSS style file
 
-#style = ["tailwind.css"]
+#style = []
 
 # Javascript code file
 script = []
@@ -42,3 +42,9 @@ script = []
 # Javascript code file
 # serve: [dev-server] only
 script = []
+
+[[web.proxy]]
+backend = "https://localhost/api/"
+
+[bundle]
+resources = ["../assets/*"]

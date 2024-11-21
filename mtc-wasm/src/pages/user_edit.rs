@@ -15,9 +15,7 @@ pub fn UserEdit(
     let response = future.suspend()?;
     check_response!(response, future);
 
-    let state_roles = use_app_state().roles;
-    let state_groups = use_app_state().groups;
-    let personnel = use_personnel().users;
+    let personnel = state!(personnel);
     let login = response().key_string("login").unwrap_or_default();
 
     let submit = move |event: Event<FormData>| {
@@ -48,7 +46,7 @@ pub fn UserEdit(
     rsx! {
         section {
             class: "flex grow select-none flex-col gap-6 px-3 pr-20 sm:pr-16",
-            if let Some(details) = personnel().get(login.as_str()) {
+            if let Some(details) = personnel.get(login.as_str()) {
                 h3 {
                     class: "flex w-full flex-wrap pt-3",
                     class: "justify-center text-2xl font-semibold text-center",
@@ -80,14 +78,14 @@ pub fn UserEdit(
                     name: "group",
                     title: "field-group",
                     selected: response().key_string("group").unwrap_or_default(),
-                    items: state_groups()
+                    items: state!(groups)
                 }
                 FormEntriesField {
                     name: "roles",
                     title: "field-roles",
                     items: response().key_obj::<Vec<Cow<'static, str>>>("roles")
                     .unwrap_or_default(),
-                    entries: state_roles()
+                    entries: state!(roles)
                 }
             }
         }

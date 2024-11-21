@@ -4,10 +4,10 @@ use super::*;
 pub fn Personnel() -> Element {
     breadcrumbs!("menu-personnel");
     check_permission!(PERMISSION_USERS_READ);
-    let is_admin = use_auth_state()().is_admin();
+    let is_admin = state!(auth).is_admin();
     let mut confirmation = use_signal(|| false);
 
-    let columns = use_personnel_columns();
+    let columns = state_fn!(personnel_columns);
     let column_actions = columns.actions;
     let column_login = columns.login;
     let column_rank = columns.rank;
@@ -16,10 +16,7 @@ pub fn Personnel() -> Element {
     let column_group = columns.group;
     let column_access = columns.access;
 
-    let mut users = use_personnel().users;
-
-    let state_roles = use_app_state().roles;
-    let state_groups = use_app_state().groups;
+    let mut users = state_fn!(personnel);
 
     let mut delete = move |login: &str| {
         users.write().remove(login);
@@ -45,7 +42,7 @@ pub fn Personnel() -> Element {
             let response = value_request!(url!(API_USERS), payload);
             let Some(user_details_dto) =
                 response.self_obj::<Vec<UserDetailsDto>>() else { return };
-            use_personnel_assign_details(user_details_dto);
+            state!(add_personnel, user_details_dto);
         });
     };
 
@@ -71,7 +68,7 @@ pub fn Personnel() -> Element {
                                 name: "roles",
                                 title: "field-roles",
                                 items: vec![],
-                                entries: state_roles()
+                                entries: state!(roles)
                             }
                             div {
                                 class: "grid w-full gap-5 items-end",
@@ -94,7 +91,7 @@ pub fn Personnel() -> Element {
                                         name: "group",
                                         title: "field-group",
                                         selected: "",
-                                        items: state_groups(),
+                                        items: state!(groups)
                                     }
                                 }
                                 if confirmation() {

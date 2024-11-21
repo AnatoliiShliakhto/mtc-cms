@@ -66,7 +66,6 @@ CREATE schemas CONTENT {
 DEFINE FIELD login ON TABLE users TYPE string;
 DEFINE FIELD password ON TABLE users TYPE string;
 DEFINE FIELD blocked ON TABLE users TYPE bool DEFAULT false;
-DEFINE FIELD access_level ON TABLE users TYPE int DEFAULT 999;
 DEFINE FIELD access_count ON TABLE users TYPE int DEFAULT 0;
 DEFINE FIELD last_access ON TABLE users TYPE option<datetime>;
 DEFINE FIELD fields ON TABLE users FLEXIBLE TYPE option<object>;
@@ -424,10 +423,45 @@ DEFINE FIELD title ON TABLE search_index TYPE string;
 DEFINE FIELD url ON TABLE search_index TYPE string;
 DEFINE FIELD permission ON TABLE search_index TYPE string;
 DEFINE INDEX idx_search_url ON TABLE search_index COLUMNS url UNIQUE;
-DEFINE INDEX idx_search_permission ON TABLE search_index COLUMNS permission;
 
 DEFINE ANALYZER search_lowercase TOKENIZERS blank, class, punct
 FILTERS lowercase, ascii, ngram(1,20), snowball(russian), snowball(english);
 DEFINE INDEX idx_search_title ON search_index FIELDS title SEARCH ANALYZER search_lowercase BM25;
+
+CREATE schemas CONTENT {
+    slug: 'schemas',
+    title: 'Schemas',
+    permission: 'schemas',
+    created_by: $login,
+    updated_by: $login
+};
+
+REMOVE TABLE IF EXISTS api_keys;
+DEFINE TABLE api_keys SCHEMAFULL;
+
+CREATE schemas CONTENT {
+    slug: 'api_keys',
+    title: 'Users API keys',
+    permission: 'schemas',
+    created_by: $login,
+    updated_by: $login
+};
+
+DEFINE FIELD api_key ON TABLE api_keys TYPE string;
+DEFINE FIELD os ON TABLE api_keys TYPE string DEFAULT '';
+DEFINE FIELD device ON TABLE api_keys TYPE string DEFAULT '';
+DEFINE FIELD is_active ON TABLE api_keys TYPE bool DEFAULT false;
+DEFINE INDEX idx_api_keys ON TABLE api_keys COLUMNS api_key UNIQUE;
+
+REMOVE TABLE IF EXISTS user_api_keys;
+DEFINE TABLE user_api_keys SCHEMAFULL TYPE RELATION IN users OUT api_keys;
+
+CREATE schemas CONTENT {
+    slug: 'user_api_keys',
+    title: 'user_api_keys',
+    permission: 'schemas',
+    created_by: $login,
+    updated_by: $login
+};
 
 COMMIT TRANSACTION;

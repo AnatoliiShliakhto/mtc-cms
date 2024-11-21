@@ -12,7 +12,7 @@ pub trait StorageTrait {
     async fn delete_file(&self, path: &str) -> Result<()>;
     async fn create_assets(&self, id: &str) -> Result<()>;
     async fn delete_assets(&self, id: &str) -> Result<()>;
-    async fn find_assets(&self, path: &str) -> Result<Vec<Asset>>;
+    async fn find_assets(&self, path: &str) -> Result<Vec<FileAsset>>;
     async fn upload_asset(
         &self,
         path: &str,
@@ -77,14 +77,14 @@ impl StorageTrait for Repository {
         Ok(())
     }
 
-    async fn find_assets(&self, path: &str) -> Result<Vec<Asset>> {
+    async fn find_assets(&self, path: &str) -> Result<Vec<FileAsset>> {
         let mut storage_list = vec![];
 
         if let Ok(mut folder) = fs::read_dir(path).await {
             while let Ok(Some(child)) = folder.next_entry().await {
                 if let Ok(meta) = child.metadata().await {
                     if meta.is_file() {
-                        storage_list.push(Asset {
+                        storage_list.push(FileAsset {
                             name: child.file_name().into_string().unwrap_or_default().into(),
                             size: meta.len() as usize,
                         })

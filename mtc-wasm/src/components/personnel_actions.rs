@@ -2,8 +2,8 @@ use super::*;
 
 #[component]
 pub fn PersonnelActions() -> Element {
-    let mut users = use_personnel().users;
-    let columns = use_personnel_columns();
+    let mut users = state_fn!(personnel);
+    let columns = state_fn!(personnel_columns);
     let column_login = columns.login;
     let column_rank = columns.rank;
     let column_name = columns.name;
@@ -12,7 +12,7 @@ pub fn PersonnelActions() -> Element {
     let column_access = columns.access;
 
     let from_clipboard = move |_| async move {
-        if let Ok(Value::String(value)) = eval(EVAL_PASTE_FROM_CLIPBOARD).recv().await {
+        if let Ok(Value::String(value)) = eval(JS_PASTE_FROM_CLIPBOARD).recv().await {
             let mut reader = csv::ReaderBuilder::new()
                 .delimiter(b'\t')
                 .has_headers(false)
@@ -72,7 +72,7 @@ pub fn PersonnelActions() -> Element {
         )
             .join("\r\n"));
 
-        if eval(EVAL_COPY_TO_CLIPBOARD).send(payload).is_ok() {
+        if eval(JS_COPY_TO_CLIPBOARD).send(payload).is_ok() {
             success_dialog!("message-personnel-copy-successful");
         }
     };
@@ -95,7 +95,7 @@ pub fn PersonnelActions() -> Element {
                     });
                 });
             }
-            let _ = eval(EVAL_FILE_INPUTS_CLEAR).await.ok();
+            let _ = eval(JS_FILE_INPUTS_CLEAR).await.ok();
         }
     };
 
@@ -108,7 +108,7 @@ pub fn PersonnelActions() -> Element {
             name: details.name.clone(),
         }).collect::<Vec<PersonDto>>();
 
-        if eval(EVAL_EXPORT_PERSONNEL).send(payload).is_ok() {
+        if eval(JS_EXPORT_PERSONNEL).send(payload).is_ok() {
             success_dialog!("message-personnel-export-successful");
         }
     };
@@ -123,7 +123,7 @@ pub fn PersonnelActions() -> Element {
             let response = value_request!(url!(API_PERSONNEL), payload);
             let Some(user_details_dto) =
                 response.self_obj::<Vec<UserDetailsDto>>() else { return };
-            use_personnel_assign_details(user_details_dto);
+            state!(add_personnel, user_details_dto);
         });
     };
 

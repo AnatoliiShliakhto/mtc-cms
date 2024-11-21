@@ -18,7 +18,7 @@ pub async fn find_schema_handler(
 ) -> Result<impl IntoResponse> {
     session.has_permission(PERMISSION_SCHEMAS_READ).await?;
 
-    let user = session.get_user().await?;
+    let user = session.get_auth_login().await?;
 
     let schema = if id.eq(ID_CREATE) {
         Schema {
@@ -48,7 +48,7 @@ pub async fn update_schema_handler(
         Err(GenericError::BadRequest)?
     }
 
-    let by = session.get_user().await?;
+    let by = session.get_auth_login().await?;
 
     state.repository.update_schema(payload, by).await?;
 

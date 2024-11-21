@@ -30,18 +30,9 @@ pub fn ViewLinksField(
 pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
     let extension = get_extension_from_filename(&url);
 
-    if url.starts_with("/view") {
+    if url.starts_with("/content") {
         return rsx! {
             Icon { icon: Icons::Description, class: "size-4" }
-            Link {
-                to: &*url,
-                { title }
-            }
-        };
-    }
-    if url.starts_with("/list") {
-        return rsx! {
-            Icon { icon: Icons::Folder, class: "size-4" }
             Link {
                 to: &*url,
                 { title }
@@ -55,6 +46,7 @@ pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
             a {
                 target: "_blank",
                 href: &*url,
+                "onclick": "linkOpen(this, event)",
                 { title }
             }
         };
@@ -80,8 +72,9 @@ pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
                 Icon { icon: Icons::File, class: "size-4" }
             },
         }
-        a { target: "_blank",
+        a {
             href: &*url,
+            "onclick": r#"linkDownloadThenOpen(this); return false;"#,
             { title }
         }
     }

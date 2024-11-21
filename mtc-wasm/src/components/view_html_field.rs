@@ -5,13 +5,16 @@ pub fn ViewHtmlField(
     #[props(into)]
     value: Option<String>,
 ) -> Element {
-    if value.is_none() {
-        return rsx!{}
-    }
+    let Some(inner) = value else { return rsx!{} };
+    let is_web = state!(platform).eq("web");
 
-     rsx! {
-         article {
-             dangerous_inner_html: value,
-         }
-     }
+    let inner = inner
+        .as_str()
+        .replace(r#"href=""#, r#"onclick="linkOpen(this); return false;" href=""#);
+
+    rsx! {
+        article {
+            dangerous_inner_html: inner,
+        }
+    }
 }

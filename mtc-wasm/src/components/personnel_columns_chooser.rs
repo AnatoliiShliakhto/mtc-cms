@@ -2,7 +2,7 @@ use super::*;
 
 #[component]
 pub fn PersonnelColumnsChooser() -> Element {
-    let columns = use_personnel_columns();
+    let columns = state_fn!(personnel_columns);
     let mut column_actions = columns.actions;
     let mut column_login = columns.login;
     let mut column_rank = columns.rank;

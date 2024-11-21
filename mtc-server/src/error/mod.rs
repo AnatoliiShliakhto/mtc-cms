@@ -238,12 +238,15 @@ impl From<surrealdb::Error> for Error {
     }
 }
 
+/*
 impl From<tower_sessions::session::Error> for Error {
     fn from(err: tower_sessions::session::Error) -> Self {
         error!(target: "session", "{err}");
         Self::from(SessionError::InvalidSession)
     }
 }
+
+ */
 
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Self {

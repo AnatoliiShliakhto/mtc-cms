@@ -14,6 +14,8 @@ fn CustomRouter(
     #[props(into)]
     route: Vec<String>,
 ) -> Element {
+    eval(r#"window.CkEditorDestroy?.()"#);
+
     if route.is_empty() { return rsx! { Home {} } }
 
     let static_route = route.join("/");
@@ -21,8 +23,10 @@ fn CustomRouter(
     match static_route.as_str() {
         "home" => return rsx! { Home {} },
         "administrator" => return rsx! { Administrator {} },
-        "sign-in" => return rsx! { SignIn {} },
-        "change-password" => return rsx! { ChangePassword {} },
+        "auth/sign-in" => return rsx! { SignIn {} },
+        "auth/qr-sign-in" => return rsx! { QrSignIn {} },
+        "auth/change-password" => return rsx! { ChangePassword {} },
+        "auth/linking-qr-code" => return rsx! { LinkingQrCode {} },
         "personnel" => return rsx! { Personnel {} },
         "personnel/add" => return rsx! { PersonnelAdd {} },
         "administrator/permissions" => return rsx! { Permissions {} },

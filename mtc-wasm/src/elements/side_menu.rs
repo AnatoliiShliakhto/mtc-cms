@@ -2,12 +2,11 @@ use super::*;
 
 #[component]
 pub fn SideMenu() -> Element {
-    let auth_state = &*use_auth_state().read_unchecked();
-    let mut menu_state = use_menu_state();
+    let auth = state!(auth);
 
     rsx! {
         Menu {}
-        if auth_state.has_role(ROLE_WRITER) {
+        if auth.has_role(ROLE_WRITER) {
             div { class: "divider my-0" }
             li {
                 details {
@@ -27,7 +26,7 @@ pub fn SideMenu() -> Element {
                                     { t!( "menu-pages") }
                                 }
                                 ul {
-                                    for page in use_pages_entries()() {
+                                    for page in state!(pages) {
                                         MenuItem {
                                             route: route!(API_CONTENT, page.slug),
                                             { page.title }
@@ -45,7 +44,7 @@ pub fn SideMenu() -> Element {
                 }
             }
         }
-        if auth_state.has_role(ROLE_ADMINISTRATOR) {
+        if auth.has_role(ROLE_ADMINISTRATOR) {
             div { class: "divider my-0" }
             li {
                 details {
@@ -84,24 +83,37 @@ pub fn SideMenu() -> Element {
             }
         }
         div { class: "divider my-0" }
-        if auth_state.is_authenticated() {
+        if auth.is_authenticated() {
             MenuItem {
                 route: route!(API_PERSONNEL),
                 permission: PERMISSION_USERS_READ,
                 Icon { icon: Icons::Personnel, class: "size-8 sm:size-6 text-info" }
                 { t!("menu-personnel") }
             }
-            MenuItem {
-                route: route!("change-password"),
-                Icon { icon: Icons::Settings, class: "size-8 sm:size-6 text-neutral" }
-                { t!("menu-settings") }
+            li {
+                details {
+                    summary {
+                        Icon { icon: Icons::Settings, class: "size-8 sm:size-6 text-neutral" }
+                        { t!( "menu-settings") }
+                    }
+                    ul {
+                        MenuItem {
+                            route: route!(API_AUTH, "change-password"),
+                            { t!("menu-change-password") }
+                        }
+                        MenuItem {
+                            route: route!(API_AUTH, "linking-qr-code"),
+                            { t!("menu-linking-qr-code") }
+                        }
+                    }
+                }
             }
             li {
                 a {
                     onclick: move |event| {
-                        use_search_engine_drop();
+                        state_fn!(search_engine_clear);
                         sign_out_task(event);
-                        menu_state.set(false)
+                        state!(set_menu, false)
                     },
                     Icon { icon: Icons::SignOut, class: "size-8 sm:size-6 text-error" }
                     { t!("menu-sign-out") }
@@ -109,7 +121,7 @@ pub fn SideMenu() -> Element {
             }
         } else {
             MenuItem {
-                route: route!(API_SIGN_IN),
+                route: route!(API_AUTH, API_SIGN_IN),
                 Icon { icon: Icons::SignIn, class: "size-8 sm:size-6 text-accent" }
                 { t!("menu-sign-in") }
             }

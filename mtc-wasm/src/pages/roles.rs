@@ -9,7 +9,7 @@ pub fn Roles() -> Element {
     let response = future.suspend()?;
     check_response!(response, future);
 
-    *use_app_state().roles.write() = response().self_obj::<Vec<Entry>>().unwrap_or_default();
+    state!(set_roles, response().self_obj::<Vec<Entry>>().unwrap_or_default());
 
     rsx! {
         section {

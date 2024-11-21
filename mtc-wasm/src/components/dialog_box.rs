@@ -2,7 +2,7 @@ use super::*;
 
 #[component]
 pub fn DialogBox() -> Element {
-    let Some(args) = use_dialog_box()() else {
+    let Some(args) = state!(dialog) else {
         return rsx!{}
     };
 

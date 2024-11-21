@@ -8,9 +8,11 @@ pub async fn find_system_info_handler(
 
     let system_info = state.repository.find_system_info().await?;
     let migrations = state.repository.find_migrations().await?;
+    let sitemap = state.repository.get_system_value("sitemap".into()).await?;
     let mut json_obj = json!({});
     json_obj.insert_value("info", json!(system_info));
     json_obj.insert_value("migrations", json!(migrations));
+    json_obj.insert_value("sitemap", json!(sitemap));
 
     json_obj.to_response()
 }
@@ -21,7 +23,7 @@ pub async fn migration_handler(
     Payload(payload): Payload<Value>,
 ) -> Result<impl IntoResponse> {
     let mut migrations = state.repository.find_migrations().await?;
-    let mut login = session.get_user().await.unwrap_or_default();
+    let mut login = session.get_auth_login().await.unwrap_or_default();
     let mut password = Cow::Borrowed("");
 
     if migrations.is_empty() {
@@ -103,4 +105,21 @@ pub async fn search_handler(
         .await?;
 
     search_idx.to_response()
+}
+
+pub async fn sitemap_build_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<impl IntoResponse> {
+    if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
+        Err(SessionError::AccessForbidden)?
+    }
+
+    state.repository.sitemap_build().await?;
+
+    Ok(())
+}
+
+pub async fn health_handler() -> Result<impl IntoResponse> {
+    Ok(StatusCode::OK)
 }

@@ -121,6 +121,13 @@
     .personnel-list :where(li:not(:last-child), li:first-child:last-child) {
         @apply border-b-[1px] border-base-200;
     }
+
+    .qr-scanning {
+        --tw-bg-opacity: 0;
+    }
+    .qr-scanning :where(.qr-element) {
+        @apply hidden;
+    }
 }
 
 .ck.ck-editor__main > .ck-editor__editable {

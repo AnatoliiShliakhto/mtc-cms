@@ -46,17 +46,19 @@ pub fn routes(
         .route("/permission/:permission", post(create_custom_permission_handler)
             .delete(delete_custom_permission_handler)
         )
-        
+
+        .route("/auth/qr", get(sign_in_qr_code_handler))
         .route("/auth", post(sign_in_handler)
             .delete(sign_out_handler)
             .patch(change_password_handler)
         )
 
+        .route("/system/sitemap", post(sitemap_build_handler))
         .route("/system/rebuild", post(search_idx_rebuild_handler))
         .route("/system/migrate", post(migration_handler))
         .route("/system", get(find_system_info_handler))
         .route("/search", post(search_handler))
-        .route("/sync", post(sync_handler))
+        .route("/sync", get(sync_handler))
         
         .with_state(state)
 }

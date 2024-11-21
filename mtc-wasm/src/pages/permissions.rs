@@ -2,8 +2,6 @@ use super::*;
 
 #[component]
 pub fn Permissions() -> Element {
-    let auth = use_auth_state();
-
     breadcrumbs!("menu-permissions");
     check_permission!(PERMISSION_ROLES_READ);
 
@@ -44,7 +42,7 @@ pub fn Permissions() -> Element {
                         rsx! {
                             tr {
                                 td {
-                                    if auth().has_permission(PERMISSION_ROLES_DELETE) {
+                                    if state!(auth).has_permission(PERMISSION_ROLES_DELETE) {
                                         button {
                                             class: "btn btn-xs btn-ghost",
                                             onclick: move |_| delete(&slug),

@@ -21,7 +21,6 @@ pub struct Config {
     pub db_namespace: Cow<'static, str>,
     pub db_name: Cow<'static, str>,
     pub session_expiration: i64,
-    pub session_secure_key: Cow<'static, str>,
 
     pub max_body_limit: usize,
     pub rows_per_page: usize,
@@ -33,53 +32,55 @@ pub struct Config {
     pub strict_transport_security: Cow<'static, str>,
     pub content_security_policy: Cow<'static, str>,
     pub x_content_type_options: Cow<'static, str>,
-    pub x_frame_options: Cow<'static, str>,
 }
 
 impl Config {
     pub fn init() -> Config {
         dotenv::dotenv().ok();
 
-        let data_path = Self::get_env("DATA_PATH");
+        let data_path = env!("DATA_PATH");
 
         Self {
-            host: Self::get_env("HOST"),
-            http_port: Self::get_env("HTTP_PORT"),
-            https_port: Self::get_env("HTTPS_PORT"),
-            password_salt: Self::get_env("PASSWORD_SALT"),
+            host: env!("HOST").into(),
+            http_port: env!("HTTP_PORT").into(),
+            https_port: env!("HTTPS_PORT").into(),
+            password_salt: env!("PASSWORD_SALT").into(),
             db_path: [&data_path, "db"].join("/").into(),
-            db_namespace: Self::get_env("DB_NAMESPACE"),
-            db_name: Self::get_env("DB_NAME"),
-            session_expiration: Self::get_env("SESSION_EXPIRATION_IN_MINUTES")
+            db_namespace: env!("DB_NAMESPACE").into(),
+            db_name: env!("DB_NAME").into(),
+            session_expiration: env!("SESSION_EXPIRATION_IN_MINUTES")
                 .trim()
                 .parse::<i64>()
                 .unwrap_or(24 * 60),
-            session_secure_key: Self::get_env("SESSION_SECURE_KEY"),
-            front_end_url: Self::get_env("FRONT_END_URL"),
-            max_body_limit: Self::get_env("MAX_BODY_LIMIT")
+            front_end_url: env!("FRONT_END_URL").into(),
+            max_body_limit: env!("MAX_BODY_LIMIT")
                 .trim()
                 .parse::<usize>()
                 .unwrap_or(104_857_600),
-            rows_per_page: Self::get_env("ROWS_PER_PAGE")
+            rows_per_page: env!("ROWS_PER_PAGE")
                 .trim()
                 .parse::<usize>()
                 .unwrap_or(10),
-            www_path: [&data_path, "www"].join("/").into(),
+            www_path: if cfg!(debug_assertions) {
+                "./target/dx/mtc-wasm/debug/web/public".into()
+            } else {
+                [&data_path, "www"].join("/").into()
+            },
             storage_path: [&data_path, "public"].join("/").into(),
             private_storage_path: [&data_path, "protected"].join("/").into(),
             cert_path: [&data_path, "cert"].join("/").into(),
             log_path: [&data_path, "log"].join("/").into(),
             migration_path: [&data_path, "migrations"].join("/").into(),
-            api_cache_control: Self::get_env("API_CACHE_CONTROL"),
-            public_cache_control: Self::get_env("PUBLIC_CACHE_CONTROL"),
-            protected_cache_control: Self::get_env("PROTECTED_CACHE_CONTROL"),
-            strict_transport_security: Self::get_env("STRICT_TRANSPORT_SECURITY"),
-            content_security_policy: Self::get_env("CONTENT_SECURITY_POLICY"),
-            x_content_type_options: Self::get_env("X_CONTENT_TYPE_OPTIONS"),
-            x_frame_options: Self::get_env("X_FRAME_OPTIONS"),
+            api_cache_control: env!("API_CACHE_CONTROL").into(),
+            public_cache_control: env!("PUBLIC_CACHE_CONTROL").into(),
+            protected_cache_control: env!("PROTECTED_CACHE_CONTROL").into(),
+            strict_transport_security: env!("STRICT_TRANSPORT_SECURITY").into(),
+            content_security_policy: env!("CONTENT_SECURITY_POLICY").into(),
+            x_content_type_options: env!("X_CONTENT_TYPE_OPTIONS").into(),
         }
     }
 
+    //use this func if u wanna read env variables at runtime env! macro instead
     fn get_env(name: &str) -> Cow<str> {
         std::env::var(name)
             .map_err(|_| error!("ENV VARIABLE missing: {name}"))

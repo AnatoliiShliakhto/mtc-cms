@@ -18,7 +18,7 @@ pub async fn find_group_handler(
 ) -> Result<impl IntoResponse> {
     session.has_permission(PERMISSION_GROUPS_READ).await?;
 
-    let user = session.get_user().await?;
+    let user = session.get_auth_login().await?;
 
     let group = if id.eq(ID_CREATE) {
         Group {
@@ -44,7 +44,7 @@ pub async fn update_group_handler(
         Err(GenericError::BadRequest)?
     }
 
-    let by = session.get_user().await?;
+    let by = session.get_auth_login().await?;
 
     state.repository.update_group(payload, by).await?;
 
