@@ -21,6 +21,8 @@ mod content_edit;
 mod course_edit;
 mod personnel;
 mod personnel_add;
+mod linking_qr_code;
+mod qr_sign_in;
 
 pub mod prelude {
     pub use super::{
@@ -45,5 +47,7 @@ pub mod prelude {
         course_edit::*,
         personnel::*,
         personnel_add::*,
+        linking_qr_code::*,
+        qr_sign_in::*,
     };
 }

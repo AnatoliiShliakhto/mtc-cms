@@ -9,7 +9,7 @@ pub fn EntriesActions<T: PartialEq + 'static>(
     #[props]
     permission: Option<String>,
 ) -> Element {
-    let auth_state = use_auth_state();
+    let auth = state!(auth);
 
     rsx! {
         div {
@@ -26,7 +26,7 @@ pub fn EntriesActions<T: PartialEq + 'static>(
                 }
             }
             if let Some(route) = route {
-                if auth_state().has_permission(
+                if auth.has_permission(
                     &permission.unwrap_or(ROLE_ADMINISTRATOR.into())
                 ) {
                     button {

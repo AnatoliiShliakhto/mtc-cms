@@ -2,10 +2,10 @@ use super::*;
 
 #[component]
 pub fn ChangePassword() -> Element {
-    breadcrumbs!("menu-settings");
+    breadcrumbs!("menu-change-password");
 
-    if !use_auth_state()().is_authenticated() {
-        navigator().push(route!(API_SIGN_IN));
+    if !state!(auth).is_authenticated() {
+        navigator().push(route!(API_AUTH, API_SIGN_IN));
         return rsx! { Loading {} }
     }
 

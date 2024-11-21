@@ -15,8 +15,7 @@ pub fn ViewCourseField(
         arg.unwrap_or_default().parse::<usize>().unwrap_or_default()
     );
 
-    let auth_state = use_auth_state();
-    let is_writer = auth_state().has_permission(PERMISSION_COURSE_WRITE);
+    let is_writer = state!(auth).has_permission(PERMISSION_COURSE_WRITE);
 
     let course_entries = value().self_obj::<Vec<CourseEntry>>()
         .unwrap_or(vec![CourseEntry::default()]);

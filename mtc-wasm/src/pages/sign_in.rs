@@ -2,9 +2,16 @@ use super::*;
 
 #[component]
 pub fn SignIn() -> Element {
-    let sync = use_coroutine_handle::<SyncAction>();
-
     breadcrumbs!("menu-sign-in");
+
+    if state!(auth).is_authenticated() {
+        navigator().replace(route!(""));
+        return rsx! { Loading {} }
+    }
+
+    let platform = state!(platform);
+
+    let sync = use_coroutine_handle::<SyncAction>();
 
     let submit = move |event: Event<FormData>| {
         let payload = json!({
@@ -12,17 +19,27 @@ pub fn SignIn() -> Element {
             "password": event.get_str("password")
         });
         spawn(async move {
-            if post_request!(url!(API_AUTH), payload) {
-                sync.send(SyncAction::RefreshState("".into()));
+            if !post_request!(url!(API_AUTH), payload) { return; };
 
-                if navigator().can_go_back() {
-                    navigator().go_back()
-                } else {
-                    navigator().replace(route!());
-                }
+            sync.send(SyncAction::RefreshState());
+
+            if navigator().can_go_back() {
+                navigator().go_back()
+            } else {
+                navigator().replace(route!());
             }
         });
     };
+
+    if platform.eq("android") {
+        eval(r#"
+            try {
+                await window.__TAURI__.barcodeScanner.cancel();
+            } catch (error) {
+                console.log(error);
+            }
+        "#);
+    }
 
     rsx! {
         div {
@@ -46,6 +63,7 @@ pub fn SignIn() -> Element {
                         class: "card w-full max-w-sm shrink-0 border input-bordered rounded",
                         form {
                             class: "card-body",
+                            id: "sign-in-form",
                             autocomplete: "off",
                             onsubmit: submit,
 
@@ -60,12 +78,32 @@ pub fn SignIn() -> Element {
                                 title: "field-password",
                                 required: true
                             }
+                        }
 
+                        if platform.eq("android") {
                             div {
-                                class: "form-control mt-6",
+                                class: "card-actions grid grid-cols-2 gap-10 px-8 pb-8",
                                 button {
-                                    class: "btn btn-primary",
-                                    r#type: "submit",
+                                    form: "sign-in-form",
+                                    class: "btn w-full btn-primary",
+                                    Icon { icon: Icons::SignIn, class: "size-6" }
+                                    { t!("action-sign-in") }
+                                }
+                                button {
+                                    class: "btn w-full",
+                                    onclick: move |_| {
+                                        navigator().push(route!(API_AUTH, "qr-sign-in"));
+                                    },
+                                    Icon { icon: Icons::QrScan, class: "size-6" }
+                                    { t!("action-scan-qr-code") }
+                                }
+                            }
+                        } else {
+                            div {
+                                class: "card-actions px-8 pb-8",
+                                button {
+                                    form: "sign-in-form",
+                                    class: "btn w-full btn-primary",
                                     Icon { icon: Icons::SignIn, class: "size-6" }
                                     { t!("action-sign-in") }
                                 }

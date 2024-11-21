@@ -35,7 +35,7 @@ pub fn SomethingWrong<T: PartialEq + 'static>(
                     }
                     button {
                         class: "link link-hover hover:text-primary pl-3",
-                        onclick: move |_| { navigator().push(route!(API_SIGN_IN)); },
+                        onclick: move |_| { navigator().push(route!(API_AUTH, API_SIGN_IN)); },
                         { t!("action-sign-in") }
                     }
                 }

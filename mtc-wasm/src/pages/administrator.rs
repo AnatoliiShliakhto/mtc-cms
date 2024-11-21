@@ -32,6 +32,14 @@ pub fn Administrator() -> Element {
         });
     };
 
+    let sitemap = move |event: Event<MouseData>| {
+        spawn(async move {
+            if post_request!(url!(API_SITEMAP)) {
+                success_dialog!("message-success-sitemap-build")
+            }
+        });
+    };
+
     rsx! {
         section {
             class: "flex grow select-none flex-col gap-6 px-3 pr-20 sm:pr-16",
@@ -260,6 +268,37 @@ pub fn Administrator() -> Element {
                                 class: "btn btn-sm",
                                 onclick: rebuild,
                                 { t!("action-index") }
+                            }
+                        }
+                    }
+                }
+
+                div {
+                    class: "stats w-72 shadow-md",
+                    div {
+                        class: "stat",
+                        div {
+                            class: "stat-figure text-info",
+                            Icon { icon: Icons::Map, class: "size-12" }
+                        }
+                        div {
+                            class: "stat-title",
+                            { t!("message-stat-sitemap-title") }
+                        }
+                        div {
+                            class: "stat-value proportional-nums",
+                            { response().key_i64("sitemap").unwrap_or_default().to_string() }
+                        }
+                        div {
+                            class: "stat-desc",
+                            { t!("message-stat-sitemap-description") }
+                        }
+                        div {
+                            class: "stat-actions",
+                            button {
+                                class: "btn btn-sm",
+                                onclick: sitemap,
+                                { t!("action-create") }
                             }
                         }
                     }

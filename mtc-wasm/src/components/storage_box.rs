@@ -9,10 +9,10 @@ pub fn StorageBox(
     #[props]
     is_show: Signal<bool>,
 ) -> Element {
-    if !is_show() { return rsx!{} }
+    if !is_show() { return rsx! {} }
 
-    let auth_state = use_auth_state();
-    let mut progress = use_signal(|| 0);
+    let auth = state!(auth);
+    let mut download_progress = use_signal(|| 0);
 
     let id = use_memo(use_reactive!(|id| id));
     let is_private = use_memo(use_reactive!(|is_private| is_private));
@@ -35,14 +35,14 @@ pub fn StorageBox(
     });
 
     let can_write = if is_private() {
-        auth_state().has_permission(PERMISSION_PRIVATE_STORAGE_WRITE)
+        auth.has_permission(PERMISSION_PRIVATE_STORAGE_WRITE)
     } else {
-        auth_state().has_permission(PERMISSION_PUBLIC_STORAGE_WRITE)
+        auth.has_permission(PERMISSION_PUBLIC_STORAGE_WRITE)
     };
     let can_delete = if is_private() {
-        auth_state().has_permission(PERMISSION_PRIVATE_STORAGE_DELETE)
+        auth.has_permission(PERMISSION_PRIVATE_STORAGE_DELETE)
     } else {
-        auth_state().has_permission(PERMISSION_PUBLIC_STORAGE_DELETE)
+        auth.has_permission(PERMISSION_PUBLIC_STORAGE_DELETE)
     };
 
     let mut future = value_future!(api());
@@ -60,26 +60,26 @@ pub fn StorageBox(
         spawn(async move {
             loop {
                 match eval(
-                        if is_private() {
-                            EVAL_PRIVATE_FILE_UPLOAD
-                        } else {
-                            EVAL_PUBLIC_FILE_UPLOAD
-                        }
-                    ).recv().await {
+                    if is_private() {
+                        JS_PRIVATE_FILE_UPLOAD
+                    } else {
+                        JS_PUBLIC_FILE_UPLOAD
+                    }
+                ).recv().await {
                     Ok(Value::Number(value)) => {
-                        progress.set(value.as_i64().unwrap_or_default())
+                        download_progress.set(value.as_i64().unwrap_or_default())
                     }
                     Ok(Value::String(value)) => {
                         if value.is_empty() {
-                            progress.set(100);
+                            download_progress.set(100);
                             if let Some(file_engine) = &event.files() {
                                 let files = file_engine.files();
                                 if files.len() == 1 {
-                                    match eval(EVAL_COPY_TO_CLIPBOARD)
+                                    match eval(JS_COPY_TO_CLIPBOARD)
                                         .send(format!("{:0}/{:1}", path(), files[0])) {
                                         Ok(_) => {
-                                            progress.set(0);
-                                            eval(EVAL_FILE_INPUTS_CLEAR);
+                                            download_progress.set(0);
+                                            eval(JS_FILE_INPUTS_CLEAR);
                                             is_show.set(false)
                                         },
                                         Err(_) => {}
@@ -89,12 +89,12 @@ pub fn StorageBox(
                                 }
                             }
                         } else {
-                            progress.set(101)
+                            download_progress.set(101)
                         }
                         break
                     }
                     _ => {
-                        progress.set(101);
+                        download_progress.set(101);
                         break;
                     },
                 }
@@ -146,12 +146,13 @@ pub fn StorageBox(
                     div { class: "divider my-0" }
                     form {
                         input {
-                            class: if progress().eq(&101i64) {
-                                "file-input file-input-bordered mt-1 file-input-error w-full"
-                            } else if progress().eq(&100i64) {
-                                "file-input file-input-bordered mt-1 file-input-success w-full"
+                            class: "file-input file-input-bordered mt-1 w-full",
+                            class: if download_progress().eq(&101i64) {
+                                "file-input-error"
+                            } else if download_progress().eq(&100i64) {
+                                "file-input-success"
                             } else {
-                                "file-input file-input-bordered mt-1 file-input-info w-full"
+                                "file-input-info"
                             },
                             r#type: "file",
                             id: "fileUpload",
@@ -161,19 +162,21 @@ pub fn StorageBox(
                         }
                     }
                     progress {
-                        class: if progress().eq(&101i64) {
-                            "progress w-full mt-3 mb-1 progress-error"
-                        } else if progress().eq(&100i64) {
-                            "progress w-full mt-3 mb-1 progress-success"
+                        class: "progress w-full mt-3 mb-1",
+                        class: if download_progress().eq(&101i64) {
+                            "progress-error"
+                        } else if download_progress().eq(&100i64) {
+                            "progress-success"
                         } else {
-                            "progress w-full mt-3 mb-1 progress-info"
+                            "progress-info"
                         },
-                        value: progress(),
+                        value: download_progress(),
                         max: 100,
                     }
                 }
                 div {
-                    class: "flex items-start overflow-auto", style: "height: calc(100% - 8rem)",
+                    class: "flex items-start overflow-auto",
+                    style: "height: calc(100% - 8rem)",
                     match future() {
                         Some(response) => rsx! {
                             table {
@@ -192,7 +195,7 @@ pub fn StorageBox(
                                     }
                                 }
                                 tbody {
-                                    for item in response.self_obj::<Vec<Asset>>()
+                                    for item in response.self_obj::<Vec<FileAsset>>()
                                     .unwrap_or_default().iter() {{
                                         let file_name = item.name.clone();
                                         let file_path = format!("{}/{}", path(), item.name);
@@ -200,7 +203,7 @@ pub fn StorageBox(
                                         rsx! {
                                             tr {
                                                 onclick: move |_| {
-                                                    match eval(EVAL_COPY_TO_CLIPBOARD)
+                                                    match eval(JS_COPY_TO_CLIPBOARD)
                                                     .send(file_path.clone()) {
                                                         Ok(_) => is_show.set(false),
                                                         Err(_) => {}

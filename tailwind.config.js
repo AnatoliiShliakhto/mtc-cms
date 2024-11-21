@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./mtc-wasm/src/**/*.{rs,html,css}", "./mtc-wasm/**/*.html"],
+  content: ["./assets/**/*.{rs,html,css,js}", "./mtc-wasm/src/**/*.{rs,html,css,js}", "./mtc-wasm/**/*.html"],
   future: {
     hoverOnlyWhenSupported: true,
   },
@@ -18,7 +18,7 @@ module.exports = {
   daisyui: {
     //themes: false, // false: only light + dark | true: all themes | array: specific themes like this ["light", "dark", "cupcake"]
     darkTheme: "dark", // name of one of the included themes for dark mode
-    base: true, // applies background color and foreground color for root element by default
+    base: false, // applies background color and foreground color for root element by default
     styled: true, // include daisyUI colors and design decisions for all components
     utils: true, // adds responsive and modifier utility classes
     prefix: "", // prefix for daisyUI classnames (components, modifiers and responsive class names. Not colors)

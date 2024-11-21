@@ -5,9 +5,12 @@ mod checks;
 mod requests;
 mod dialogs;
 mod route;
+mod state;
 
 pub mod prelude {
     pub use crate::{
+        state,
+        state_fn,
         url,
         route,
         t,

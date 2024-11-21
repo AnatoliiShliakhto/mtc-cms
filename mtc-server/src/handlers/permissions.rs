@@ -18,7 +18,7 @@ pub async fn create_custom_permission_handler(
 ) -> Result<impl IntoResponse> {
     session.has_permission(PERMISSION_ROLES_WRITE).await?;
 
-    let auth_user = session.get_user().await?;
+    let auth_user = session.get_auth_login().await?;
 
     state.repository
         .create_custom_permission(permission, auth_user)

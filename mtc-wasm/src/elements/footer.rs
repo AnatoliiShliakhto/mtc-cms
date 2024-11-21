@@ -5,10 +5,11 @@ pub fn Footer() -> Element {
     rsx! {
         footer { 
             class: "footer footer-center h-14 p-4 text-base-content rounded",
-            a { 
+            a {
                 class: "link link-hover hover:text-primary",
                 href: "https://github.com/AnatoliiShliakhto/mtc-cms",
                 target: "_blank",
+                "onclick": "elementShellOpen(this, event)",
                 { t!("site-copyright") }
             }
         }

@@ -2,7 +2,7 @@
 macro_rules! route {
     () => {
         {
-            Route::CustomRouter { route: vec!["home".to_string()] }
+            Route::CustomRouter { route: vec!["".to_string()] }
         }
     };
 

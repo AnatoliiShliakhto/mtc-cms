@@ -32,6 +32,7 @@ pub trait SystemTrait {
         links: &Vec<LinkEntry>,
         permission: Cow<'static, str>,
         info: &mut SystemInfo,
+        subtitle: Option<Cow<'static, str>>,
     );
     async fn search_idx_scan_course(
         &self,
@@ -41,7 +42,9 @@ pub trait SystemTrait {
     );
     async fn search_idx_drop(&self) -> Result<()>;
     async fn get_search_idx_count(&self) -> Result<i32>;
+    async fn get_system_value(&self, key: Cow<'static, str>) -> Result<Value>;
     async fn update_system_value(&self, key: Cow<'static, str>, value: Value) -> Result<()>;
+    async fn sitemap_build(&self) -> Result<()>;
 }
 
 #[async_trait]
@@ -214,7 +217,8 @@ impl SystemTrait for Repository {
                         let _ = self.search_idx_scan_links(
                             &links,
                             schema.permission.clone(),
-                            info
+                            info,
+                            None
                         ).await;
                     }
                 }
@@ -228,13 +232,18 @@ impl SystemTrait for Repository {
         links: &Vec<LinkEntry>,
         permission: Cow<'static, str>,
         info: &mut SystemInfo,
+        subtitle: Option<Cow<'static, str>>,
     ) {
         for link in links {
             if link.url.is_empty() { continue; }
             if link.url.starts_with("/content") {
                 let _ = self.insert_search_idx(
                     SearchKind::LocalLink,
-                    link.title.clone(),
+                    if let Some(sub) = subtitle.clone() {
+                        format!("[{}] {}", sub, link.title).into()
+                    } else {
+                        link.title.clone()
+                    },
                     link.url.clone(),
                     permission.clone()
                 ).await;
@@ -244,7 +253,11 @@ impl SystemTrait for Repository {
                 if extension.is_none() | link.url.starts_with("http") {
                     let _ = self.insert_search_idx(
                         SearchKind::Link,
-                        link.title.clone(),
+                        if let Some(sub) = subtitle.clone() {
+                            format!("[{}] {}", sub, link.title).into()
+                        } else {
+                            link.title.clone()
+                        },
                         link.url.clone(),
                         permission.clone()
                     ).await;
@@ -258,7 +271,11 @@ impl SystemTrait for Repository {
                             "pdf" => SearchKind::FilePdf,
                             _ => SearchKind::File,
                         },
-                        link.title.clone(),
+                        if let Some(sub) = subtitle.clone() {
+                            format!("[{}] {}", sub, link.title).into()
+                        } else {
+                            link.title.clone()
+                        },
                         link.url.clone(),
                         permission.clone()
                     ).await;
@@ -288,7 +305,7 @@ impl SystemTrait for Repository {
 
         let _ = self.insert_search_idx(
             SearchKind::LocalLink,
-            content.title.clone(),
+            format!("[{}] {}", schema.title, content.title).into(),
             format!("/content/course/{}", content.slug).into(),
             schema.permission.clone()
         ).await;
@@ -307,7 +324,7 @@ impl SystemTrait for Repository {
                     for item in course {
                         let _ = self.insert_search_idx(
                             SearchKind::Course,
-                            item.title,
+                            format!("[{}] {}", schema.title, item.title).into(),
                             format!("/content/course/{}/{}", content.slug, item.id).into(),
                             schema.permission.clone()
                         ).await;
@@ -317,7 +334,9 @@ impl SystemTrait for Repository {
                                 self.search_idx_scan_links(
                                     &links,
                                     schema.permission.clone(),
-                                    info).await;
+                                    info,
+                                    Some(schema.title.clone())
+                                ).await;
                             }
                         }
                     }
@@ -330,7 +349,14 @@ impl SystemTrait for Repository {
     async fn search_idx_drop(&self) -> Result<()> {
         self
             .database
-            .query(r#"DELETE FROM search_index;"#)
+            .query(r#"
+                BEGIN TRANSACTION;
+                REMOVE INDEX IF EXISTS idx_search_title ON TABLE search_index;
+                DELETE FROM search_index;
+                DEFINE INDEX idx_search_title ON search_index
+                FIELDS title SEARCH ANALYZER search_lowercase BM25;
+                COMMIT TRANSACTION;
+                "#)
             .await?;
         Ok(())
     }
@@ -341,6 +367,15 @@ impl SystemTrait for Repository {
             .query(r#"count(SELECT 1 FROM search_index);"#)
             .await?
             .take::<Option<i32>>(0)?.unwrap_or_default())
+    }
+
+    async fn get_system_value(&self, key: Cow<'static, str>) -> Result<Value> {
+        Ok(self
+            .database
+            .query(r#"SELECT VALUE c_value from mtc_system WHERE c_key = $key;"#)
+            .bind(("key", key))
+            .await?
+            .take::<Option<Value>>(0)?.unwrap_or_default())
     }
 
     async fn update_system_value(&self, key: Cow<'static, str>, value: Value) -> Result<()> {
@@ -359,6 +394,65 @@ impl SystemTrait for Repository {
             .bind(("key", key))
             .bind(("value", value))
             .await?;
+
+        Ok(())
+    }
+
+    async fn sitemap_build(&self) -> Result<()> {
+        let url = format!(
+            "https://{}",
+            self.config.front_end_url
+                .replace("/", "")
+                .replace("https:", "").
+                to_string()
+        );
+        let mut count = 2;
+
+        let mut sitemap = vec![
+            r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
+            r#"<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">"#.to_string(),
+            format!(r#"<url><loc>{0}</loc></url>"#, url),
+            format!(r#"<url><loc>{0}/home</loc></url>"#, url),
+        ];
+
+        for schema in self.find_schemas_records().await? {
+            if schema.permission.ne(PERMISSION_PUBLIC) { continue }
+
+            match schema.kind {
+                SchemaKind::Page => {
+                    count += 1;
+                    sitemap.push(
+                        format!(r#"<url><loc>{}/content/{}/{}</loc></url>"#,
+                                url, "page", schema.slug)
+                    )
+                }
+                SchemaKind::Pages => {
+                    if let Ok(pages) =
+                        self.find_content_list(schema.slug.clone(), false).await {
+                        count += 1;
+                        sitemap.push(
+                            format!(r#"<url><loc>{}/content/{}</loc></url>"#,
+                                    url, schema.slug)
+                        );
+                        for page in pages {
+                            count += 1;
+                            sitemap.push(
+                                format!(r#"<url><loc>{}/content/{}/{}</loc></url>"#,
+                                        url, schema.slug, page.slug)
+                            )
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        sitemap.push(r#"</urlset>"#.to_string());
+        self.update_system_value("sitemap".into(), Value::from(count)).await?;
+
+        tokio::fs::write(
+            format!("{}/sitemap.xml", self.config.www_path),
+            sitemap.join("\n"),
+        ).await?;
 
         Ok(())
     }

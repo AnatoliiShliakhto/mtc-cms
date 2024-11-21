@@ -59,6 +59,9 @@ mod upload;
 mod incognito;
 mod columns;
 mod user_up;
+mod map;
+mod qr_code;
+mod qr_scan;
 
 pub mod prelude {
     pub use super::{
@@ -128,6 +131,9 @@ pub enum Icons {
     Incognito,
     Columns,
     UserUp,
+    Map,
+    QrCode,
+    QrScan,
 }
 
 #[component]
@@ -197,5 +203,8 @@ pub fn Icon(
         Icons::Incognito => incognito::IncognitoIcon(class),
         Icons::Columns => columns::ColumnsIcon(class),
         Icons::UserUp => user_up::UserUpIcon(class),
+        Icons::Map => map::MapIcon(class),
+        Icons::QrCode => qr_code::QrCodeIcon(class),
+        Icons::QrScan => qr_scan::QrScanIcon(class),
     }
 }

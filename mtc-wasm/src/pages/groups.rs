@@ -9,7 +9,7 @@ pub fn Groups() -> Element {
     let response = future.suspend()?;
     check_response!(response, future);
 
-    *use_app_state().groups.write() = response().self_obj::<Vec<Entry>>().unwrap_or_default();
+    state!(set_groups, response().self_obj::<Vec<Entry>>().unwrap_or_default());
 
     rsx! {
         section {

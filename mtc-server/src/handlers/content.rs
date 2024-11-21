@@ -76,7 +76,7 @@ pub async fn update_content_handler(
         Err(GenericError::BadRequest)?
     }
 
-    let by = session.get_user().await?;
+    let by = session.get_auth_login().await?;
 
     state.repository.update_content(schema, slug, payload, by).await?;
 

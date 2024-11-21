@@ -28,7 +28,7 @@ pub async fn find_user_handler(
 ) -> Result<impl IntoResponse> {
     session.has_permission(PERMISSION_USERS_READ).await?;
 
-    let user = session.get_user().await?;
+    let user = session.get_auth_login().await?;
     let access = session.get_access_state().await?;
 
     let user = if id.eq(ID_CREATE) {
@@ -59,7 +59,7 @@ pub async fn update_user_handler(
         Err(GenericError::BadRequest)?
     }
 
-    let by = session.get_user().await?;
+    let by = session.get_auth_login().await?;
 
     state.repository.update_user(payload, by).await?;
 
@@ -103,8 +103,7 @@ pub async fn process_users_handler(
     session.has_permission(PERMISSION_USERS_WRITE).await?;
 
     let access = session.get_access_state().await?;
-    let by = session.get_user().await?;
-    let full_access = Access { level: -1, full: true };
+    let by = session.get_auth_login().await?;
 
     let logins = payload
         .key_obj::<Vec<Cow<'static, str>>>("logins").unwrap_or_default();
@@ -120,7 +119,7 @@ pub async fn process_users_handler(
     for login in logins {
         let user = match state
             .repository
-            .find_user_by_login(login.clone(), full_access)
+            .find_user_by_login(login.clone(), Access::administrator())
             .await {
             Ok(user) => user,
             _ => User::default(),

@@ -9,7 +9,7 @@ pub fn EditorActions(
     #[props]
     permission: Option<String>,
 ) -> Element {
-    let auth_state = use_auth_state();
+    let auth = state!(auth);
 
     rsx! {
         div {
@@ -30,7 +30,7 @@ pub fn EditorActions(
             button {
                 form,
                 class: if permission.is_none()
-                || auth_state().has_permission(&permission.unwrap_or_default()) {
+                || auth.has_permission(&permission.unwrap_or_default()) {
                     "hover:btn-success join-item"
                 } else {
                     "btn-disabled join-item"

@@ -2,14 +2,14 @@ use super::*;
 
 #[component]
 pub fn ProfileController() -> Element {
-    let auth_state =  use_auth_state();
+    let auth = state!(auth);
 
-    if !auth_state().is_authenticated() {
+    if !auth.is_authenticated() {
         return rsx! {
             Link {
                 class: "btn btn-ghost join-item",
-                onclick: move |_| use_search_engine_drop(),
-                to: route!(API_SIGN_IN),
+                onclick: move |_| state_fn!(search_engine_clear),
+                to: route!(API_AUTH, API_SIGN_IN),
                 Icon { icon: Icons::SignIn, class: "size-8 sm:size-6" }
             }
         }    
@@ -31,16 +31,24 @@ pub fn ProfileController() -> Element {
                 "onclick": "document.activeElement.blur()",
                 li {
                     Link {
-                        onclick: move |_| use_search_engine_drop(),
-                        to: route!("change-password"),
-                        Icon { icon: Icons::Settings, class: "size-6" }
-                        { t!("menu-settings") }
+                        onclick: move |_| state_fn!(search_engine_clear),
+                        to: route!(API_AUTH, "change-password"),
+                        Icon { icon: Icons::Lock, class: "size-6" }
+                        { t!("menu-change-password") }
                     }
                 }
-                if auth_state().is_admin() {
+                li {
+                    Link {
+                        onclick: move |_| state_fn!(search_engine_clear),
+                        to: route!(API_AUTH, "linking-qr-code"),
+                        Icon { icon: Icons::QrCode, class: "size-6" }
+                        { t!("menu-linking-qr-code") }
+                    }
+                }
+                if auth.is_admin() {
                     li {
                         Link {
-                            onclick: move |_| use_search_engine_drop(),
+                            onclick: move |_| state_fn!(search_engine_clear),
                             to: route!(API_ADMINISTRATOR),
                             Icon { icon: Icons::ShieldPerson, class: "size-6" }
                             { t!("menu-administrator") }

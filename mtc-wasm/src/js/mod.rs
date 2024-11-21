@@ -1,0 +1,9 @@
+pub static JS_COPY_TO_CLIPBOARD: &str = include_str!("copy_to_clipboard.js");
+pub static JS_PASTE_FROM_CLIPBOARD: &str = include_str!("paste_from_clipboard.js");
+pub static JS_SCROLL_UP: &str = include_str!("scroll_up.js");
+pub static JS_PUBLIC_FILE_UPLOAD: &str = include_str!("public_file_upload.js");
+pub static JS_PRIVATE_FILE_UPLOAD: &str = include_str!("private_file_upload.js");
+pub static JS_EXPORT_PERSONNEL: &str = include_str!("export_personnel.js");
+pub static JS_FILE_INPUTS_CLEAR: &str = include_str!("file_inputs_clear.js");
+pub static JS_SW_REGISTER: &str = include_str!("sw_register.js");
+pub static JS_SW_CHECK: &str = include_str!("sw_check.js");

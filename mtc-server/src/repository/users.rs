@@ -10,7 +10,8 @@ pub trait UserRepository {
     ) -> Result<Vec<Entry>>;
     async fn find_user(&self, id: Cow<'static, str>, access: Access) -> Result<User>;
     async fn find_user_by_login(&self, login: Cow<'static, str>, access: Access) -> Result<User>;
-    
+    async fn find_user_by_api_key(&self, api_key: Cow<'static, str>) -> Result<User>;
+
     async fn set_user_password(
         &self, id: Cow<'static, str>,
         password_hash: Cow<'static, str>,
@@ -29,6 +30,28 @@ pub trait UserRepository {
         logins: Vec<Cow<'static, str>>,
         access: Access
     ) -> Result<Vec<UserDetailsDto>>;
+    async fn find_user_state(&self, id: Cow<'static, str>) -> Result<Value>;
+    async fn update_user_api_key(
+        &self,
+        id: Cow<'static, str>,
+        api_key: Cow<'static, str>,
+        os: Cow<'static, str>,
+        device: Cow<'static, str>,
+    ) -> Result<()>;
+    async fn assign_api_key_to_user(
+        &self,
+        id: Cow<'static, str>,
+        api_key_id: Cow<'static, str>
+    ) -> Result<()>;
+    async fn create_user_api_key(
+        &self,
+        id: Cow<'static, str>,
+        api_key: Cow<'static, str>,
+    ) -> Result<Cow<'static, str>>;
+    async fn find_api_key_by_user_id(
+        &self,
+        id: Cow<'static, str>
+    ) -> Result<Cow<'static, str>>;
 }
 
 #[async_trait]
@@ -102,7 +125,8 @@ impl UserRepository for Repository {
         let mut sql =
             vec![r#"
             SELECT *, record::id(id) as id,
-            (SELECT VALUE record::id(id) FROM ->user_groups->groups)[0] ?? "" as group
+            (SELECT VALUE record::id(id) FROM ->user_groups->groups)[0] ?? "" as group,
+            math::max(->user_roles->roles.user_access_level) as access_level
             FROM users WHERE login=$login AND access_level > $access_level
             "#];
 
@@ -114,6 +138,22 @@ impl UserRepository for Repository {
             .query(sql.concat())
             .bind(("login", login))
             .bind(("access_level", access.level))
+            .await?
+            .take::<Option<User>>(0)?
+            .ok_or(DatabaseError::EntryNotFound.into())
+    }
+
+    async fn find_user_by_api_key(&self, api_key: Cow<'static, str>) -> Result<User> {
+        let sql = r#"
+            SELECT *, record::id(id) as id,
+            (SELECT VALUE record::id(id) FROM ->user_groups->groups)[0] ?? "" as group,
+            math::max(->user_roles->roles.user_access_level) as access_level
+            FROM users WHERE $api_key in ->user_api_keys->api_keys.api_key;
+            "#;
+
+        self.database
+            .query(sql)
+            .bind(("api_key", api_key))
             .await?
             .take::<Option<User>>(0)?
             .ok_or(DatabaseError::EntryNotFound.into())
@@ -181,7 +221,6 @@ impl UserRepository for Repository {
         let blocked = payload.key_bool("blocked").unwrap_or_default();
         let roles = payload.key_obj::<Vec<Cow<'static, str>>>("roles")
             .unwrap_or_default();
-        let access_level = self.find_roles_max_access_level(&roles).await?;
 
         if !password.is_empty() {
             let Ok(salt) =
@@ -226,10 +265,6 @@ impl UserRepository for Repository {
         }
 
         sql.push(r#"
-            access_level: $access_level,
-        "#);
-
-        sql.push(r#"
             updated_by: $by
         };
         "#);
@@ -244,7 +279,6 @@ impl UserRepository for Repository {
             .bind(("login", login))
             .bind(("password", password))
             .bind(("blocked", blocked))
-            .bind(("access_level", access_level))
             .bind(("by", by))
             .await?
             .take::<Option<Cow<'static, str>>>(0)?;
@@ -282,12 +316,16 @@ impl UserRepository for Repository {
             .take::<Option<i32>>(0)?.unwrap_or_default())
     }
 
-    async fn check_users(&self, logins: Vec<Cow<'static, str>>, access: Access
+    async fn check_users(
+        &self,
+        logins: Vec<Cow<'static, str>>,
+        access: Access
     ) -> Result<Vec<UserDetailsDto>> {
         let mut sql =
             vec![r#"
             SELECT record::id(id) as id, login, blocked, last_access, access_count, "" as password,
-            (SELECT VALUE title FROM ->user_groups->groups)[0] ?? "" as group
+            (SELECT VALUE title FROM ->user_groups->groups)[0] ?? "" as group,
+            math::max(->user_roles->roles.user_access_level) as access_level
             FROM users WHERE login in $logins AND access_level > $access_level
             "#];
 
@@ -301,5 +339,139 @@ impl UserRepository for Repository {
             .bind(("access_level", access.level))
             .await?
             .take::<Vec<UserDetailsDto>>(0)?)
+    }
+
+    async fn find_user_state(&self, id: Cow<'static, str>) -> Result<Value> {
+        let sql = r#"
+            SELECT
+            record::id(id) as id,
+            login,
+            ->user_roles->roles.slug as roles,
+            array::sort(array::distinct(->user_roles->roles->role_permissions->permissions.slug)) as permissions,
+            math::min(->user_roles->roles.user_access_level) as access_level,
+            array::any(->user_roles->roles.user_access_all) as full_access
+            FROM ONLY type::record('users:' + $user_id) WHERE blocked = false
+            "#;
+
+        self.database
+            .query(sql)
+            .bind(("user_id", id))
+            .await?
+            .take::<Option<Value>>(0)?
+            .ok_or(DatabaseError::EntryNotFound.into())
+    }
+
+    async fn update_user_api_key(
+        &self,
+        id: Cow<'static, str>,
+        api_key: Cow<'static, str>,
+        os: Cow<'static, str>,
+        device: Cow<'static, str>,
+    ) -> Result<()> {
+        let mut api_key_id = self.database
+            .query(r#"
+            RETURN (SELECT VALUE record::id(id) as id
+            FROM api_keys WHERE api_key = $api_key)[0];
+            "#)
+            .bind(("api_key", api_key.clone()))
+            .await?
+            .take::<Option<Cow<'static, str>>>(0)?
+            .unwrap_or_default();
+
+        if api_key_id.is_empty()
+        {
+            api_key_id = self.create_user_api_key(id.clone(), api_key.clone()).await?;
+        };
+
+        let sql = r#"
+        UPDATE type::record('api_keys:' + $api_key) MERGE {
+            os: $os,
+            device: $device,
+            is_active: true
+        };
+        "#;
+
+        self.database
+            .query(sql)
+            .bind(("api_key", api_key_id))
+            .bind(("os", os))
+            .bind(("device", device))
+            .await?;
+
+        Ok(())
+    }
+
+    async fn assign_api_key_to_user(
+        &self,
+        id: Cow<'static, str>,
+        api_key_id: Cow<'static, str>,
+    ) -> Result<()> {
+        let sql = format!(
+            r#"RELATE users:{}->user_api_keys->api_keys:{};"#,
+            id,
+            api_key_id,
+        );
+        self.database
+            .query(sql)
+            .bind(("user_id", id))
+            .await?;
+
+        Ok(())
+    }
+
+    async fn create_user_api_key(
+        &self,
+        id: Cow<'static, str>,
+        api_key: Cow<'static, str>,
+    ) -> Result<Cow<'static, str>> {
+        let sql = r#"
+            BEGIN TRANSACTION;
+                LET $rec_id = CREATE api_keys CONTENT {
+                    api_key: $api_key
+                };
+                RETURN record::id($rec_id[0].id);
+            COMMIT TRANSACTION;
+        "#;
+
+        let Some(api_key_id) = self.database
+            .query(sql)
+            .bind(("api_key", api_key))
+            .await?
+            .take::<Option<Cow<'static, str>>>(0)? else {
+            return Err(DatabaseError::EntryNotFound.into());
+        };
+
+        self.assign_api_key_to_user(
+            id.clone(),
+            api_key_id.clone(),
+        ).await?;
+
+        Ok(api_key_id)
+    }
+
+    async fn find_api_key_by_user_id(&self, id: Cow<'static, str>) -> Result<Cow<'static, str>> {
+        let sql = r#"
+            (SELECT VALUE ->user_api_keys->(api_keys WHERE is_active = false).api_key
+            FROM type::record('users:' + $id))[0][0]
+        "#;
+        if let Some(api_key) = self.database
+            .query(sql)
+            .bind(("id", id.clone()))
+            .await?
+            .take::<Option<Cow<'static, str>>>(0)? {
+            Ok(api_key)
+        } else {
+            let api_key_id = self
+                .create_user_api_key(id, uuid::Uuid::new_v4().to_string().into())
+                .await?;
+            let sql = r#"
+                SELECT VALUE api_key FROM ONLY type::record('api_keys:' + $key_id);
+            "#;
+            self.database.query(sql)
+                .bind(("key_id", api_key_id))
+                .await?
+                .take::<Option<Cow<'static, str>>>(0)?
+                .ok_or(DatabaseError::EntryNotFound.into())
+        }
     }
 }

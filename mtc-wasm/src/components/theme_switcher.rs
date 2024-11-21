@@ -3,10 +3,10 @@ use super::*;
 #[component]
 pub fn ThemeSwitcher() -> Element {
     let mut dark_theme =
-        use_local_storage("dark_theme", || false);
+        use_local_storage("mtc_key0", || Value::Bool(false));
     
     let switch_theme = move |event: Event<FormData>| {
-        dark_theme.set(!event.checked())
+        dark_theme.set(Value::Bool(!event.checked()))
     };
 
     rsx! {
@@ -17,7 +17,7 @@ pub fn ThemeSwitcher() -> Element {
                     value: "light",
                     r#type: "checkbox",
                     class: "theme-controller",
-                    initial_checked: !dark_theme.get(),
+                    initial_checked: !dark_theme.get().self_bool().unwrap_or_default(),
                     onchange: switch_theme,
                 }
                 Icon { icon: Icons::Sun, class: "size-8 sm:size-6 fill-current swap-off" }

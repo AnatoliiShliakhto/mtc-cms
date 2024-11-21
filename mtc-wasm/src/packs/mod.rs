@@ -1,17 +1,17 @@
 use crate::prelude::*;
 
-#[cfg(starter)]
+#[cfg(feature = "starter")]
 mod starter;
-#[cfg(starter)]
+#[cfg(feature = "starter")]
 pub mod prelude {
     pub use super::{
         starter::prelude::*,
     };
 }
 
-#[cfg(utc242)]
+#[cfg(feature = "utc242")]
 mod utc242;
-#[cfg(utc242)]
+#[cfg(feature = "utc242")]
 pub mod prelude {
     pub use super::{
         utc242::prelude::*,

@@ -7,7 +7,7 @@ pub fn ContentList(
 ) -> Element {
     let schema = use_memo(use_reactive!(|schema| schema));
 
-    let is_writer = use_auth_state()().has_role(ROLE_WRITER);
+    let is_writer = state!(auth).has_role(ROLE_WRITER);
     let menu_item = format!("menu-{}", schema());
     breadcrumbs!(&menu_item);
 

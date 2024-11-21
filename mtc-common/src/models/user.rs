@@ -8,8 +8,8 @@ pub struct User {
     pub password: Cow<'static, str>,
     pub group: Cow<'static, str>,
     pub blocked: bool,
-    pub access_level: i32,
     pub access_count: i32,
+    pub access_level: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_access: Cow<'static, Option<Datetime>>,
     #[serde(skip_serializing_if = "Option::is_none")]

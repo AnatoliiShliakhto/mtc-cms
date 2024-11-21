@@ -28,8 +28,18 @@ impl ContentRepository for Repository {
 
         if !full {
             sql.push(r#"
-                WHERE published = true ORDER BY created_at DESC;
+                WHERE published = true
             "#);
+        }
+
+        if table.eq("news") {
+            sql.push(r#"
+                ORDER BY created_at DESC;
+            "#)
+        } else {
+            sql.push(r#"
+                ORDER BY title ASC;
+            "#)
         }
 
         let content_list = self.database.query(sql.concat())

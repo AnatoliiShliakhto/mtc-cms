@@ -12,7 +12,7 @@ mod models;
 
 pub mod prelude {
     pub use {
-        mtc_model::prelude::*,
+        mtc_common::prelude::*,
         std::{
             future::Future, net::SocketAddr, path::PathBuf, sync::Arc,
             collections::BTreeSet,
@@ -25,39 +25,29 @@ pub mod prelude {
             async_trait,
             extract::{
                 DefaultBodyLimit, rejection::{FormRejection, JsonRejection},
-                FromRequest, Request, State, Path, Multipart,
+                FromRequest, Request, State, Path, Multipart, Query,
             },
             http::{
                 header::{
-                    CACHE_CONTROL, STRICT_TRANSPORT_SECURITY,
-                    X_CONTENT_TYPE_OPTIONS, X_FRAME_OPTIONS, CONTENT_SECURITY_POLICY,
-                    CONTENT_TYPE, COOKIE, ACCEPT_ENCODING,
+                    CACHE_CONTROL, STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS,
+                    CONTENT_TYPE, ACCEPT_ENCODING, CONTENT_SECURITY_POLICY,
                 },
-                HeaderValue, status::StatusCode},
+                HeaderValue, HeaderName, status::StatusCode},
             middleware::{Next, from_fn}, Router, Form, Json,
-            response::{Response, IntoResponse},
+            response::{Response, IntoResponse, Redirect},
             routing::{get, post, delete},
         },
         axum_server::tls_rustls::RustlsConfig,
-        /*
-        axum_session::{Key, SameSite, SessionConfig, SessionLayer, SessionMode, SessionStore},
+
+        axum_session::{SessionConfig, SessionLayer, SessionMode, SessionStore},
         axum_session_surreal::SessionSurrealPool,
-        */
+
         tower::ServiceBuilder,
         tower_http::{
             compression::CompressionLayer, cors::CorsLayer,
             services::{ServeDir, ServeFile},
             set_header::SetResponseHeaderLayer,
         },
-        //chrono::Duration,
-
-
-        tower_sessions::{
-            cookie::{time::Duration, SameSite},
-            ExpiredDeletion, Expiry, Session, SessionManagerLayer,
-        },
-        tower_sessions_surrealdb_store::SurrealSessionStore,
-
 
         argon2::{Argon2, password_hash::SaltString, PasswordHasher, PasswordVerifier, PasswordHash},
         tracing::log::{error, info},
@@ -68,6 +58,8 @@ pub mod prelude {
         },
         tokio::fs,
         rand::Rng,
+        chrono::Duration,
+        magic_crypt::{MagicCryptTrait, new_magic_crypt},
 
         super::{
             types::*,
@@ -95,36 +87,15 @@ async fn main() {
 
     let db = Provider::database_init(&config).await;
 
-    let session_store =
-        SurrealSessionStore::new(db.clone(), "sessions".to_string());
-    tokio::task::spawn(session_store.clone().continuously_delete_expired(
-        tokio::time::Duration::from_secs(60 * 10),
-    ));
-    let session_service = ServiceBuilder::new().layer(
-        SessionManagerLayer::new(session_store)
-            .with_secure(false)
-            .with_same_site(SameSite::Lax)
-            .with_name("mtc-api.sid")
-            .with_expiry(Expiry::OnInactivity(Duration::minutes(config.session_expiration))),
-    );
-
-    /* axum sessions
     let session_config = SessionConfig::default()
         .with_table_name("sessions")
-        .with_secure(true)
-        .with_session_name("mtc-api.sid")
-        .with_max_age(Some(Duration::minutes(config.session_expiration)))
         .with_lifetime(Duration::minutes(config.session_expiration))
-        .with_cookie_same_site(SameSite::Lax)
-        .with_http_only(true)
-        .with_hashed_user_agent(false)
-        .with_hashed_ip(false)
-        .with_mode(SessionMode::Persistent)
-        .with_key(Key::from(config.session_secure_key.as_bytes()));
+        .with_mode(SessionMode::Persistent);
 
     let session_store =
-        SessionStore::new(Some(SessionSurrealPool::new(db.clone())), session_config).await.unwrap();
-    */
+        SessionStore::new(Some(SessionSurrealPool::new(db.clone())), session_config)
+            .await
+            .unwrap();
 
     let state = Arc::new(AppState::init(config, db));
 
@@ -133,19 +104,10 @@ async fn main() {
         PathBuf::from(&*state.config.cert_path).join("private.key"),
     ).await.unwrap();
 
-    let fallback_service =
-        ServeDir::new(&*state.config.www_path)
-            .not_found_service(ServeFile::new([&state.config.www_path, "index.html"].join("/")));
-
     let comression_layer: CompressionLayer = CompressionLayer::new()
         .br(true)
         .gzip(true)
         .zstd(true);
-    let public_storage_service = ServiceBuilder::new()
-        .service(ServeDir::new(&*state.config.storage_path));
-
-    let protected_storage_service = ServiceBuilder::new()
-        .service(ServeDir::new(&*state.config.private_storage_path));
 
     let static_headers = ServiceBuilder::new()
         .layer(SetResponseHeaderLayer::if_not_present(
@@ -161,46 +123,60 @@ async fn main() {
             HeaderValue::from_str(&state.config.x_content_type_options).unwrap())
         )
         .layer(SetResponseHeaderLayer::if_not_present(
-            X_FRAME_OPTIONS,
-            HeaderValue::from_str(&state.config.x_frame_options).unwrap())
-        )
-        .layer(SetResponseHeaderLayer::if_not_present(
             CONTENT_SECURITY_POLICY,
             HeaderValue::from_str(&state.config.content_security_policy).unwrap())
         );
 
     let cors_layer = CorsLayer::new()
-        .allow_origin(state.config.front_end_url.parse::<HeaderValue>().unwrap())
-        .allow_headers([CONTENT_TYPE, COOKIE, ACCEPT_ENCODING, CACHE_CONTROL])
-        .allow_methods([
-            axum::http::Method::GET,
-            axum::http::Method::POST,
-            axum::http::Method::PATCH,
-            axum::http::Method::DELETE,
-        ]);
+            .allow_origin([state.config.front_end_url.parse().unwrap()])
+            .allow_headers([CONTENT_TYPE, ACCEPT_ENCODING,
+                HeaderName::from_static("session"),
+            ])
+            .allow_methods([
+                axum::http::Method::GET,
+                axum::http::Method::POST,
+                axum::http::Method::PATCH,
+                axum::http::Method::DELETE,
+                axum::http::Method::OPTIONS
+            ])
+        .allow_credentials(true);
 
     let app = Router::new()
-        .nest_service(PRIVATE_ASSETS_PATH, protected_storage_service)
+        .nest_service(PRIVATE_ASSETS_PATH, ServeDir::new(&*state.config.private_storage_path))
         .layer(from_fn(middleware_protected_storage_handler))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
             HeaderValue::from_str(&state.config.protected_cache_control).unwrap())
         )
         .nest(API_PATH, routes(state.clone()))
-        .layer(session_service)
-        //.layer(SessionLayer::new(session_store))
+        .layer(SessionLayer::new(session_store))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
             HeaderValue::from_str(&state.config.api_cache_control).unwrap())
         )
-        .nest_service(PUBLIC_ASSETS_PATH, public_storage_service)
-        .fallback_service(fallback_service)
+        .layer(from_fn(middleware_headers_check_handler))
+        .fallback(Redirect::permanent("/"))
+        .nest_service(PUBLIC_ASSETS_PATH, ServeDir::new(&*state.config.storage_path))
+        .route("/service_worker", get(service_worker_handler))
+//        .route("/health", get(health_handler))
+        .nest_service(
+            "/assets",
+            ServeDir::new(format!("{}/assets", state.config.www_path))
+        )
+        .nest_service(
+            "/wasm",
+            ServeDir::new(format!("{}/wasm", state.config.www_path))
+        )
+        .route_service(
+            "/",
+            ServeFile::new(format!("{}/index.html", state.config.www_path))
+        )
         .layer(comression_layer)
         .layer(static_headers)
         .layer(cors_layer)
         .layer(DefaultBodyLimit::max(state.config.max_body_limit));
 
-    info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{0}:{1}\x1b[0m -> https://{2}:{3}",
+    info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{0}:{1}\x1b[0m -> {2}:{3}",
         &state.config.host, &state.config.https_port,
         &state.config.front_end_url, &state.config.https_port);
 

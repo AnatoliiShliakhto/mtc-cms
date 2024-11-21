@@ -8,7 +8,7 @@ pub fn Users() -> Element {
 
     let mut search = use_signal(String::new);
     let mut archive = use_signal(|| false);
-    let personnel = use_personnel().users;
+    let personnel = state!(personnel);
 
     let future = value_future!(url!(API_USERS, &search(), &archive().to_string()));
     let response = future.suspend()?;
@@ -88,7 +88,7 @@ pub fn Users() -> Element {
                             .unwrap_or_default()
                             .as_bool()
                             .unwrap_or_default();
-                        let details = personnel()
+                        let details = personnel
                         .get(&user.slug)
                         .unwrap_or(&UserDetails::default())
                         .clone();

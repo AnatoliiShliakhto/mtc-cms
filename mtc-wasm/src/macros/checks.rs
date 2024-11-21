@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! check_permission {
     ($permission:ident) => {
-        if !use_auth_state()().has_permission($permission) {
+        if !state!(auth).has_permission($permission) {
             return rsx! { AccessForbidden {} }
         }
     };
@@ -10,7 +10,7 @@ macro_rules! check_permission {
 #[macro_export]
 macro_rules! check_role {
     ($role:ident) => {
-        if !use_auth_state()().has_role($role) {
+        if !state!(auth).has_role($role) {
             return rsx! { AccessForbidden {} }
         }
     };

@@ -9,3 +9,4 @@ pub async fn middleware_protected_storage_handler(
 
     Ok(next.run(req).await)
 }
+

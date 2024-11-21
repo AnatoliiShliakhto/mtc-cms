@@ -5,7 +5,7 @@ pub fn PersonnelAdd() -> Element {
     breadcrumbs!("menu-personnel");
     check_permission!(PERMISSION_USERS_READ);
 
-    let mut users = use_personnel().users;
+    let mut users = state_fn!(personnel);
 
     let submit = move |event: Event<FormData>| {
         let login = event.get_str("login")

@@ -18,7 +18,7 @@ pub async fn find_role_handler(
 ) -> Result<impl IntoResponse> {
     session.has_permission(PERMISSION_ROLES_READ).await?;
 
-    let user = session.get_user().await?;
+    let user = session.get_auth_login().await?;
 
     let role = if id.eq(ID_CREATE) {
         Role {
@@ -48,7 +48,7 @@ pub async fn update_role_handler(
         Err(GenericError::BadRequest)?
     }
 
-    let by = session.get_user().await?;
+    let by = session.get_auth_login().await?;
 
     state.repository.update_role(payload, by).await?;
 
