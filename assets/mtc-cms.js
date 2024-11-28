@@ -32,15 +32,23 @@ import {
     FileRepository,
 } from '/./assets/ckeditor/ckeditor5.js';
 
-window.downloadDirectory = '242цпп';
+window.downloadDirectory = '242 цпп';
+window.platform = window.platform || 'web';
+window.editorInstances = window.editorInstances || [];
+window.contentId = window.contentId || '';
 
 const tauri = window.__TAURI__ || undefined;
 
 if (tauri) {
-    window.downloadDir = window.__TAURI__.path.downloadDir || undefined;
-    window.open = window.__TAURI__.shell.open || undefined;
-    window.mkdir = window.__TAURI__.fs.mkdir ||  undefined;
-    window.exists = window.__TAURI__.fs.exists ||  undefined;
+    try {
+        window.platform = await tauri.core.invoke('get_platform') || 'web';
+        window.downloadDirectory = await tauri.path.downloadDir() + '/' + window.downloadDirectory + '/'
+            || './' + window.downloadDirectory + '/';
+        await tauri.fs.mkdir(window.downloadDirectory, {recursive: true});
+        ScreenAlwaysOn(true);
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 class ImageUploadAdapter {
@@ -59,6 +67,7 @@ class ImageUploadAdapter {
                 fetch(api_url, {
                     method: 'POST',
                     body: data,
+                    mode: 'cors',
                     credentials: 'include',
                 })
                     .then(data => {
@@ -81,9 +90,6 @@ function ImageUploadAdapterPlugin(editor) {
         return new ImageUploadAdapter(loader);
     };
 }
-
-window.editorInstances = window.editorInstances || [];
-window.contentId = window.contentId || '';
 
 window.CkEditorCreate= function(element) {
     ClassicEditor
@@ -218,66 +224,87 @@ window.CkEditorDestroy = function() {
     }
 }
 
+window.ScreenAlwaysOn = function(enable) {
+    if (tauri && window.platform === 'android') {
+        tauri.core.invoke('plugin:keep-screen-on|keep_screen_on', {
+                enable: enable
+            }
+        );
+    }
+}
+
 window.linkOpen = function(element) {
     if (tauri) {
-        open(decodeURI(element.href));
+        tauri.core.invoke('open_in_browser', { url: decodeURI(element.href) });
     } else {
         const link = document.createElement("a");
         document.body.appendChild(link);
         link.href = element.href;
-        link.target = "_blank";
+        link.target = '_blank';
         link.click();
         document.body.removeChild(link);
     }
 }
 
-async function openIfExists(file) {
-    if (tauri && await exists(file)) {
-        open(file);
+window.openIfExists = async function(file) {
+    if (tauri && await tauri.fs.exists(file)) {
+        if (window.platform === 'android') {
+            //open by Intent for Android
+            tauri.core.invoke('plugin:view|view', {payload: {path: file}});
+        } else {
+            //open by default shell APP
+            tauri.shell.open(file);
+        }
         return true;
     }
     return false;
 }
 
-async function downloadFile(url, path) {
+window.downloadFile = async function(url, path) {
     try {
-        return await tauri.core.invoke('download', {url: url, path: path});
-    } catch (err) { console.error( err ); }
-    return false;
+        await tauri.core.invoke('download', {url: url, path: path});
+    } catch (err) {
+        console.error( err );
+        return false;
+    }
+    return true;
 }
 
-window.linkDownloadThenOpen = async function(element, dir = undefined) {
-    element.style = "pointer-events: none;";
+window.linkDownloadThenOpen = async function(element) {
+    element.style = 'pointer-events: none;';
 
     const fileUrl = decodeURI(element.href);
     const fileName = fileUrl.replace(/^.*[\\\/]/, '');
-    let filePath = '';
+    const filePath = window.downloadDirectory + fileName;
 
     if (tauri) {
-        filePath = await downloadDir() +
-            '/' + downloadDirectory + '/' +
-            (dir ? '/' + dir + '/' : '');
-        if (await openIfExists(filePath + fileName)) {
-            element.style = "";
+        if (await openIfExists(filePath)) {
+            element.style = '';
             return;
         }
     }
 
-    const loader = document.createElement("span");
-    loader.className = "loading loading-spinner loading-xs mr-3 text-primary";
+    const loader = document.createElement('span');
+    loader.className = 'loading loading-spinner loading-xs mr-3 text-primary';
     element.insertBefore(loader, element.firstChild);
 
     if (tauri) {
         try {
-            await mkdir(filePath, {recursive: true});
-            await downloadFile(fileUrl, filePath + fileName);
-            await openIfExists(filePath + fileName);
-        } catch (error) { console.error( error ); }
+            if (await downloadFile(fileUrl, filePath)) {
+                await openIfExists(filePath);
+                element.classList.remove('text-error');
+            } else {
+                element.classList.add('text-error');
+            }
+        } catch (error) {
+            console.error( error );
+            element.classList.add('text-error');
+        }
     } else {
         try {
             const response = await fetch(fileUrl, {mode: 'cors', credentials: 'include'});
             if (response.ok) {
-                const link = document.createElement("a");
+                const link = document.createElement('a');
                 document.body.appendChild(link);
                 let blob = await response.blob();
                 let urlObj = window.URL.createObjectURL(blob)
@@ -286,13 +313,17 @@ window.linkDownloadThenOpen = async function(element, dir = undefined) {
                 link.click();
                 window.URL.revokeObjectURL(urlObj)
                 document.body.removeChild(link);
+                element.classList.remove('text-error');
+            } else {
+                element.classList.add('text-error');
             }
         } catch (err) {
             console.error(err);
+            element.classList.add('text-error');
         }
     }
 
     element.removeChild(loader);
     loader.remove();
-    element.style = "";
+    element.style = '';
 }

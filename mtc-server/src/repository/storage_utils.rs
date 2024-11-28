@@ -20,6 +20,11 @@ pub trait StorageTrait {
     ) -> Result<()>;
     async fn get_migration_files(&self) -> Result<BTreeSet<Cow<'static, str>>>;
     async fn get_migration_file(&self, file_name: &str) -> Result<Cow<'static, str>>;
+    async fn update_course_files(
+        &self,
+        slug: Cow<'static, str>,
+        files: Vec<Cow<'static, str>>
+    ) -> Result<()>;
 }
 
 #[async_trait]
@@ -126,5 +131,42 @@ impl StorageTrait for Repository {
 
     async fn get_migration_file(&self, file_name: &str) -> Result<Cow<'static, str>> {
         Ok(fs::read_to_string([&self.config.migration_path, file_name].join("/")).await?.into())
+    }
+
+    async fn update_course_files(
+        &self,
+        slug: Cow<'static, str>,
+        files: Vec<Cow<'static, str>>
+    ) -> Result<()> {
+        let mut sql = vec![
+            r#"
+                BEGIN TRANSACTION;
+            "#.to_string()
+        ];
+
+        for file in files {
+            let Ok(meta) = fs::metadata(format!(
+                "{}{}",
+                self.config.data_path,
+                file,
+            )).await else { continue };
+            if meta.is_file() {
+                sql.push(format!(r#"
+                INSERT INTO
+	            course_files (course, name, size)
+	            VALUES ('{0}', '{1}', {2});
+                "#, slug, file, meta.len())
+                );
+            }
+        }
+
+        sql.push(r#"COMMIT TRANSACTION;"#.to_string());
+
+        self
+            .database
+            .query(sql.concat())
+            .await?;
+
+        Ok(())
     }
 }

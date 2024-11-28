@@ -16,6 +16,12 @@ pub trait ContentRepository {
         by: Cow<'static, str>,
     ) -> Result<()>;
     async fn delete_content(&self, table:Cow<'static, str>, slug: Cow<'static, str>) -> Result<()>;
+    async fn get_course_files(
+        &self,
+        course_slug: Cow<'static, str>,
+    ) -> Result<Vec<Cow<'static, str>>>;
+    async fn drop_course_files(&self) -> Result<()>;
+    async fn get_course_links(&self, course_slug: Cow<'static, str>) -> Result<Vec<FileEntry>>;
 }
 
 #[async_trait]
@@ -171,5 +177,46 @@ impl ContentRepository for Repository {
             .await?;
 
         Ok(())
+    }
+
+    async fn get_course_files(
+        &self,
+        course_slug: Cow<'static, str>,
+    ) -> Result<Vec<Cow<'static, str>>> {
+        let sql = r#"
+        BEGIN TRANSACTION;
+        LET $courses = (SELECT array::group(array::group(data.course.links.{ url })) AS links
+        FROM course WHERE slug = $slug GROUP ALL)[0].links;
+        RETURN SELECT VALUE url FROM $courses WHERE type::is::string(url);
+        COMMIT TRANSACTION;
+        "#;
+
+        let files = self.database.query(sql)
+            .bind(("slug", course_slug))
+            .await?
+            .take::<Vec<Cow<'static, str>>>(0)?;
+
+        Ok(files)
+    }
+
+    async fn drop_course_files(&self) -> Result<()> {
+        let sql = r#"DELETE FROM course_files;"#;
+
+        self.database.query(sql).await?;
+
+        Ok(())
+    }
+
+    async fn get_course_links(&self, course_slug: Cow<'static, str>) -> Result<Vec<FileEntry>> {
+        let sql = r#"
+        SELECT name as path, size FROM course_files WHERE course = $slug;
+        "#;
+
+        let files = self.database.query(sql)
+            .bind(("slug", course_slug))
+            .await?
+            .take::<Vec<FileEntry>>(0)?;
+
+        Ok(files)
     }
 }

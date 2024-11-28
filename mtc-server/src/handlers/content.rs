@@ -106,3 +106,17 @@ pub async fn delete_content_handler(
 
     Ok(StatusCode::OK)
 }
+
+pub async fn find_course_files_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+    Payload(payload): Payload<Value>,
+) -> Result<impl IntoResponse> {
+    let slug = payload.key_str("slug").unwrap_or_default();
+    let schema = state.repository.find_schema_by_slug(slug).await?;
+
+    session.has_permission(&format!("{}::read", schema.permission)).await?;
+
+    let files = state.repository.get_course_links(schema.slug).await?;
+    files.to_response()
+}

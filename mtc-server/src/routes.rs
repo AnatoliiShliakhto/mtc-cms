@@ -47,12 +47,15 @@ pub fn routes(
             .delete(delete_custom_permission_handler)
         )
 
+        .route("/assets/course", post(find_course_files_handler))
+
         .route("/auth/qr", get(sign_in_qr_code_handler))
         .route("/auth", post(sign_in_handler)
             .delete(sign_out_handler)
             .patch(change_password_handler)
         )
 
+        .route("/system/courses", post(course_files_update_handler))
         .route("/system/sitemap", post(sitemap_build_handler))
         .route("/system/rebuild", post(search_idx_rebuild_handler))
         .route("/system/migrate", post(migration_handler))

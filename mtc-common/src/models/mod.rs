@@ -22,6 +22,7 @@ mod course_entry;
 mod search_idx_dto;
 mod schema_entry_details;
 mod query_uuid;
+mod file_entry;
 
 pub mod prelude {
     pub use super::{
@@ -47,5 +48,6 @@ pub mod prelude {
         course_entry::*,
         search_idx_dto::*,
         query_uuid::*,
+        file_entry::*,
     };
 }

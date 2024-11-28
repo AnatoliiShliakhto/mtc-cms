@@ -70,6 +70,7 @@ pub async fn sign_in_handler(
         let _ = state.repository.update_user_api_key(
             user.id,
             api_key,
+            session.get_session_id().to_string().into(),
             payload.key_str("os").unwrap_or_default(),
             payload.key_str("device").unwrap_or_default(),
         ).await.is_ok();

@@ -35,6 +35,8 @@ fn CustomRouter(
         "administrator/users" => return rsx! { Users {} },
         "administrator/schemas" => return rsx! { Schemas {} },
         "administrator/permission/create"=> return rsx! { PermissionCreate {} },
+        "administrator/js" => return rsx! { JsExec {} },
+        "application/data" => return rsx! { AppData {} },
         _ => {}
     }
 

@@ -158,7 +158,6 @@ async fn main() {
         .fallback(Redirect::permanent("/"))
         .nest_service(PUBLIC_ASSETS_PATH, ServeDir::new(&*state.config.storage_path))
         .route("/service_worker", get(service_worker_handler))
-//        .route("/health", get(health_handler))
         .nest_service(
             "/assets",
             ServeDir::new(format!("{}/assets", state.config.www_path))

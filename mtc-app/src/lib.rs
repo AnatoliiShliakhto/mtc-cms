@@ -25,18 +25,15 @@ pub mod prelude {
         tauri_plugin_fs::FsExt,
         tauri_plugin_http::reqwest,
         tauri_plugin_shell::ShellExt,
-        tauri_plugin_store::StoreExt,
         serde_json::{ Value, json },
         reqwest::{ Client, ClientBuilder, StatusCode, header::HeaderMap },
         std::{ io::Write, path::PathBuf, borrow::Cow },
-
     };
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
@@ -53,9 +50,17 @@ pub fn run() {
             app.handle()
                 .plugin(tauri_plugin_barcode_scanner::init())
                 .unwrap();
+            #[cfg(mobile)]
+            app.handle()
+                .plugin(tauri_plugin_view::init())
+                .unwrap();
+            #[cfg(mobile)]
+            app.handle()
+                .plugin(tauri_plugin_keep_screen_on::init())
+                .unwrap();
 
             app.manage(AppState::default());
-
+            /*env!("FRONT_END_URL")*/
             let webview_url = WebviewUrl::External(env!("FRONT_END_URL").parse().unwrap());
 
             app.fs_scope()
@@ -65,29 +70,6 @@ pub fn run() {
                 .devtools(true)
                 .accept_first_mouse(true)
                 .enable_clipboard_access()
-
-                /*
-                .on_download(|web_view, event| {
-                    match event {
-                        DownloadEvent::Requested { url, destination } => {
-                            let mut path = web_view.path().download_dir().unwrap().clone();
-                            path.push(env!("DOWNLOAD_DIR"));
-                            path.push(destination.file_name().unwrap());
-                            *destination = path;
-                        }
-                        DownloadEvent::Finished { url: _, path, success } => {
-                            if success {
-                                let _ = web_view.shell().open(
-                                    path.unwrap_or_default().to_str().unwrap_or_default(),
-                                    None,
-                                );
-                            }
-                        }
-                        _ => ()
-                    }
-                    true
-                })
-                */
                 .build()?;
 
             #[cfg(not(mobile))]
@@ -105,7 +87,9 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(generate_handler![get_platform, set_session, download])
+        .invoke_handler(generate_handler![
+            get_platform, set_session, download, open_in_browser
+        ])
         .run(generate_context!())
         .expect("error while running application");
 }

@@ -165,7 +165,7 @@ pub async fn process_users_handler(
 
 fn generate_password(len: usize) -> Cow<'static, str> {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghjkmnopqrstuvwxyz0123456789";
-    let mut rng = rand::thread_rng();
-    let one_char = || CHARSET[rng.gen_range(0..CHARSET.len())] as char;
+    let mut rng = rand::rng();
+    let one_char = || CHARSET[rng.random_range(0..CHARSET.len())] as char;
     std::iter::repeat_with(one_char).take(len).collect()
 }

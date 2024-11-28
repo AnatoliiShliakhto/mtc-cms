@@ -120,6 +120,21 @@ pub async fn sitemap_build_handler(
     Ok(())
 }
 
-pub async fn health_handler() -> Result<impl IntoResponse> {
-    Ok(StatusCode::OK)
+pub async fn course_files_update_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+) -> Result<impl IntoResponse> {
+    if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
+        Err(SessionError::AccessForbidden)?
+    }
+
+    state.repository.drop_course_files().await?;
+
+    let courses = state.repository.find_content_list("course".into(), true).await?;
+
+    for course in courses.iter() {
+        let files = state.repository.get_course_files(course.slug.clone()).await?;
+        state.repository.update_course_files(course.slug.clone(), files).await?;
+    }
+    Ok(())
 }

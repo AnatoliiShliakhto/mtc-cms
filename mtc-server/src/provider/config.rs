@@ -10,6 +10,7 @@ pub struct Config {
 
     pub password_salt: Cow<'static, str>,
 
+    pub data_path: Cow<'static, str>,
     pub www_path: Cow<'static, str>,
     pub storage_path: Cow<'static, str>,
     pub private_storage_path: Cow<'static, str>,
@@ -77,6 +78,7 @@ impl Config {
             strict_transport_security: env!("STRICT_TRANSPORT_SECURITY").into(),
             content_security_policy: env!("CONTENT_SECURITY_POLICY").into(),
             x_content_type_options: env!("X_CONTENT_TYPE_OPTIONS").into(),
+            data_path: data_path.into(),
         }
     }
 

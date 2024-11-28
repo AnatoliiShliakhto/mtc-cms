@@ -34,6 +34,7 @@ pub trait UserRepository {
     async fn update_user_api_key(
         &self,
         id: Cow<'static, str>,
+        session: Cow<'static, str>,
         api_key: Cow<'static, str>,
         os: Cow<'static, str>,
         device: Cow<'static, str>,
@@ -365,6 +366,7 @@ impl UserRepository for Repository {
         &self,
         id: Cow<'static, str>,
         api_key: Cow<'static, str>,
+        session: Cow<'static, str>,
         os: Cow<'static, str>,
         device: Cow<'static, str>,
     ) -> Result<()> {
@@ -385,6 +387,7 @@ impl UserRepository for Repository {
 
         let sql = r#"
         UPDATE type::record('api_keys:' + $api_key) MERGE {
+            sessionid: $sessionid,
             os: $os,
             device: $device,
             is_active: true
@@ -394,6 +397,7 @@ impl UserRepository for Repository {
         self.database
             .query(sql)
             .bind(("api_key", api_key_id))
+            .bind(("sessionid", session))
             .bind(("os", os))
             .bind(("device", device))
             .await?;

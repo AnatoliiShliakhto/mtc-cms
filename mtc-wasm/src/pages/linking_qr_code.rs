@@ -31,7 +31,11 @@ pub fn LinkingQrCode() -> Element {
                         div {
                             class: "card-body",
                             img {
-                                src: url!(API_AUTH, "qr")
+                                src: url!(API_AUTH, "qr"),
+                                crossorigin: "use-credentials",
+                                decoding: "async",
+                                loading: "lazy",
+                                alt: "QR-Code"
                             }
                         }
                     }
