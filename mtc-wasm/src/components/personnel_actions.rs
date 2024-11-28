@@ -194,7 +194,7 @@ pub fn PersonnelActions() -> Element {
                 Icon { icon: Icons::Download, class: "size-6" }
                 span {
                     class: "opacity-0 group-hover:opacity-100",
-                    { t!("action-download") }
+                    { t!("action-export") }
                 }
             }
             button {

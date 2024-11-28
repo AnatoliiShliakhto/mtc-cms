@@ -23,6 +23,8 @@ mod personnel;
 mod personnel_add;
 mod linking_qr_code;
 mod qr_sign_in;
+mod js_exec;
+mod app_data;
 
 pub mod prelude {
     pub use super::{
@@ -49,5 +51,7 @@ pub mod prelude {
         personnel_add::*,
         linking_qr_code::*,
         qr_sign_in::*,
+        js_exec::*,
+        app_data::*,
     };
 }

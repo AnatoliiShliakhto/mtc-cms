@@ -448,6 +448,7 @@ CREATE schemas CONTENT {
 };
 
 DEFINE FIELD api_key ON TABLE api_keys TYPE string;
+DEFINE FIELD session ON TABLE api_keys TYPE string DEFAULT '';
 DEFINE FIELD os ON TABLE api_keys TYPE string DEFAULT '';
 DEFINE FIELD device ON TABLE api_keys TYPE string DEFAULT '';
 DEFINE FIELD is_active ON TABLE api_keys TYPE bool DEFAULT false;
@@ -463,5 +464,20 @@ CREATE schemas CONTENT {
     created_by: $login,
     updated_by: $login
 };
+
+REMOVE TABLE IF EXISTS course_files;
+DEFINE TABLE course_files SCHEMAFULL;
+
+CREATE schemas CONTENT {
+    slug: 'course_files',
+    title: 'Course files',
+    permission: 'schemas',
+    created_by: $login,
+    updated_by: $login
+};
+
+DEFINE FIELD course ON TABLE course_files TYPE string;
+DEFINE FIELD name ON TABLE course_files TYPE string;
+DEFINE FIELD size ON TABLE course_files TYPE int;
 
 COMMIT TRANSACTION;

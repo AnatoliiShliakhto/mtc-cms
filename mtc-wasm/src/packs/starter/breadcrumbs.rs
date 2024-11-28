@@ -56,6 +56,11 @@ pub fn build_breadcrumbs(slug: &str) {
                 (t!("menu-course-edit"), "")
             ],
 
+            "menu-app-download"
+            | "menu-app-data" => vec![
+                (t!("menu-application"), ""),
+            ],
+
             _ => vec![],
         };
 

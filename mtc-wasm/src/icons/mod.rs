@@ -62,6 +62,8 @@ mod user_up;
 mod map;
 mod qr_code;
 mod qr_scan;
+mod tablet;
+mod windows;
 
 pub mod prelude {
     pub use super::{
@@ -134,6 +136,8 @@ pub enum Icons {
     Map,
     QrCode,
     QrScan,
+    Tablet,
+    Windows,
 }
 
 #[component]
@@ -206,5 +210,7 @@ pub fn Icon(
         Icons::Map => map::MapIcon(class),
         Icons::QrCode => qr_code::QrCodeIcon(class),
         Icons::QrScan => qr_scan::QrScanIcon(class),
+        Icons::Tablet => tablet::TabletIcon(class),
+        Icons::Windows => windows::WindowsIcon(class),
     }
 }

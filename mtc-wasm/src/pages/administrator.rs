@@ -40,6 +40,14 @@ pub fn Administrator() -> Element {
         });
     };
 
+    let course_assets = move |event: Event<MouseData>| {
+        spawn(async move {
+            if post_request!(url!("system/courses")) {
+                success_dialog!("message-success-course-assets-build")
+            }
+        });
+    };
+
     rsx! {
         section {
             class: "flex grow select-none flex-col gap-6 px-3 pr-20 sm:pr-16",
@@ -207,6 +215,14 @@ pub fn Administrator() -> Element {
                         div {
                             class: "stat-desc",
                             { t!("message-stat-courses-description") }
+                        }
+                        div {
+                            class: "stat-actions",
+                            button {
+                                class: "btn btn-sm",
+                                onclick: course_assets,
+                                { t!("action-index") }
+                            }
                         }
                     }
                 }

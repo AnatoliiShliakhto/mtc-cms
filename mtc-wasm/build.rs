@@ -8,7 +8,7 @@ fn main() {
     let js_asset = fs::read_to_string(&js_asset_path).unwrap();
     let js_asset = js_asset.lines()
         .map(|line| {
-        if line.contains("window.downloadDirectory =") {
+        if line.contains("window.downloadDirectory = '") {
             format!(r#"window.downloadDirectory = '{}';"#, env!("DOWNLOAD_DIR"))
         } else if line.contains("let api_url =") {
             format!(r#"        let api_url = '{}/api/storage/public/' + window.contentId;"#, env!("FRONT_END_URL"))

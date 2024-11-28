@@ -13,12 +13,8 @@ self.addEventListener("install", (event) => {
     const channel = new BroadcastChannel("sw-messages");
     channel.postMessage({ CACHE_VERSION });
 
-    function preCacheResources() {
-        caches.open(CACHE_NAME)
-        .then((cache) => cache.addAll(PRE_CACHED_RESOURCES));
-    }
-
-    getOnlineState().then(() => preCacheResources());
+    getOnlineState().then(() => caches.open(CACHE_NAME)
+        .then((cache) => cache.addAll(PRE_CACHED_RESOURCES)));
 });
 
 // This allows the web app to trigger skipWaiting
@@ -33,9 +29,26 @@ self.addEventListener("message", (ev) => {
         });
     }
     if (ev?.data?.type === "CLEAR_CACHE") {
-        caches.keys().then((keys) => {
-            keys.map((nm) => caches.delete(nm))
-        });
+        try {
+            caches.keys().then((keys) => {
+                keys.map((nm) => caches.delete(nm)
+                    .then(() =>
+                        caches.open(CACHE_NAME)
+                            .then((cache) => cache.addAll(PRE_CACHED_RESOURCES))
+                            .then(() => {
+                                ev.ports[0].postMessage({
+                                    type: 'CLEAR_CACHE',
+                                    result: true,
+                                });
+                            })
+                    ))
+            });
+        } catch(err) {
+            ev.ports[0].postMessage({
+                type: 'CLEAR_CACHE',
+                result: false,
+            });
+        }
     }
 });
 
@@ -51,7 +64,10 @@ self.addEventListener("activate", (ev) => {
                 keys.filter((key) => key !== CACHE_NAME)
                     .map((nm) => caches.delete(nm)),
             );
-        }),
+        }).then(() =>
+            caches.open(CACHE_NAME)
+                .then((cache) => cache.addAll(PRE_CACHED_RESOURCES))
+        )
     );
 });
 
@@ -62,27 +78,16 @@ self.addEventListener('fetch', event => {
     const modifiedRequestInit = {headers: modifiedHeaders, mode: 'cors', credentials: 'include'};
     const modifiedRequest = new Request(event.request, modifiedRequestInit)
 
-    getOnlineState();
-
-    if (event.request.method !== 'GET') {
+    if (event.request.method !== 'GET'
+        || event.request.referrer.includes('/administrator/')
+        || event.request.referrer.includes('/editor/')) {
         event.respondWith(networkOnly(event, modifiedRequest));
         return;
     }
 
     if (onlineStatus.value) {
-        if (event.request.url === FRONT_END_URL
-            || event.request.url.startsWith(FRONT_END_URL + '/public/')
-            || event.request.url.startsWith(FRONT_END_URL + '/assets/')
-            || event.request.url.startsWith(FRONT_END_URL + '/wasm/')
-            || event.request.url.startsWith(FRONT_END_URL + '/protected/')
-            || event.request.url.startsWith(FRONT_END_URL + '/api/sync')
-            || event.request.url.startsWith(FRONT_END_URL + '/api/content')) {
-            event.respondWith(networkRevalidateAndCache(event, modifiedRequest));
-        } else {
-            event.respondWith(networkOnly(event, modifiedRequest));
-        }
+        event.respondWith(networkRevalidateAndCache(event, modifiedRequest));
     } else {
-        // If offline try to get from cache all resources
         event.respondWith(cacheFirst(event, modifiedRequest));
     }
 });
@@ -91,9 +96,10 @@ self.addEventListener('fetch', event => {
 async function cacheFirst(event, request) {
     try {
         const timestamp = new Date().getTime();
+        getOnlineState();
 
         // Return the cache response if it is not null
-        const cacheResponse = await caches.match(event.request, { ignoreVary: true, ignoreSearch: true });
+        const cacheResponse = await caches.match(event.request, { ignoreVary: true, ignoreSearch: true});
         if (cacheResponse) return cacheResponse;
 
         // If no cache, fetch and cache the result and return result
@@ -120,13 +126,13 @@ async function networkOnly(event, request) {
         const fetchResponse = await fetch(request).catch( err => {
             if (err instanceof TypeError) {
                 onlineStatus = { value: false, timestamp: timestamp };
+                getOnlineState();
             }
         });
-        if (fetchResponse) {
-            return fetchResponse
-        } else {
-            await caches.match(event.request, { ignoreVary: true, ignoreSearch: true })
+        if (fetchResponse && fetchResponse.ok) {
+            onlineStatus = { value: true, timestamp: timestamp };
         }
+        return fetchResponse;
     } catch (err) {
         console.log("Could not return and fetch the asset CF: ", err);
     }
@@ -140,45 +146,19 @@ async function networkRevalidateAndCache(event, request) {
         const fetchResponse = await fetch(request).catch( err => {
             if (err instanceof TypeError) {
                 onlineStatus = { value: false, timestamp: timestamp };
+                getOnlineState();
             }
         });
-        if (fetchResponse && fetchResponse.ok) {
+        if (fetchResponse && fetchResponse.status === 200) {
             const cache = await caches.open(CACHE_NAME);
             await cache.put(event.request, fetchResponse.clone());
             onlineStatus = { value: true, timestamp };
             return fetchResponse;
         } else {
-            return await caches.match(event.request, { ignoreVary: true, ignoreSearch: true });
+            return await caches.match(event.request, { ignoreVary: true, ignoreSearch: true});
         }
     } catch (err) {
         console.log("Could not return cache or fetch NF", err);
-    }
-}
-
-// Always try cache and network in parallel and revalidate the response
-async function staleWhileRevalidate(event, request) {
-    try {
-        const timestamp = new Date().getTime();
-
-        const [cacheResponse, fetchResponse, cache] = await Promise.all([
-            caches.match(event.request, { ignoreVary: true, ignoreSearch: true }),
-            fetch(request).catch( err => {
-                if (err instanceof TypeError) {
-                    onlineStatus = { value: false, timestamp: timestamp };
-                }
-            }),
-            caches.open(CACHE_NAME),
-        ]);
-        if (fetchResponse && fetchResponse.ok) {
-            onlineStatus = { value: true, timestamp };
-            await cache.put(event.request, fetchResponse.clone());
-        } else {
-            onlineStatus = { value: false, timestamp };
-        }
-
-        return cacheResponse || fetchResponse;
-    } catch (err) {
-        console.log("Could not return and fetch the asset CF: ", err);
     }
 }
 

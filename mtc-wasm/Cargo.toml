@@ -10,16 +10,16 @@ license.workspace = true
 build = "build.rs"
 
 [features]
-default = ["utc242"]
+default = ["starter"]
 starter = [] #Starter WASM pack
 utc242 = [] #242 unit trainig center WASM pack
 
 [dependencies]
 mtc-common = { path = "../mtc-common" }
-dioxus = { workspace = true, features = ["web", "router"] }
+dioxus = { workspace = true }
 dioxus-logger = { workspace = true }
-reqwest = { workspace = true, features = ["json", "cookies", "zstd", "brotli"] }
-serde = { workspace = true, features = ["derive"] }
+reqwest = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
 gloo-storage = { workspace = true }
@@ -28,7 +28,7 @@ csv = { workspace = true }
 simsearch = { workspace = true }
 chrono = { workspace = true }
 human_bytes = { workspace = true }
-uuid = { workspace = true, features = ["v4"] }
+uuid = { workspace = true }
 magic-crypt = { workspace = true }
 wasm-bindgen = { workspace = true }
 wasm-bindgen-futures = { workspace = true }

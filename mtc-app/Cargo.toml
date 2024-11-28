@@ -15,7 +15,7 @@ name = "mtc_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.3", features = [] }
+tauri-build = { version = "2.0.3" }
 
 [dependencies]
 serde = { workspace = true }
@@ -28,7 +28,9 @@ tauri-plugin-log = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-http = { workspace = true }
 tauri-plugin-fs = { workspace = true }
-tauri-plugin-store = { workspace = true }
+tauri-plugin-view = { workspace = true }
+tauri-plugin-keep-screen-on = { workspace = true }
+webbrowser = { workspace = true }
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 tauri-plugin-barcode-scanner = { version = "2.0.1" }

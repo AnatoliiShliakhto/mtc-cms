@@ -17,7 +17,7 @@ cargo run
 
 ### MTC-WASM (front-end)
 ```bash
-dx serve --package mtc-cms
+dx serve --package mtc-wasm
 ```
 
 ### Native Application (desktop)
@@ -46,7 +46,7 @@ cross build --release --target x86_64-unknown-linux-musl
 
 ### MTC-WASM (front-end)
 ```bash
-dx build --release --package mtc-cms
+dx build --release --package mtc-wasm
 ```
 
 ### Native Application (desktop)

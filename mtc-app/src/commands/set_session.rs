@@ -1,6 +1,6 @@
 use super::*;
 
-#[command(async)]
+#[command(async, rename_all = "snake_case")]
 pub async fn set_session(
     state: State<'_, AppState>,
     session: String,

@@ -10,6 +10,10 @@ pub fn ViewCourseField(
         return rsx!{}
     }
 
+    let mut is_busy = use_signal(|| false);
+    let mut files_count = use_signal(|| 0);
+    let mut files_total = use_signal(|| 0);
+
     let value = use_memo(use_reactive!(|value| value.unwrap_or_default()));
     let mut arg = use_signal(||
         arg.unwrap_or_default().parse::<usize>().unwrap_or_default()
@@ -42,7 +46,61 @@ pub fn ViewCourseField(
         }
     }
 
+    let download = move |_| {
+        let slug = slug();
+        let payload = json!({
+            "slug": slug
+        });
+
+        spawn(async move {
+            let value = value_request!(url!("assets", "course"), payload);
+            let Some(files) = value.self_obj::<Vec<FileEntry>>() else { return; };
+            files_count.set(0);
+            files_total.set(files.len());
+            is_busy.set(true);
+            for file in files.iter() {
+                let js_eval = JS_FILE_DOWNLOAD
+                    .replace("{url}", &*file.path)
+                    .replace("{size}", &file.size.to_string());
+                if let Ok(Value::Bool(result)) = eval(&js_eval).recv().await {
+                    if result {
+                        *files_count.write() += 1;
+                    } else {
+                        error_dialog!("error-file-download");
+                        is_busy.set(false);
+                        return;
+                    }
+                } else {
+                    error_dialog!("error-file-download");
+                    is_busy.set(false);
+                    return;
+                }
+            }
+            is_busy.set(false);
+            success_dialog!("message-course-download-success");
+        });
+    };
+
     rsx! {
+        div {
+            class: "flex flex-nowrap w-full pb-4 justify-end",
+            if is_busy() {
+                div {
+                    class: "flex flex-nowrap p-3 border input-bordered rounded shadow-md",
+                    { format!("{}: {} / {}", t!("action-loading"), files_count(), files_total()) }
+                }
+            } else {
+                button {
+                    class: "btn gap-4",
+                    onclick: download,
+                    Icon {
+                        icon: Icons::Download,
+                        class: "size-6"
+                    }
+                    { t!("action-download") }
+                }
+            }
+        }
         if !course_tree.is_empty() {
             div {
                 class: "flex w-full flex-col gap-2",

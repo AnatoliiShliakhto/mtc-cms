@@ -8,50 +8,23 @@
   },
   "permissions": [
     "core:default",
-    "store:default",
     "dialog:default",
     "dialog:allow-open",
+    "dialog:allow-save",
     "shell:default",
     "shell:allow-execute",
     "shell:allow-open",
     "http:default",
-    "fs:default",
     "barcode-scanner:default",
+    "fs:default",
+    "fs:read-all",
+    "fs:write-all",
+    "fs:read-meta",
+    "view:allow-view",
+    "keep-screen-on:default",
     {
       "identifier": "fs:scope",
-      "allow": [{ "path": "$DOWNLOAD" }, { "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:allow-read",
-      "allow": [{ "path": "$DOWNLOAD" }, { "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:allow-write",
-      "allow": [{ "path": "$DOWNLOAD" }, { "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:allow-exists",
-      "allow": [{ "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:allow-download-read-recursive",
-      "allow": [{ "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:allow-download-write-recursive",
-      "allow": [{ "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:allow-download-meta-recursive",
-      "allow": [{ "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:scope-download-recursive",
-      "allow": [{ "path": "$DOWNLOAD/**" }]
-    },
-    {
-      "identifier": "fs:scope-download-index",
-      "allow": [{ "path": "$DOWNLOAD/**" }]
+      "allow": [{ "path": "**" }]
     }
   ],
   "platforms": [

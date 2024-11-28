@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0-rc",
-  "productName": "242 utc",
+  "productName": "242 цпп",
   "mainBinaryName": "mtc-app",
   "version": "0.1.0",
   "identifier": "com.mtc-cms.app",
   "build": {
     "frontendDist": "https://242.org.ua",
-    "devUrl": "https://localhost",
+    "devUrl": "https://242.org.ua",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""
   },
@@ -25,6 +25,22 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "allowDowngrades": true,
+      "certificateThumbprint": null,
+      "digestAlgorithm": null,
+      "nsis": null,
+      "signCommand": null,
+      "timestampUrl": null,
+      "tsp": false,
+      "webviewInstallMode": {
+        "silent": true,
+        "type": "downloadBootstrapper"
+      },
+      "wix": {
+        "language": "uk-UA"
+      }
+    }
   }
 }

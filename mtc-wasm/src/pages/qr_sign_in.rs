@@ -8,6 +8,7 @@ pub fn QrSignIn() -> Element {
     if platform.ne("android") {
         return rsx! { NotFound {} }
     }
+    let sync = use_coroutine_handle::<SyncAction>();
 
     let scan_qr = r#"
         let scan = window.__TAURI__.barcodeScanner.scan;
@@ -33,11 +34,21 @@ pub fn QrSignIn() -> Element {
             if let Ok(Value::String(message)) = eval(scan_qr).recv().await {
                 if !message.starts_with("MTC:000:") {
                     alert_dialog!("error-invalid-qr-code");
+                    navigator().go_back();
                 } else {
                     let message = message.replace("MTC:000:", "");
                     let mcrypt = new_magic_crypt!(env!("CRYPT_KEY"), 256);
                     if let Ok(decrypted_qr) = mcrypt.decrypt_base64_to_string(&message) {
-                        alert_dialog!(decrypted_qr.as_str());
+                        let payload = json!({
+                            "api_key": decrypted_qr.as_str(),
+                        });
+
+                        if !post_request!(url!(API_AUTH), payload) {
+                            navigator().go_back();
+                            return;
+                        };
+
+                        sync.send(SyncAction::RefreshState());
                     }
                 }
                 navigator().go_back();

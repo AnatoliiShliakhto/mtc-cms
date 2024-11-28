@@ -78,11 +78,33 @@ pub fn SideMenu() -> Element {
                             permission: PERMISSION_USERS_READ,
                             { t!("menu-users") }
                         }
+                        MenuItem {
+                            route: route!(API_ADMINISTRATOR, "js"),
+                            { t!("menu-js-exec") }
+                        }
                     }
                 }
             }
         }
         div { class: "divider my-0" }
+        li {
+            details {
+                summary {
+                    Icon { icon: Icons::Tablet, class: "size-8 sm:size-6" }
+                    { t!( "menu-application") }
+                }
+                ul {
+                    MenuItem {
+                        route: route!(API_CONTENT, API_PAGE, "app-download"),
+                        { t!("menu-app-download") }
+                    }
+                    MenuItem {
+                        route: route!("application", "data"),
+                        { t!("menu-app-data") }
+                    }
+                }
+            }
+        }
         if auth.is_authenticated() {
             MenuItem {
                 route: route!(API_PERSONNEL),
