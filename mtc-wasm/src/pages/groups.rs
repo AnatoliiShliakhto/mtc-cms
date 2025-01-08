@@ -1,5 +1,10 @@
 use super::*;
 
+/// Page displaying a list of all groups, with links to each group's page.
+///
+/// # Authorization
+///
+/// The user must have the [`PERMISSION_GROUPS_READ`] permission.
 #[component]
 pub fn Groups() -> Element {
     breadcrumbs!("menu-groups");

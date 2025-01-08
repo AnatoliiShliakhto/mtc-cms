@@ -1,5 +1,15 @@
 use super::*;
 
+/// Component for editing or creating a schema entry.
+///
+/// This component provides a form interface for editing existing schema entries
+/// or creating new ones. It fetches the schema data from the server and displays
+/// form fields corresponding to the schema's properties. The component handles
+/// form submission and deletion operations, as well as permission checks for
+/// viewing and editing schemas.
+///
+/// # Props
+/// - `id`: The ID of the schema entry to edit, or [`ID_CREATE`] to create a new entry.
 #[component]
 pub fn SchemaEdit(
     #[props(into)]
@@ -41,7 +51,7 @@ pub fn SchemaEdit(
 
     rsx! {
         section {
-            class: "flex grow flex-col select-none flex-row px-3 pr-20 sm:pr-16",
+            class: "flex grow flex-col select-none px-3 pr-20 sm:pr-16",
             form {
                 class: "flex grow flex-col items-center gap-3",
                 id: "schema-edit-form",

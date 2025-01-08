@@ -1,5 +1,6 @@
 use super::*;
 
+/// Content model structure
 #[derive(Default, Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct Content {
     pub id: Cow<'static, str>,

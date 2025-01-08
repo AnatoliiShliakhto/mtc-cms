@@ -1,5 +1,9 @@
 use super::*;
 
+/// Component for creating and editing roles.
+///
+/// The component is only visible if the user has the permission for viewing
+/// roles.
 #[component]
 pub fn RoleEdit(
     #[props(into)]

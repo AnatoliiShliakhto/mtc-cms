@@ -1,5 +1,6 @@
 use super::*;
 
+/// The main menu of the application, which is displayed on the left side.
 #[component]
 pub fn SideMenu() -> Element {
     let auth = state!(auth);

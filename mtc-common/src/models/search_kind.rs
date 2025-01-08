@@ -1,4 +1,6 @@
 use super::*;
+
+/// Search kind enum
 #[derive(Serialize_repr, Deserialize_repr, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
 #[repr(i32)]
 pub enum SearchKind {

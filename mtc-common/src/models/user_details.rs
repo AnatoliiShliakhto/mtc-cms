@@ -1,5 +1,6 @@
 use super::*;
 
+/// User details structure
 #[derive(Serialize, Default, Debug, Deserialize, Clone, PartialEq)]
 pub struct UserDetails {
     pub id: Cow<'static, str>,
@@ -13,6 +14,7 @@ pub struct UserDetails {
     pub access_count: i32,
 }
 
+/// DTO for [`UserDetails`] structure
 #[derive(Serialize, Default, Debug, Deserialize, Clone, PartialEq)]
 pub struct UserDetailsDto {
     pub id: Cow<'static, str>,
@@ -24,6 +26,7 @@ pub struct UserDetailsDto {
     pub access_count: i32,
 }
 
+/// User state enum
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum UserState {
     #[default]
@@ -32,6 +35,7 @@ pub enum UserState {
     Inactive,
 }
 
+/// Person details DTO
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PersonDto {
     pub login: Cow<'static, str>,

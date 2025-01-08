@@ -1,5 +1,6 @@
 use super::*;
 
+/// Schema kind enum
 #[derive(Default, Serialize_repr, Deserialize_repr, Debug, Clone, PartialEq)]
 #[repr(i32)]
 pub enum SchemaKind {

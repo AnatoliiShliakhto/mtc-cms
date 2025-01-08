@@ -1,5 +1,11 @@
 use super::*;
 
+/// A component that renders a select field for selecting a permission from a list.
+///
+/// # Props
+///
+/// * `init_permission`: The initial selected permission, as a string.
+/// * `permissions`: A list of available permissions, as `Cow<str>`.
 #[component]
 pub fn FormPermissionsField(
     #[props(into)]

@@ -448,7 +448,7 @@ CREATE schemas CONTENT {
 };
 
 DEFINE FIELD api_key ON TABLE api_keys TYPE string;
-DEFINE FIELD session ON TABLE api_keys TYPE string DEFAULT '';
+DEFINE FIELD sessionid ON TABLE api_keys TYPE string DEFAULT '';
 DEFINE FIELD os ON TABLE api_keys TYPE string DEFAULT '';
 DEFINE FIELD device ON TABLE api_keys TYPE string DEFAULT '';
 DEFINE FIELD is_active ON TABLE api_keys TYPE bool DEFAULT false;

@@ -1,5 +1,10 @@
 use super::*;
 
+/// Administrator dashboard.
+///
+/// Shows some statistics about the application and allows the
+/// administrator to rebuild the search index, migrate the database,
+/// and rebuild the sitemap.
 #[component]
 pub fn Administrator() -> Element {
     breadcrumbs!("menu-administrator");
@@ -319,7 +324,6 @@ pub fn Administrator() -> Element {
                         }
                     }
                 }
-
             }
         }
     }

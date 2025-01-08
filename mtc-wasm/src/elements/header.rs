@@ -1,5 +1,6 @@
 use super::*;
 
+/// Header component with navigation bar, search box and theme switcher.
 #[component]
 pub fn Header() -> Element {
     let mut search_pattern = state_fn!(search_engine).pattern;
@@ -9,7 +10,7 @@ pub fn Header() -> Element {
             class: "bg-base-100 text-base-content sticky top-0 z-[30] flex h-12 w-full",
             class: "justify-center bg-opacity-90 backdrop-blur transition-shadow duration-100",
             class: "[transform:translate3d(0,0,0)] qr-element",
-            nav { 
+            nav {
                 class: "navbar w-full p-0 min-h-12 h-12",
                 div { 
                     class: "inline-flex flex-nowrap flex-1 md:gap-1 lg:gap-2",

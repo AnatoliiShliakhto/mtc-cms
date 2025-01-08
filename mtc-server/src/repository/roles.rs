@@ -1,23 +1,38 @@
 use super::*;
 
-#[async_trait]
 pub trait RolesRepository {
-    async fn find_role_list(&self) -> Result<Vec<Entry>>;
-    async fn find_custom_role_list(&self) -> Result<Vec<Entry>>;
-    async fn find_roles_by_login(&self, login: Cow<'static, str>) -> Result<Vec<Cow<'static, str>>>;
-    async fn find_roles_ids_by_user_id(&self, id: Cow<'static, str>) -> Result<Vec<Cow<'static, str>>>;
-    async fn find_role(&self, id: Cow<'static, str>) -> Result<Role>;
-    async fn update_role(&self, payload: Value, by: Cow<'static, str>) -> Result<()>;
-    async fn delete_role(&self, id: Cow<'static, str>) -> Result<()>;
-    async fn assign_roles_to_user(
+    fn find_role_list(&self)
+        -> impl Future<Output = Result<Vec<Entry>>> + Send;
+    fn find_custom_role_list(&self)
+        -> impl Future<Output = Result<Vec<Entry>>> + Send;
+    fn find_roles_by_login(&self, login: Cow<'static, str>)
+        -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
+    fn find_roles_ids_by_user_id(&self, id: Cow<'static, str>)
+        -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
+    fn find_role(&self, id: Cow<'static, str>)
+        -> impl Future<Output = Result<Role>> + Send;
+    fn update_role(&self, payload: Value, by: Cow<'static, str>)
+        -> impl Future<Output = Result<()>> + Send;
+    fn delete_role(&self, id: Cow<'static, str>)
+        -> impl Future<Output = Result<()>> + Send;
+    fn assign_roles_to_user(
         &self, id: Cow<'static, str>,
         roles: Vec<Cow<'static, str>>,
-    ) -> Result<()>;
-    async fn find_roles_max_access_level(&self, roles: &Vec<Cow<'static, str>>) -> Result<i64>;
+    ) -> impl Future<Output = Result<()>> + Send;
+    fn find_roles_max_access_level(&self, roles: &Vec<Cow<'static, str>>)
+        -> impl Future<Output = Result<i64>> + Send;
 }
 
-#[async_trait]
 impl RolesRepository for Repository {
+    /// Finds all roles.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - A JSON response containing the list of roles as a vector of [`Entry`].
     async fn find_role_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
             SELECT record::id(id) as id, slug, title FROM roles ORDER BY slug;
@@ -30,6 +45,15 @@ impl RolesRepository for Repository {
         Ok(roles)
     }
 
+    /// Finds all custom roles excluding predefined roles.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - A JSON response containing the list of custom roles as a vector of [`Entry`].
     async fn find_custom_role_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
             SELECT record::id(id) as id, slug, title FROM roles
@@ -43,6 +67,20 @@ impl RolesRepository for Repository {
         Ok(roles)
     }
 
+    /// Finds roles associated with a given user login.
+    ///
+    /// # Parameters
+    ///
+    /// - `login`: The login identifier of the user whose roles are to be retrieved.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - A vector of role slugs associated with the user, or a vector containing
+    ///   the [`ROLE_ANONYMOUS`] role if no roles are found.
     async fn find_roles_by_login(
         &self,
         login: Cow<'static, str>,
@@ -60,6 +98,20 @@ impl RolesRepository for Repository {
         Ok(roles)
     }
 
+    /// Finds the IDs of roles associated with a given user ID.
+    ///
+    /// # Parameters
+    ///
+    /// - `id`: The user ID whose roles are to be retrieved.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - A vector of role IDs associated with the user, or an empty vector if no
+    ///   roles are found.
     async fn find_roles_ids_by_user_id(&self, id: Cow<'static, str>) -> Result<Vec<Cow<'static, str>>> {
         let sql = r#"
             SELECT VALUE array::distinct(
@@ -76,6 +128,20 @@ impl RolesRepository for Repository {
         Ok(roles)
     }
 
+    /// Finds a role by its ID.
+    ///
+    /// # Parameters
+    ///
+    /// - `id`: The ID of the role to retrieve.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    /// - `DatabaseError::EntryNotFound` if no role is found with the specified ID.
+    ///
+    /// # Returns
+    ///
+    /// - The [`Role`] data, if found.
     async fn find_role(&self, id: Cow<'static, str>) -> Result<Role> {
         let sql = r#"
         SELECT *, record::id(id) as id,
@@ -92,6 +158,20 @@ impl RolesRepository for Repository {
             .ok_or(DatabaseError::EntryNotFound.into())
     }
 
+    /// Updates a role by its ID.
+    ///
+    /// # Parameters
+    ///
+    /// - `payload`: A JSON payload containing the new values for the role.
+    /// - `by`: The login identifier of the user who is updating the role.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(())` if the role is updated successfully.
     async fn update_role(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
         let id =
@@ -170,6 +250,12 @@ impl RolesRepository for Repository {
         Ok(())
     }
 
+    /// Deletes a role by ID.
+    ///
+    /// # Note
+    ///
+    /// The anonymous, administrator, and writer roles are protected and cannot be deleted.
+    ///
     async fn delete_role(&self, id: Cow<'static, str>) -> Result<()> {
         let sql = r#"
             DELETE type::record("roles:" + $id)
@@ -185,6 +271,20 @@ impl RolesRepository for Repository {
         Ok(())
     }
 
+    /// Assigns the given roles to a user.
+    ///
+    /// # Parameters
+    ///
+    /// - `id`: The ID of the user to assign the roles to.
+    /// - `roles`: A list of role IDs to assign.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(())` if the roles are assigned successfully.
     async fn assign_roles_to_user(
         &self,
         id: Cow<'static, str>,
@@ -213,6 +313,19 @@ impl RolesRepository for Repository {
         Ok(())
     }
 
+    /// Finds the highest user access level among the given roles.
+    ///
+    /// # Parameters
+    ///
+    /// - `roles`: A list of role IDs to check.
+    ///
+    /// # Errors
+    ///
+    /// - `DatabaseError::QueryError` if the query fails.
+    ///
+    /// # Returns
+    ///
+    /// - The highest user access level found in the roles, or `999` if the list is empty.
     async fn find_roles_max_access_level(&self, roles: &Vec<Cow<'static, str>>) -> Result<i64> {
         if roles.is_empty() { return Ok(999) }
 

@@ -1,5 +1,6 @@
 use super::*;
 
+/// Component for showing and managing all schemas.
 #[component]
 pub fn Schemas() -> Element {
     breadcrumbs!("menu-schemas");

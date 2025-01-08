@@ -1,5 +1,13 @@
 use super::*;
 
+/// A component that renders a form to initialize the application.
+///
+/// The component is shown on the root route if the database is not initialized.
+/// The form contains two fields: login and password. The form is submitted
+/// to the [`API_MIGRATE`] endpoint, which initializes the database and
+/// redirects to the [`API_AUTH`] endpoint if the initialization is successful.
+///
+/// The component styles the form according to the Tailwind CSS framework.
 #[component]
 pub fn InitBox() -> Element {
 

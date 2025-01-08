@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component that renders a profile controller for the user.
 #[component]
 pub fn ProfileController() -> Element {
     let auth = state!(auth);

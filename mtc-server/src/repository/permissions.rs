@@ -1,27 +1,37 @@
 use super::*;
 
-#[async_trait]
 pub trait PermissionsRepository {
-    async fn find_permission_list(&self) -> Result<Vec<Entry>>;
-    async fn find_permissions_by_login(
+    fn find_permission_list(&self)
+        -> impl Future<Output = Result<Vec<Entry>>> + Send;
+    fn find_permissions_by_login(
         &self,
         login: Cow<'static, str>,
-    ) -> Result<Vec<Cow<'static, str>>>;
-    async fn find_custom_permissions(&self) -> Result<Vec<Cow<'static, str>>>;
-    async fn create_custom_permission(
+    ) -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
+    fn find_custom_permissions(&self)
+        -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
+    fn create_custom_permission(
         &self,
         permission: Cow<'static, str>,
         by: Cow<'static, str>,
-    ) -> Result<()>;
-    async fn delete_custom_permission(&self, permission: Cow<'static, str>) -> Result<()>;
-    async fn assign_permissions_to_role(
+    ) -> impl Future<Output = Result<()>> + Send;
+    fn delete_custom_permission(&self, permission: Cow<'static, str>)
+        -> impl Future<Output = Result<()>> + Send;
+    fn assign_permissions_to_role(
         &self, id: Cow<'static, str>,
         permissions: Vec<Cow<'static, str>>,
-    ) -> Result<()>;
+    ) -> impl Future<Output = Result<()>> + Send;
 }
 
-#[async_trait]
 impl PermissionsRepository for Repository {
+    /// Finds all permissions in the database, ordered by slug.
+    ///
+    /// # Return Value
+    ///
+    /// A vector of [`Entry`] objects.
+    ///
+    /// # Errors
+    ///
+    /// - `GenericError::DatabaseError` if there was an error querying the database.
     async fn find_permission_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
             SELECT record::id(id) as id, slug, slug as title FROM permissions ORDER BY slug;
@@ -34,6 +44,20 @@ impl PermissionsRepository for Repository {
         Ok(permissions)
     }
 
+    /// Retrieves the list of permissions associated with a user login.
+    ///
+    /// # Arguments
+    ///
+    /// * `login` - The login identifier of the user.
+    ///
+    /// # Returns
+    ///
+    /// A result containing a vector of permission slugs associated with the user.
+    /// If no permissions are found, returns a default permission [`PERMISSION_PUBLIC_READ`].
+    ///
+    /// # Errors
+    ///
+    /// - `GenericError::DatabaseError` if there was an error querying the database.
     async fn find_permissions_by_login(
         &self,
         login: Cow<'static, str>,
@@ -52,6 +76,15 @@ impl PermissionsRepository for Repository {
         Ok(permissions)
     }
 
+    /// Retrieves the list of custom permissions defined in the system.
+    ///
+    /// # Returns
+    ///
+    /// A result containing a vector of permission slugs associated with the custom permissions.
+    ///
+    /// # Errors
+    ///
+    /// - `GenericError::DatabaseError` if there was an error querying the database.
     async fn find_custom_permissions(&self) -> Result<Vec<Cow<'static, str>>> {
         let sql = r#"
             array::distinct(SELECT VALUE string::split(slug, "::")[0]
@@ -65,6 +98,20 @@ impl PermissionsRepository for Repository {
         Ok(permissions)
     }
 
+    /// Creates a new custom permission in the system.
+    ///
+    /// The `permission` argument is used as the slug for the three
+    /// permissions created: `permission::read`, `permission::write`,
+    /// and `permission::delete`. The `by` argument is used to set the
+    /// `created_by` field for the permissions.
+    ///
+    /// The three permissions are also automatically assigned to the
+    /// `administrator` role.
+    ///
+    /// # Errors
+    ///
+    /// - `GenericError::DatabaseError` if there was an error querying
+    ///   the database.
     async fn create_custom_permission(
         &self, permission: Cow<'static, str>,
         by: Cow<'static, str>,
@@ -139,6 +186,11 @@ impl PermissionsRepository for Repository {
         Ok(())
     }
 
+    /// Assigns a list of permissions to a role.
+    ///
+    /// # Arguments
+    /// * `id` - The ID of the role.
+    /// * `permissions` - The list of permissions to assign to the role.
     async fn assign_permissions_to_role(
         &self,
         id: Cow<'static, str>,

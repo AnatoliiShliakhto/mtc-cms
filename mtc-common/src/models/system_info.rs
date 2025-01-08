@@ -1,4 +1,6 @@
 use super::*;
+
+/// System info DTO
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq, Default)]
 pub struct SystemInfo {
     pub pages: i32,

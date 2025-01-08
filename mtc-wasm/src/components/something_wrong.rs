@@ -1,5 +1,10 @@
 use super::*;
 
+/// A component that displays a generic error message indicating that something went wrong.
+///
+/// This component is typically used to inform the user of an unexpected error or issue.
+/// It renders a "500" error message with options to navigate back to the home page,
+/// attempt to retry an operation if a `future` is provided, or sign in if needed.
 #[component]
 pub fn SomethingWrong<T: PartialEq + 'static>(
     #[props]

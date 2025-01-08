@@ -1,5 +1,6 @@
 use super::*;
 
+/// Schema model structure
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct Schema {
     pub id: Cow<'static, str>,

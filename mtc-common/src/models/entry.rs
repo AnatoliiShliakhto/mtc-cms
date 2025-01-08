@@ -1,5 +1,6 @@
 use super::*;
 
+/// An entry in a collection
 #[derive(Default, Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct Entry {
     pub id: Cow<'static, str>,

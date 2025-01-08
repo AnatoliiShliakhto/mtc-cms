@@ -1,6 +1,20 @@
 use std::ops::DerefMut;
 use super::*;
 
+/// Renders the application data section, providing cache and downloads management.
+///
+/// This component displays application data related to cache and downloads. It conditionally
+/// renders information based on the platform being used. If the platform is not web-based, it
+/// shows details about downloaded files and allows users to clear downloads or delete individual
+/// files. Additionally, it provides a button to clear the browser cache.
+///
+/// # Hooks and Callbacks
+/// - Initializes and updates the list of downloaded files when not on the web platform.
+/// - Provides callbacks for clearing cache and downloads, as well as deleting individual files.
+///
+/// # UI Elements
+/// - Displays cache and downloads stats, with actions to clear them.
+/// - Renders a table of downloaded files with options to open or delete them.
 #[component]
 pub fn AppData() -> Element {
     breadcrumbs!("menu-app-data");

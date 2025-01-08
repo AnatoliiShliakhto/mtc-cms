@@ -1,5 +1,14 @@
 use super::*;
 
+/// Renders a list of content entries for a given schema.
+///
+/// This component retrieves content entries associated with the specified schema
+/// and displays them in a table format. If the user has the "writer" role, additional
+/// information and actions are displayed, such as publication status and content list actions.
+///
+/// # Arguments
+///
+/// * `schema` - The schema slug identifying the content type to be displayed.
 #[component]
 pub fn ContentList(
     #[props(into)]

@@ -1,5 +1,15 @@
 use super::*;
 
+/// Handler for `/system/info` route.
+///
+/// Returns information about the system in JSON format, including
+/// system information, migrations, and sitemap.
+///
+/// Requires the [`PERMISSION_SCHEMAS_READ`] permission.
+///
+/// # Errors
+///
+/// Returns a `GenericError` if the permission check fails.
 pub async fn find_system_info_handler(
     state: State<Arc<AppState>>,
     session: Session,
@@ -10,6 +20,7 @@ pub async fn find_system_info_handler(
     let migrations = state.repository.find_migrations().await?;
     let sitemap = state.repository.get_system_value("sitemap".into()).await?;
     let mut json_obj = json!({});
+
     json_obj.insert_value("info", json!(system_info));
     json_obj.insert_value("migrations", json!(migrations));
     json_obj.insert_value("sitemap", json!(sitemap));
@@ -17,6 +28,20 @@ pub async fn find_system_info_handler(
     json_obj.to_response()
 }
 
+/// Handler for `/system/migrate` route.
+///
+/// Runs migrations for the current system.
+///
+/// If there are no existing migrations, this handler will create a new user
+/// with the provided `login` and `password` and set up the migrations table.
+///
+/// If there are existing migrations, this handler will require the
+/// [`PERMISSION_ADMINISTRATOR`] role to continue.
+///
+/// # Errors
+///
+/// Returns a `GenericError` if the permission check fails or if there is an
+/// error running a migration.
 pub async fn migration_handler(
     state: State<Arc<AppState>>,
     session: Session,
@@ -36,10 +61,8 @@ pub async fn migration_handler(
         };
         password = Cow::Owned(password_hash.to_string());
         login = payload.key_str("login").unwrap_or(ROLE_ADMINISTRATOR.into());
-    } else {
-        if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
-            Err(SessionError::AccessForbidden)?
-        }
+    } else if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
+        Err(SessionError::AccessForbidden)?
     }
 
     let migration_files = state.repository.get_migration_files().await?
@@ -62,6 +85,15 @@ pub async fn migration_handler(
     Ok(StatusCode::OK)
 }
 
+/// Handler for `/system/search_idx_rebuild` route.
+///
+/// Rebuilds the search index.
+///
+/// Requires the [`PERMISSION_ADMINISTRATOR`] role.
+///
+/// # Errors
+///
+/// Returns a `SessionError` if the permission check fails.
 pub async fn search_idx_rebuild_handler(
     state: State<Arc<AppState>>,
     session: Session,
@@ -75,7 +107,19 @@ pub async fn search_idx_rebuild_handler(
     Ok(())
 }
 
-///todo RegEx sanitizer
+/// Handler for `/system/search` route.
+///
+/// Searches for content that matches the provided search query.
+///
+/// The search query is sanitized to remove any non-alphanumeric characters
+/// except for whitespace, hyphens, and underscores.
+///
+/// The search results include only records that the current user has access to.
+///
+/// # Errors
+///
+/// Returns a `GenericError` if the search query is empty or if there is an error
+/// running the search query.
 pub async fn search_handler(
     state: State<Arc<AppState>>,
     session: Session,
@@ -84,7 +128,8 @@ pub async fn search_handler(
     let Some(payload) = payload.as_str() else {
         Err(GenericError::BadRequest)?
     };
-    let payload = payload.to_string();
+    let re = regex::Regex::new(r"[^a-zA-Zа-яА-ЯіїєґІЇЄҐ0-9 -_]").unwrap();
+    let payload = re.replace_all(payload, "").to_string();
 
     let auth_state = session
         .get_auth_state()
@@ -107,6 +152,16 @@ pub async fn search_handler(
     search_idx.to_response()
 }
 
+/// Handler for `/system/sitemap_build` route.
+///
+/// Builds the sitemap for the system.
+///
+/// Requires the [`PERMISSION_ADMINISTRATOR`] role.
+///
+/// # Errors
+///
+/// Returns a `SessionError` if the permission check fails or if there is an
+/// error building the sitemap.
 pub async fn sitemap_build_handler(
     state: State<Arc<AppState>>,
     session: Session,
@@ -120,6 +175,16 @@ pub async fn sitemap_build_handler(
     Ok(())
 }
 
+/// Handler for `/system/course_files_update` route.
+///
+/// Updates the `course_files` collection.
+///
+/// Requires the [`PERMISSION_ADMINISTRATOR`] role.
+///
+/// # Errors
+///
+/// Returns a `SessionError` if the permission check fails or if there is an
+/// error updating the `course_files` collection.
 pub async fn course_files_update_handler(
     state: State<Arc<AppState>>,
     session: Session,

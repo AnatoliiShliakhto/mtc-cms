@@ -1,5 +1,16 @@
 use super::*;
 
+/// A component to view a content entry, given the schema and slug to identify the entry.
+///
+/// The component renders the content fields as a list of [`Prose`] elements, with the
+/// field type determining the specific component used to render the field. The
+/// [`ContentActions`] component is also rendered if the user has the writer role.
+///
+/// # Props
+///
+/// * `schema`: The schema to render the content entry for.
+/// * `slug`: The slug of the content entry to render.
+/// * `arg`: An optional argument to pass to the [`ViewCourseField`] component.
 #[component]
 pub fn ContentView(
     #[props(into)]
@@ -30,8 +41,8 @@ pub fn ContentView(
 
     rsx! {
         section {
-            class: "w-full max-w-full flex flex-wrap grow mt-3 px-4 sm:px-0 \
-                    ck-content justify-center overflow-x-auto",
+            class: "w-full max-w-full flex flex-wrap grow mt-3 px-4 sm:px-0",
+            class: "ck-content justify-center overflow-x-auto",
             h3 {
                 class: "flex w-full flex-wrap pb-4 sm:px-4",
                 class: "justify-center text-2xl font-semibold text-center",

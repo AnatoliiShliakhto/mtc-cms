@@ -4,6 +4,20 @@ pub enum SyncAction {
     RefreshState(),
 }
 
+/// Synchronize the state of the application.
+///
+/// This function is called when the application is initialized or when the user
+/// logs in or out. It is responsible for refreshing the state of the application
+/// by sending a request to the server and updating the state of the application
+/// accordingly.
+///
+/// The function takes a receiver of [`SyncAction`] messages, which are sent to it
+/// whenever the state of the application needs to be refreshed.
+///
+/// The function is an infinite loop that runs until the receiver is closed. It
+/// receives messages from the receiver and processes them accordingly. If the
+/// message is [`SyncAction::RefreshState`], it sends a request to the server and
+/// updates the state of the application accordingly.
 pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
     let mut search_list = state_fn!(search_engine).list;
     let mut search_idx = state_fn!(search_engine).index;

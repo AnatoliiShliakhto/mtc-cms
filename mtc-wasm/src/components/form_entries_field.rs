@@ -1,5 +1,24 @@
 use super::*;
 
+/// A component for selecting multiple items from a list of options.
+///
+/// The component displays a list of badges representing the selected items,
+/// and a collapsible list of all items. When an item is clicked, it is moved
+/// from the collapsible list to the list of selected items.
+///
+/// The component takes four props:
+///
+/// - `name`: The name of the form field to use when submitting the selected
+///   items.
+/// - `title`: The label to display above the component.
+/// - `items`: A vector of strings, where each string is an item to display in
+///   the collapsible list.
+/// - `entries`: A vector of `Entry` objects, where each object has an `id` and
+///   `title` property. The `id` is used to identify the item in the
+///   collapsible list, and the `title` is used to display the item in the
+///   collapsible list.
+///
+/// The component returns an `Element` representing the component.
 #[component]
 pub fn FormEntriesField(
     #[props(into)]

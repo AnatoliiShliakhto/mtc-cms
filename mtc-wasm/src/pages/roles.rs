@@ -1,5 +1,21 @@
 use super::*;
 
+/// Component for displaying and managing roles.
+///
+/// This component presents a table with a list of roles, showing their slugs and titles.
+/// It retrieves the roles data from the API and updates its state with the response.
+/// Users can navigate to a specific role's page by clicking on its entry in the table.
+/// The component includes a button for creating a new role, visible only to users with
+/// the appropriate permission.
+///
+/// # Permissions
+///
+/// - Requires [`PERMISSION_ROLES_READ`] to view the roles.
+/// - Requires [`PERMISSION_ROLES_WRITE`] to create a new role.
+///
+/// # Errors
+///
+/// - Displays an error message if the API response is null.
 #[component]
 pub fn Roles() -> Element {
     breadcrumbs!("menu-roles");

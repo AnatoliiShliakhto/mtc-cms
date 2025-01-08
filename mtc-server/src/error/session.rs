@@ -15,6 +15,16 @@ pub enum SessionError {
 }
 
 impl IntoResponse for SessionError {
+    /// Converts the `SessionError` into a `Response` that can be returned to the client.
+    ///
+    /// The HTTP status code and JSON response body are determined as follows:
+    ///
+    /// - `InvalidSession` and `InvalidCredentials`: 401 Unauthorized
+    /// - `PasswordHash`: 500 Internal Server Error
+    /// - `UserBlocked` and `AccessForbidden`: 403 Forbidden
+    ///
+    /// The JSON response body will contain a single key-value pair with the key `"message"`
+    /// and the value being the string representation of the error, e.g. `"error-invalid-session"`.
     fn into_response(self) -> Response {
         let status_code = match self {
             SessionError::InvalidSession

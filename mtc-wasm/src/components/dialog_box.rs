@@ -1,5 +1,24 @@
 use super::*;
 
+/// A component to show a dialog box.
+///
+/// The component shows a modal box with a message and an optional action. The
+/// message is given by the `message` field of the `DialogBoxArgs` struct. The
+/// action is given by the `handler` field of the same struct. If `handler` is
+/// `None`, the component shows a single button with the label "Close". If
+/// `handler` is `Some`, the component shows two buttons with the labels "Yes"
+/// and "No". Clicking "Yes" triggers the handler and closes the dialog. Clicking
+/// "No" just closes the dialog.
+///
+/// The component uses the `dialog` state to get the message and the action. If
+/// the `dialog` state is `None`, the component returns an empty element.
+///
+/// The component styles the dialog box according to the kind of the message. If
+/// the kind is `Alert`, the dialog box is styled with the `alert` class. If the
+/// kind is `Info`, the dialog box is styled with the `info` class. If the kind is
+/// `Error`, the dialog box is styled with the `error` class. If the kind is
+/// `Success`, the dialog box is styled with the `success` class. If the kind is
+/// `Warning`, the dialog box is styled with the `warning` class.
 #[component]
 pub fn DialogBox() -> Element {
     let Some(args) = state!(dialog) else {

@@ -1,5 +1,16 @@
 use super::*;
 
+/// Returns a reactive storage hook for session storage.
+///
+/// The hook will try to initialize itself with the value stored under the given `key`.
+/// If no value is found, the hook will use the return value of the given `init` function
+/// as the initial value.
+///
+/// # Arguments
+///
+/// * `key`: A string that will be used as the key for the session storage entry.
+/// * `init`: A function that will be called to initialize the storage entry if no
+///   value is found.
 pub fn use_session_storage<T: Serialize + DeserializeOwned + Default + 'static>(
     key: impl ToString,
     init: impl FnOnce() -> T,

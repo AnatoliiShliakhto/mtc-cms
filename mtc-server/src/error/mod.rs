@@ -15,6 +15,7 @@ pub mod prelude {
     };
 }
 
+/// Custom error type for MTC-SERVER project
 #[derive(thiserror::Error, Debug)]
 #[allow(clippy::enum_variant_names)]
 pub enum Error {

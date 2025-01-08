@@ -1,15 +1,21 @@
 use super::*;
 
+/// A dropdown component that allows users to choose which columns to display in the personnel table.
+///
+/// The component displays a button with a columns icon, and a dropdown menu with checkboxes for each
+/// column. The user can toggle the visibility of each column by clicking on the corresponding checkbox.
+/// The component stores the state of the column visibility in the `personnel_columns` state.
 #[component]
 pub fn PersonnelColumnsChooser() -> Element {
-    let columns = state_fn!(personnel_columns);
-    let mut column_actions = columns.actions;
-    let mut column_login = columns.login;
-    let mut column_rank = columns.rank;
-    let mut column_name = columns.name;
-    let mut column_password = columns.password;
-    let mut column_group = columns.group;
-    let mut column_access = columns.access;
+    let PersonnelColumns {
+        actions: mut column_actions,
+        login: mut column_login,
+        rank: mut column_rank,
+        name: mut column_name,
+        password: mut column_password,
+        group: mut column_group,
+        access: mut column_access,
+    } = state_fn!(personnel_columns);
 
     rsx! {
         div {

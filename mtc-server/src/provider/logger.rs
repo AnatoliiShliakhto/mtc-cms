@@ -1,6 +1,19 @@
 use super::*;
 
-pub fn logger_init(log_path: &str) {
+/// Initializes the logging system.
+///
+/// # Arguments
+///
+/// * `log_path`: Directory where to store the log files.
+///
+/// # Returns
+///
+/// A guard that should be stored to prevent the logging system from being dropped.
+///
+/// # Panics
+///
+/// If the logging system fails to initialize.
+pub fn logger_init(log_path: &str) -> WorkerGuard {
     let env_filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env_lossy();
@@ -12,7 +25,7 @@ pub fn logger_init(log_path: &str) {
         .max_log_files(10)
         .build(log_path)
         .expect("failed to initialize rolling file appender");
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     let stdout_layer = layer().compact();
     let store_layer = layer().with_writer(non_blocking);
@@ -22,4 +35,6 @@ pub fn logger_init(log_path: &str) {
         .with(store_layer)
         .with(env_filter)
         .init();
+
+    guard
 }

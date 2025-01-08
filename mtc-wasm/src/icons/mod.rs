@@ -72,6 +72,7 @@ pub mod prelude {
     };
 }
 
+/// Svg Icons
 #[derive(Clone, PartialEq)]
 pub enum Icons {
     Menu,

@@ -1,5 +1,15 @@
 use crate::prelude::*;
 
+/// Builds breadcrumbs from a given slug
+///
+/// Given a slug it will generate a vector of `(text, link)` pairs to be used as
+/// breadcrumbs in the application. The returned vector is set to the `breadcrumbs`
+/// state, which can then be used to display the breadcrumbs in the application.
+///
+/// The breadcrumbs are generated using the [`use_effect`] hook, which is a hook
+/// provided by the `mtc-wasm` library. It takes a closure that returns a vector
+/// of `(text, link)` pairs, and sets the [`breadcrumbs`] state to the returned
+/// vector.
 pub fn build_breadcrumbs(slug: &str) {
     let slug: Cow<'static, str> = slug.to_owned().into();
 

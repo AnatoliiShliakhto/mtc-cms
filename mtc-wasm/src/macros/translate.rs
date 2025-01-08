@@ -1,3 +1,4 @@
+/// Translates the given string using the current language.
 #[macro_export]
 macro_rules! t {
     ($id:expr) => {

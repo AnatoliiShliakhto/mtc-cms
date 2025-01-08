@@ -46,6 +46,7 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
             #[cfg(mobile)]
             app.handle()
                 .plugin(tauri_plugin_barcode_scanner::init())
@@ -60,14 +61,12 @@ pub fn run() {
                 .unwrap();
 
             app.manage(AppState::default());
-            /*env!("FRONT_END_URL")*/
             let webview_url = WebviewUrl::External(env!("FRONT_END_URL").parse().unwrap());
-
-            app.fs_scope()
+            _ = app.fs_scope()
                 .allow_directory(app.path().download_dir().unwrap_or_default(), true);
 
             let window = WebviewWindowBuilder::new(app, "mtc-app-window", webview_url.clone())
-                .devtools(true)
+//                .devtools(true)
                 .accept_first_mouse(true)
                 .enable_clipboard_access()
                 .build()?;

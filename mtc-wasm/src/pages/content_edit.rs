@@ -1,5 +1,16 @@
 use super::*;
 
+/// Component for editing content entries based on a given schema and slug.
+///
+/// This component fetches the content entry from the server, displays a form
+/// with fields corresponding to the content's schema, and allows for editing
+/// and updating of the content. It checks for the "writer" role and handles
+/// form submission and deletion of the content entry.
+///
+/// # Props
+///
+/// - `schema`: The schema identifier for the content type.
+/// - `slug`: The unique slug for the specific content entry.
 #[component]
 pub fn ContentEdit(
     #[props(into)]

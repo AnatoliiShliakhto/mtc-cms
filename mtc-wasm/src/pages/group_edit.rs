@@ -1,5 +1,12 @@
 use super::*;
 
+/// The component displays a form to edit an existing group, or create a new one.
+///
+/// The component is protected by the [`PERMISSION_GROUPS_READ`] permission.
+///
+/// # Properties
+///
+/// * `id`: the ID of the group to edit, or [`ID_CREATE`] to create a new one.
 #[component]
 pub fn GroupEdit(
     #[props(into)]

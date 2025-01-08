@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component to view a list of links.
 #[component]
 pub fn ViewLinksField(
     value: Option<Value>,
@@ -8,8 +9,8 @@ pub fn ViewLinksField(
         return rsx! {}
     }
 
-    let links = use_memo(use_reactive!(|value|
-        serde_json::from_value::<Vec<LinkEntry>>(value.unwrap_or_default()).unwrap_or_default()
+    let links = use_memo(use_reactive!(
+        |value| value.self_obj::<Vec<LinkEntry>>().unwrap_or_default()
     ));
 
     rsx! {
@@ -44,9 +45,8 @@ pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
         return rsx! {
             Icon { icon: Icons::Link45Deg, class: "size-4 text-primary" }
             a {
-                target: "_blank",
                 href: &*url,
-                "onclick": "linkOpen(this, event)",
+                "onclick": "linkOpen(this); return false;",
                 { title }
             }
         };

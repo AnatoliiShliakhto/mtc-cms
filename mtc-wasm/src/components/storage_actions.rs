@@ -1,5 +1,7 @@
 use super::*;
 
+/// A component that renders a panel with actions for accessing the public
+/// and private storage boxes for a given user.
 #[component]
 pub fn StorageActions(
     #[props(into)]

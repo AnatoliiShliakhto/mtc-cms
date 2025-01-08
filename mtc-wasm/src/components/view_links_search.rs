@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component to display a list of search results as links with icons.
 #[component]
 pub fn ViewLinksSearch(
     results: Vec<SearchIdxDto>,
@@ -77,9 +78,8 @@ pub fn ViewLinksSearch(
                             }
                         } else if item.kind == SearchKind::Link {
                             a {
-                                target: "_blank",
                                 href: &*item.url,
-                                "onclick": "linkOpen(this, event)",
+                                "onclick": "linkOpen(this); return false;",
                                 { item.title.to_owned() }
                             }
                         } else {

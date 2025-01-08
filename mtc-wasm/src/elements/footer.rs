@@ -1,5 +1,6 @@
 use super::*;
 
+/// A footer component designed to be centered with specific styling.
 #[component]
 pub fn Footer() -> Element {
     rsx! {
@@ -8,8 +9,7 @@ pub fn Footer() -> Element {
             a {
                 class: "link link-hover hover:text-primary",
                 href: "https://github.com/AnatoliiShliakhto/mtc-cms",
-                target: "_blank",
-                "onclick": "elementShellOpen(this, event)",
+                "onclick": "linkOpen(this); return false;",
                 { t!("site-copyright") }
             }
         }

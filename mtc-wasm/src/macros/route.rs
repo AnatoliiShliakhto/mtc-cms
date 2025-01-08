@@ -1,3 +1,4 @@
+/// Route build macro.
 #[macro_export]
 macro_rules! route {
     () => {

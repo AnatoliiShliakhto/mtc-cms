@@ -1,5 +1,15 @@
 use super::*;
 
+/// Renders the user editing page.
+///
+/// This component displays a form for editing user details, such as login,
+/// password, group, and roles. It requires the [`ROLE_ADMINISTRATOR`] role and
+/// the [`PERMISSION_USERS_READ`] permission to access. The user data is fetched
+/// asynchronously, and the form pre-fills with existing user information if
+/// available. The form allows updating user details and submitting them to the
+/// server. If an existing user is being edited, a delete option is provided.
+/// The user block action is also included, allowing the user to be blocked
+/// if needed.
 #[component]
 pub fn UserEdit(
     #[props(into)]

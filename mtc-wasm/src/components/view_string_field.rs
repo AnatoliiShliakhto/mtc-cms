@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component for rendering a string as a span element.
 #[component]
 pub fn ViewStringField(
     #[props(into)]

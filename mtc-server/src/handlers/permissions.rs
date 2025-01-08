@@ -1,5 +1,17 @@
 use super::*;
 
+/// # Description
+/// This function is used to find all custom permissions.
+///
+/// # Arguments
+/// * `state` - The state of the application.
+/// * `session` - The session of the user.
+///
+/// # Result
+/// Returns a list of custom permissions as [`Vec`] of [`Cow<str>`].
+///
+/// # Errors
+/// If the user does not have the necessary permissions, an error is returned.
 pub async fn find_custom_permissions_handler(
     state: State<Arc<AppState>>,
     session: Session,
@@ -11,6 +23,19 @@ pub async fn find_custom_permissions_handler(
     permissions.to_response()
 }
 
+/// # Description
+/// This function is used to create a new custom permission.
+///
+/// # Arguments
+/// * `permission` - The name of the custom permission.
+/// * `state` - The state of the application.
+/// * `session` - The session of the user.
+///
+/// # Result
+/// If the operation is successful, a `200 OK` response is returned.
+///
+/// # Errors
+/// If the user does not have the necessary permissions, an error is returned.
 pub async fn create_custom_permission_handler(
     Path(permission): Path<Cow<'static, str>>,
     state: State<Arc<AppState>>,
@@ -27,6 +52,19 @@ pub async fn create_custom_permission_handler(
     Ok(())
 }
 
+/// # Description
+/// This function is used to delete a custom permission.
+///
+/// # Arguments
+/// * `permission` - The name of the custom permission to delete.
+/// * `state` - The state of the application.
+/// * `session` - The session of the user.
+///
+/// # Result
+/// If the operation is successful, a `200 OK` response is returned.
+///
+/// # Errors
+/// If the user does not have the necessary permissions, an error is returned.
 pub async fn delete_custom_permission_handler(
     Path(permission): Path<Cow<'static, str>>,
     state: State<Arc<AppState>>,

@@ -1,5 +1,6 @@
 use super::*;
 
+/// Content field model structure
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Field {
     pub kind: FieldKind,
@@ -10,9 +11,9 @@ pub struct Field {
 impl Default for Field {
     fn default() -> Self {
         Self {
-            kind: Default::default(),
-            slug: "".into(),
-            title: "".into(),
+            kind: FieldKind::default(),
+            slug: Cow::Borrowed(""),
+            title: Cow::Borrowed(""),
         }
     }
 }

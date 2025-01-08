@@ -1,5 +1,18 @@
 use super::*;
 
+/// A component for rendering a course entry with a tree of child entries.
+///
+/// The component takes four props:
+///
+/// - `slug`: The slug of the course entry to render.
+/// - `value`: The value of the course entry to render.
+/// - `arg`: An optional argument to pass to the `CourseChildView` component.
+///
+/// The component renders a tree of child entries, with each entry rendered as
+/// a link. If the user has the writer role, the component also renders a button
+/// to edit the course entry, and a button to create a new child entry. If the
+/// user has the writer role and the course entry is not empty, the component
+/// also renders a button to download the course entry as a zip file.
 #[component]
 pub fn ViewCourseField(
     slug: ReadOnlySignal<String>,

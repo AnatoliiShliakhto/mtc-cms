@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use super::*;
 
+/// Server configuration model structure
 #[derive(Debug, Clone)]
 pub struct Config {
     pub host: Cow<'static, str>,
