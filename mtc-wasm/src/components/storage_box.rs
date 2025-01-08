@@ -1,5 +1,30 @@
 use super::*;
 
+/// A component to display the content of the private or public storage.
+///
+/// The component has the following properties:
+///
+/// * `id`: The id of the storage to show.
+/// * `is_private`: A boolean indicating whether the storage is private or not.
+/// * `is_show`: A signal indicating whether the component should be shown or not.
+///
+/// The component will render a modal window containing the content of the
+/// storage. The window will have a title indicating the type of storage, a
+/// refresh button and a close button. The content of the storage will be
+/// rendered as a table with three columns: file name, file size and a delete
+/// button. The delete button will only be visible if the user has the
+/// permission to delete files.
+///
+/// When the user clicks on the file name, the file will be copied to the
+/// clipboard. When the user clicks on the delete button, the file will be
+/// deleted. When the user clicks on the refresh button, the content of the
+/// storage will be refreshed. When the user clicks on the close button, the
+/// component will be hidden.
+///
+/// The component will also render a progress bar indicating the progress of
+/// the file upload. The progress bar will be red if an error occurred, green
+/// if the file was uploaded successfully and blue if the file is being
+/// uploaded.
 #[component]
 pub fn StorageBox(
     #[props(into)]

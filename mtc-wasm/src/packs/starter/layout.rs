@@ -1,5 +1,6 @@
 use super::*;
 
+/// A root component of the application, it contains the main menu and the content area.
 #[component]
 pub fn Layout() -> Element
 {

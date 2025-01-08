@@ -9,6 +9,9 @@ pub enum Route {
     CustomRouter { route: Vec<String> }
 }
 
+/// This is a catch-all route for all routes that are not explicitly defined in other routes.
+///
+/// It uses the route path as a string to determine which component to render.
 #[component]
 fn CustomRouter(
     #[props(into)]

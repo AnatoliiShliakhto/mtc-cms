@@ -1,5 +1,18 @@
 use super::*;
 
+/// Personnel management component.
+///
+/// This component displays a list of personnel with various details such as login,
+/// rank, name, group, and access information. It allows administrators to manage
+/// personnel by providing options to block, reassign roles, and recreate passwords.
+/// Administrators can also delete personnel entries and submit changes with a
+/// confirmation step.
+///
+/// The component includes a form for setting roles, group, and options like reassign,
+/// recreate, and block. It renders personnel data conditionally based on the user's
+/// access level (admin) and selected columns to display.
+///
+/// It requires the [`PERMISSION_USERS_READ`] permission to access the personnel data.
 #[component]
 pub fn Personnel() -> Element {
     breadcrumbs!("menu-personnel");
@@ -7,14 +20,15 @@ pub fn Personnel() -> Element {
     let is_admin = state!(auth).is_admin();
     let mut confirmation = use_signal(|| false);
 
-    let columns = state_fn!(personnel_columns);
-    let column_actions = columns.actions;
-    let column_login = columns.login;
-    let column_rank = columns.rank;
-    let column_name = columns.name;
-    let column_password = columns.password;
-    let column_group = columns.group;
-    let column_access = columns.access;
+    let PersonnelColumns {
+        actions: column_actions,
+        login: column_login,
+        rank: column_rank,
+        name: column_name,
+        password: column_password,
+        group: column_group,
+        access: column_access,
+    } = state_fn!(personnel_columns);
 
     let mut users = state_fn!(personnel);
 

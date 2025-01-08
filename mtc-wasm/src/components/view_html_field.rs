@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component to render an HTML field.
 #[component]
 pub fn ViewHtmlField(
     #[props(into)]

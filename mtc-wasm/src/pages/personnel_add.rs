@@ -1,5 +1,8 @@
 use super::*;
 
+/// Component for adding a new personnel.
+///
+/// The component shows a form with three fields: `login`, `rank` and `name`.
 #[component]
 pub fn PersonnelAdd() -> Element {
     breadcrumbs!("menu-personnel");

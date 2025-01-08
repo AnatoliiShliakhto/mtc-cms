@@ -1,5 +1,12 @@
 use super::*;
 
+/// A component that renders a toggle switch input field within a form.
+///
+/// # Props
+///
+/// * `name`: The name attribute of the toggle input, used for form data submission.
+/// * `title`: The title displayed as a label text next to the toggle switch.
+/// * `checked`: A boolean value to set the initial checked state of the toggle.
 #[component]
 pub fn FormToggleField(
     #[props(into)]

@@ -1,5 +1,12 @@
 use super::*;
 
+/// Returns a hook that stores a value in local storage encrypted with a
+/// key specific to the app, using the `mcrypt` crate.
+///
+/// The hook returns a [`UseLocalStorage`] struct containing a signal that yields
+/// the decrypted value stored in local storage. If the value is not present in
+/// local storage, or if it is invalid JSON, the signal will yield the default
+/// value for [`Value`].
 pub fn use_local_storage(
     key: impl ToString,
     init: impl FnOnce() -> Value,

@@ -6,6 +6,16 @@ pub trait ResponseService {
 }
 
 impl ResponseService for Result<Response, reqwest::Error> {
+    /// If the response is a success (200-299), returns the JSON value of the
+    /// response. Otherwise, opens an error dialog with the message from the
+    /// JSON value of the response, and returns [`Value::Null`].
+    ///
+    /// If the response is not a success, but there is no JSON value, the
+    /// default error message is "error-generic".
+    ///
+    /// If the response is not a success, and there is no JSON value, and the
+    /// JSON value could not be fetched, the default error message is
+    /// "error-fetch".
     async fn get_value(self) -> Value {
         let Ok(response) = self else {
             error_dialog!("error-connection");
@@ -29,6 +39,16 @@ impl ResponseService for Result<Response, reqwest::Error> {
         value
     }
 
+    /// If the response is a success (200-299), returns `true`. Otherwise,
+    /// opens an error dialog with the message from the JSON value of the
+    /// response, and returns `false`.
+    ///
+    /// If the response is not a success, but there is no JSON value, the
+    /// default error message is "error-generic".
+    ///
+    /// If the response is not a success, and there is no JSON value, and the
+    /// JSON value could not be fetched, the default error message is
+    /// "error-fetch".
     async fn is_ok(self) -> bool {
         let Ok(response) = self else {
             error_dialog!("error-connection");

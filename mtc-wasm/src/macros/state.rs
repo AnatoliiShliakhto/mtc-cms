@@ -1,3 +1,4 @@
+/// Get the value of an application state signal
 #[macro_export]
 macro_rules! state {
     ($signal:tt) => {
@@ -13,6 +14,7 @@ macro_rules! state {
     };
 }
 
+/// Run a function on an application state signal
 #[macro_export]
 macro_rules! state_fn {
     ($signal:tt) => {

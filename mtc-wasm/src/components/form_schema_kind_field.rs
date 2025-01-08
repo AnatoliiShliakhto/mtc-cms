@@ -1,5 +1,15 @@
 use super::*;
 
+/// A form component that displays a select input field for selecting the
+/// schema type.
+///
+/// The component is displayed as a label with a title, and a select input
+/// field with options for the different schema types. The `init_kind` parameter
+/// is the initial value of the select input, and the `disabled` parameter
+/// determines whether the select input is disabled.
+///
+/// The component uses the `SchemaKind` enum to generate the options for the
+/// select input.
 #[component]
 pub fn FormSchemaKindField(
     #[props]
@@ -17,7 +27,7 @@ pub fn FormSchemaKindField(
                     "⌘ " { t!("field-schema-type") }
                 }
             }
-            select { class: "select select-bordered input-bordered focus:input-primary",
+            select { class: "select input-bordered focus:input-primary",
                 name: "kind",
                 disabled,
                 option {

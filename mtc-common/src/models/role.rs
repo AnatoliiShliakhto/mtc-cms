@@ -1,5 +1,6 @@
 use super::*;
 
+/// Role model structure
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct Role {
     pub id: Cow<'static, str>,

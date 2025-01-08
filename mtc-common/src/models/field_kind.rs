@@ -1,5 +1,6 @@
 use super::*;
 
+/// Content field kind(str, text, html, links, course, decimal, datetime)
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum FieldKind {
     #[default]

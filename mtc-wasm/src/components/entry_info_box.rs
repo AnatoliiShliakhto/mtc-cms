@@ -1,5 +1,22 @@
 use super::*;
 
+/// A component to display information about a model entry (author and timestamps).
+///
+/// It is a dropdown box located in the top right corner of the screen.
+/// The box is invisible on small screens and appears when the user hovers
+/// over the area. The box contains the author and timestamps of creation and
+/// update of the model entry.
+///
+/// The component is used in the `Entry` component and is passed the following
+/// properties:
+///
+/// * `created_by`: The author of the model entry.
+/// * `created_at`: The timestamp of creation of the model entry.
+/// * `updated_by`: The author of the last update of the model entry.
+/// * `updated_at`: The timestamp of the last update of the model entry.
+///
+/// The component returns an `Element` that can be used in the render method
+/// of another component.
 #[component]
 pub fn EntryInfoBox(
     #[props]

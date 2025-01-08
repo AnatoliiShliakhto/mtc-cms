@@ -1,5 +1,6 @@
 use super::*;
 
+/// Represents the authentication state of a user.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct AuthState {
     pub id: Cow<'static, str>,
@@ -10,26 +11,74 @@ pub struct AuthState {
 }
 
 impl AuthState {
+    /// Checks if the user is authenticated.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the user is authenticated.
+    /// * `false` otherwise.
     pub fn is_authenticated(&self) -> bool {
         self.id.ne(ROLE_ANONYMOUS)
     }
 
+    /// Checks if the user has the "administrator" role.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the user has the "administrator" role.
+    /// * `false` otherwise.
     pub fn is_admin(&self) -> bool {
         self.roles.contains(ROLE_ADMINISTRATOR)
     }
 
+    /// Checks if the user has the "writer" role.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the user has the "writer" role.
+    /// * `false` otherwise.
     pub fn is_writer(&self) -> bool {
         self.roles.contains(ROLE_WRITER)
     }
 
+    /// Checks if the user has a specific role.
+    ///
+    /// # Parameters
+    ///
+    /// - `role`: A string slice that holds the role to check.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the user has the specified role.
+    /// * `false` otherwise.
     pub fn has_role(&self, role: &str) -> bool {
         self.roles.contains(role)
     }
 
+    /// Checks if the user is a member of a specific group.
+    ///
+    /// # Parameters
+    ///
+    /// - `group`: A string slice that holds the group to check.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the user is a member of the specified group.
+    /// * `false` otherwise.
     pub fn has_group(&self, group: &str) -> bool {
         self.group.eq(group)
     }
 
+    /// Checks if the user has a specific permission.
+    ///
+    /// # Parameters
+    ///
+    /// - `permission`: A string slice that holds the permission to check.
+    ///
+    /// # Returns
+    ///
+    /// * `true` if the user has the specified permission.
+    /// * `false` otherwise.
     pub fn has_permission(&self, permission: &str) -> bool {
         self.permissions.contains(permission)
     }
@@ -48,6 +97,11 @@ impl Default for AuthState {
 }
 
 impl From<Value> for AuthState {
+    /// Constructs an [`AuthState`] from a [`Value`] object.
+    ///
+    /// This function extracts the fields `id`, `login`, `roles`, `group`, and `permissions`
+    /// from the provided [`serde_json::value::Value`] object and uses them to create a new [`AuthState`] instance.
+    /// Default values are used if any field is missing or cannot be parsed.
     fn from(value: Value) -> Self {
         Self {
             id: value

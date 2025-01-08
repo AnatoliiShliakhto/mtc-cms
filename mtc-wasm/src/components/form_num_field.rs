@@ -1,5 +1,15 @@
 use super::*;
 
+/// A form component that displays a number input field.
+///
+/// The component is displayed as a label with a title, and a number input field.
+/// The `name` parameter is the name of the number input field, and the `title`
+/// parameter is the title displayed above the number input field. The
+/// `initial_value` parameter is the initial value of the number input field.
+/// The `required` parameter is an optional boolean value to set the input
+/// field as required. The `min`, `max` and `step` parameters are optional
+/// string values to set the minimum, maximum and step value of the number
+/// input field.
 #[component]
 pub fn FormNumField(
     #[props(into)]

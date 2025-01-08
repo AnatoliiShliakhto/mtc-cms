@@ -1,5 +1,13 @@
 use super::*;
 
+/// A component that allows to execute arbitrary JavaScript code.
+///
+/// This component is accessible only for users with [`ROLE_ADMINISTRATOR`].
+/// It shows a text area where user can input JavaScript code to be executed.
+/// The code is executed on form submit and the result is displayed in
+/// another text area below the input text area.
+///
+/// The component is useful for debugging and testing purposes.
 #[component]
 pub fn JsExec() -> Element {
     breadcrumbs!("menu-administrator");

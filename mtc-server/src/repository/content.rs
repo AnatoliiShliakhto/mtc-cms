@@ -1,31 +1,43 @@
 use super::*;
 
-#[async_trait]
-pub trait ContentRepository {
-    async fn find_content_list(&self, table: Cow<'static, str>, full: bool) -> Result<Vec<Entry>>;
-    async fn find_content(
+pub trait ContentRepository: Send {
+    fn find_content_list(&self, table: Cow<'static, str>, full: bool)
+        -> impl Future<Output = Result<Vec<Entry>>> + Send;
+    fn find_content(
         &self,
         table: Cow<'static, str>,
         slug: Cow<'static, str>
-    ) -> Result<Content>;
-    async fn update_content(
+    ) -> impl Future<Output = Result<Content>> + Send;
+    fn update_content(
         &self,
         table: Cow<'static, str>,
         current_slug: Cow<'static, str>,
         payload: Value,
         by: Cow<'static, str>,
-    ) -> Result<()>;
-    async fn delete_content(&self, table:Cow<'static, str>, slug: Cow<'static, str>) -> Result<()>;
-    async fn get_course_files(
+    ) -> impl Future<Output = Result<()>> + Send;
+    fn delete_content(&self, table:Cow<'static, str>, slug: Cow<'static, str>)
+        -> impl Future<Output = Result<()>> + Send;
+    fn get_course_files(
         &self,
         course_slug: Cow<'static, str>,
-    ) -> Result<Vec<Cow<'static, str>>>;
-    async fn drop_course_files(&self) -> Result<()>;
-    async fn get_course_links(&self, course_slug: Cow<'static, str>) -> Result<Vec<FileEntry>>;
+    ) -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
+    fn drop_course_files(&self)
+        -> impl Future<Output = Result<()>> + Send;
+    fn get_course_links(&self, course_slug: Cow<'static, str>)
+        -> impl Future<Output = Result<Vec<FileEntry>>> + Send;
 }
 
-#[async_trait]
 impl ContentRepository for Repository {
+    /// Retrieves a list of content entries from the specified table, with optional filtering by `published` status.
+    ///
+    /// # Arguments
+    ///
+    /// * `table` - The slug of the table to retrieve content from.
+    /// * `full` - If false, only published content will be returned.
+    ///
+    /// # Returns
+    ///
+    /// Returns a JSON response containing a list of content entries, with fields `id`, `slug`, `title`, `published`, and `created_at`.
     async fn find_content_list(&self, table: Cow<'static, str>, full: bool) -> Result<Vec<Entry>> {
         let mut sql = vec![r#"
             SELECT record::id(id) as id, slug, title, published as variant, created_at
@@ -56,6 +68,17 @@ impl ContentRepository for Repository {
         Ok(content_list)
     }
 
+    /// Retrieves a content entry from the specified table, identified by `slug`.
+    ///
+    /// # Arguments
+    ///
+    /// * `table` - The slug of the table to retrieve content from.
+    /// * `slug` - The slug of the content entry to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// Returns a JSON response containing the content entry, with fields `id`, `slug`, `title`, `published`, and `created_at`.
+    /// Returns an error if no matching content entry is found.
     async fn find_content(
         &self,
         table: Cow<'static, str>,
@@ -75,6 +98,20 @@ impl ContentRepository for Repository {
         .ok_or(DatabaseError::EntryNotFound.into())
     }
 
+    /// Updates a content entry in the specified table, identified by `slug`.
+    ///
+    /// If the content entry does not exist, a new entry will be created.
+    ///
+    /// # Arguments
+    ///
+    /// * `table` - The slug of the table to update content in.
+    /// * `current_slug` - The current slug of the content entry to update.
+    /// * `payload` - The JSON payload containing the updated content entry.
+    /// * `by` - The slug of the user updating the content entry.
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(())` if the update was successful.
     async fn update_content(
         &self,
         table: Cow<'static, str>,
@@ -164,6 +201,16 @@ impl ContentRepository for Repository {
         Ok(())
     }
 
+    /// Deletes a content entry from the given table, identified by `slug`.
+    ///
+    /// # Arguments
+    ///
+    /// * `table` - The slug of the table to delete content from.
+    /// * `slug` - The slug of the content entry to delete.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` indicating the success of the operation.
     async fn delete_content(&self, table:Cow<'static, str>, slug: Cow<'static, str>) -> Result<()> {
         let sql = r#"
             DELETE FROM type::table($table) WHERE slug = $slug;
@@ -179,6 +226,16 @@ impl ContentRepository for Repository {
         Ok(())
     }
 
+    /// Retrieves a list of files associated with a given course.
+    ///
+    /// # Arguments
+    ///
+    /// * `course_slug` - The slug of the course to retrieve file paths from.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing a vector of file paths, or an error if the query fails.
+    ///
     async fn get_course_files(
         &self,
         course_slug: Cow<'static, str>,
@@ -199,6 +256,12 @@ impl ContentRepository for Repository {
         Ok(files)
     }
 
+    /// Drops all entries from the `course_files` table.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` indicating the success of the operation.
+    ///
     async fn drop_course_files(&self) -> Result<()> {
         let sql = r#"DELETE FROM course_files;"#;
 
@@ -207,6 +270,16 @@ impl ContentRepository for Repository {
         Ok(())
     }
 
+    /// Retrieves a list of files associated with a given course, along with their sizes.
+    ///
+    /// # Arguments
+    ///
+    /// * `course_slug` - The slug of the course to retrieve file paths from.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing a vector of [`FileEntry`]'s, or an error if the query fails.
+    ///
     async fn get_course_links(&self, course_slug: Cow<'static, str>) -> Result<Vec<FileEntry>> {
         let sql = r#"
         SELECT name as path, size FROM course_files WHERE course = $slug;

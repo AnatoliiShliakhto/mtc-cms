@@ -17,7 +17,7 @@ RUST Content Management System (CMS) `In-Dev`
 
 ## Pre-requires
 - RUST Tool-Chains, SurrealDB, Node.Js
-- **LVMM** + **CMake** + **NASM** to compile C++/ASM embedded database engine libraries
+- **LLVM** + **CMake** + **NASM** to compile C++/ASM embedded database engine libraries
 - Dioxus CLI
 ```bash
 cargo install dioxus-cli
@@ -32,18 +32,15 @@ cargo install cross --git https://github.com/cross-rs/cross
 mkcert -install
 mkcert localhost
 ```
+- Rename files:
 ```
-Rename files:
- 
 localhost.pem -> ./data/cert/ssl.crt
 localhost-key.pem -> ./data/cert/private.key
-.env-example -> .env
 ```
-
 ## Project Settings
 Rename and modify settings file as you wish
 ```text
-./.cargo/config.toml
+./.cargo/config.toml.example -> ./.cargo/config.toml
 ```
 
 UI WASM `PACKS` in folder
@@ -65,6 +62,6 @@ UI WASM `PACKS` in folder
 - [x] SQL Migrations API 
 - [x] Front-end admin panel
 - [x] Learning module
+- [x] Cross-platform `Tauri App` for *Windows, Android, iOS*
 - [ ] Quiz module
 - [ ] Instructor utils module
-- [ ] Cross-platform `Tauri App` for *Windows, Android, iOS*

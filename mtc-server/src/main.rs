@@ -22,7 +22,6 @@ pub mod prelude {
         serde_json::{json, Map},
 
         axum::{
-            async_trait,
             extract::{
                 DefaultBodyLimit, rejection::{FormRejection, JsonRejection},
                 FromRequest, Request, State, Path, Multipart, Query,
@@ -51,7 +50,10 @@ pub mod prelude {
 
         argon2::{Argon2, password_hash::SaltString, PasswordHasher, PasswordVerifier, PasswordHash},
         tracing::log::{error, info},
-        tracing_appender::rolling::{RollingFileAppender, Rotation},
+        tracing_appender::{
+            rolling::{RollingFileAppender, Rotation},
+            non_blocking::WorkerGuard,
+        },
         tracing_subscriber::{
             filter::LevelFilter, fmt::layer, layer::SubscriberExt,
             util::SubscriberInitExt, EnvFilter,
@@ -78,6 +80,8 @@ pub mod prelude {
 #[tokio::main]
 async fn main() {
     let config = Provider::config_init();
+    let _guard = logger_init(&config.log_path);
+
     info!("\x1b[38;5;11m🌟 MTC-CMS Server 🌟\x1b[0m");
 
     //crypto provider init
@@ -104,7 +108,7 @@ async fn main() {
         PathBuf::from(&*state.config.cert_path).join("private.key"),
     ).await.unwrap();
 
-    let comression_layer: CompressionLayer = CompressionLayer::new()
+    let compression_layer: CompressionLayer = CompressionLayer::new()
         .br(true)
         .gzip(true)
         .zstd(true);
@@ -170,7 +174,7 @@ async fn main() {
             "/",
             ServeFile::new(format!("{}/index.html", state.config.www_path))
         )
-        .layer(comression_layer)
+        .layer(compression_layer)
         .layer(static_headers)
         .layer(cors_layer)
         .layer(DefaultBodyLimit::max(state.config.max_body_limit));

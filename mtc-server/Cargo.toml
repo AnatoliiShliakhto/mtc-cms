@@ -12,32 +12,32 @@ license.workspace = true
 mtc-common = { path = "../mtc-common" }
 
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
-surrealdb = { workspace = true, features = ["kv-rocksdb"] }
-serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true }
+surrealdb = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 
-axum = { workspace = true, features = ["multipart", "macros", "tokio"] }
-axum-server = { workspace = true, features = ["tokio-rustls", "rustls-pemfile", "tls-rustls"] }
-axum_session = { workspace = true, features = ["key-store", "rest_mode"] }
+axum = { workspace = true }
+axum-server = { workspace = true }
+axum_session = { workspace = true }
 axum_session_surreal = { workspace = true }
 
 tower = { workspace = true }
-tower-http = { workspace = true, features = ["fs", "cors", "set-header", "compression-full"] }
+tower-http = { workspace = true }
 
 argon2 = { workspace = true }
 chrono = { workspace = true }
 dotenv = { workspace = true }
 
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing-subscriber = { workspace = true }
 tracing-appender = { workspace = true }
 
 rustls = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }
 qrcode-generator = { workspace = true }
-uuid = { workspace = true, features = ["v4"] }
+uuid = { workspace = true }
 magic-crypt = { workspace = true }
 
 [target.'cfg(unix)'.dependencies]

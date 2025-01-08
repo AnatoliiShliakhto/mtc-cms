@@ -1,21 +1,34 @@
 use super::*;
 
-#[async_trait]
 pub trait SchemasRepository {
-    async fn find_schema_list(&self) -> Result<Vec<Entry>>;
-    async fn find_schema(&self, id: Cow<'static, str>) -> Result<Schema>;
-    async fn find_schema_by_slug(&self, slug: Cow<'static, str>) -> Result<Schema>;
-    async fn update_schema(&self, payload: Value, by: Cow<'static, str>) -> Result<()>;
-    async fn delete_schema(&self, id: Cow<'static, str>) -> Result<()>;
-    async fn find_pages_entries(
+    fn find_schema_list(&self)
+        -> impl Future<Output = Result<Vec<Entry>>> + Send;
+    fn find_schema(&self, id: Cow<'static, str>)
+        -> impl Future<Output = Result<Schema>> + Send;
+    fn find_schema_by_slug(&self, slug: Cow<'static, str>)
+        -> impl Future<Output = Result<Schema>> + Send;
+    fn update_schema(&self, payload: Value, by: Cow<'static, str>)
+        -> impl Future<Output = Result<()>> + Send;
+    fn delete_schema(&self, id: Cow<'static, str>)
+        -> impl Future<Output = Result<()>> + Send;
+    fn find_pages_entries(
         &self,
         permissions: BTreeSet<Cow<'static, str>>,
-    ) -> Result<Vec<Entry>>;
-    async fn find_schemas_records(&self) -> Result<Vec<Schema>>;
+    ) -> impl Future<Output = Result<Vec<Entry>>> + Send;
+    fn find_schemas_records(&self)
+        -> impl Future<Output = Result<Vec<Schema>>> + Send;
 }
 
-#[async_trait]
 impl SchemasRepository for Repository {
+    /// Retrieves a list of all schemas.
+    ///
+    /// # Description
+    ///
+    /// This method retrieves a list of all schemas from the database.
+    ///
+    /// # Return
+    ///
+    /// Returns a `Result` containing a vector of [`Entry`] objects representing the list of schemas.
     async fn find_schema_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
             SELECT record::id(id) as id, slug, title, created_at,
@@ -30,6 +43,19 @@ impl SchemasRepository for Repository {
         Ok(schemas)
     }
 
+    /// Retrieves a schema by its ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A `Cow<'static, str>` representing the ID of the schema to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing the [`Schema`] if found.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the schema is not found or if there is a database query failure.
     async fn find_schema(&self, id: Cow<'static, str>) -> Result<Schema> {
         let sql = r#"
             SELECT *, record::id(id) as id FROM ONLY type::record("schemas:" + $id)
@@ -45,6 +71,19 @@ impl SchemasRepository for Repository {
             .ok_or(DatabaseError::EntryNotFound.into())
     }
 
+    /// Retrieves a schema by its slug.
+    ///
+    /// # Arguments
+    ///
+    /// * `slug` - A [`Cow<str>`] representing the slug of the schema to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing the retrieved [`Schema`] if found.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the schema is not found or if there is a database query failure.
     async fn find_schema_by_slug(&self, slug: Cow<'static, str>) -> Result<Schema> {
         let sql = r#"
             SELECT *, record::id(id) as id FROM schemas
@@ -60,6 +99,20 @@ impl SchemasRepository for Repository {
             .ok_or(DatabaseError::EntryNotFound.into())
     }
 
+    /// Updates a schema.
+    ///
+    /// # Arguments
+    ///
+    /// * `payload` - A [`Value`] containing the schema data to update.
+    /// * `by` - A `Cow<'static, str>` representing the user who is performing the update.
+    ///
+    /// # Returns
+    ///
+    /// Returns Ok(()) if the schema is successfully updated.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the schema is not found or if there is a database query failure.
     async fn update_schema(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
         let mut sql = vec!["BEGIN TRANSACTION;"];
         let id = payload.key_str("id").unwrap_or_default();
@@ -201,6 +254,28 @@ impl SchemasRepository for Repository {
         Ok(())
     }
 
+    /// Deletes a schema and its associated records from the database.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - A `Cow<'static, str>` representing the ID of the schema to delete.
+    ///
+    /// # Description
+    ///
+    /// This method removes a schema record and its associated content from the database,
+    /// including tables and assets related to the schema. It performs the deletion in a
+    /// transaction to ensure atomicity. The method checks the schema kind and deletes
+    /// associated records accordingly, such as pages or courses. If the schema has associated
+    /// assets, they are also deleted.
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(())` if the deletion is successful.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the schema is not found, if there is a database query failure,
+    /// or if the assets cannot be deleted.
     async fn delete_schema(&self, id: Cow<'static, str>) -> Result<()> {
         let schema = self.find_schema(id.clone()).await?;
 
@@ -260,6 +335,19 @@ impl SchemasRepository for Repository {
         Ok(())
     }
 
+    /// Retrieves a list of all page entries.
+    ///
+    /// # Description
+    ///
+    /// This method retrieves a list of all page entries from the database.
+    ///
+    /// # Arguments
+    ///
+    /// * `permissions` - A set of permissions to filter the schemas by.
+    ///
+    /// # Return
+    ///
+    /// Returns a `Result` containing a vector of [`Entry`] objects representing the list of page entries.
     async fn find_pages_entries(
         &self,
         permissions: BTreeSet<Cow<'static, str>>
@@ -278,6 +366,19 @@ impl SchemasRepository for Repository {
         Ok(schemas)
     }
 
+    /// Retrieves a list of schema entries.
+    ///
+    /// # Description
+    ///
+    /// This method queries the database to retrieve a list of schema entries.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing a vector of [`Schema`] objects.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there is a database query failure.
     async fn find_schemas_records(&self) -> Result<Vec<Schema>> {
         let sql = r#"
             SELECT *, record::id(id) as id FROM schemas WHERE kind > 1;

@@ -1,5 +1,6 @@
 use super::*;
 
+/// Course entry structure
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct CourseEntry {
     pub id: usize,

@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component to render a search box.
 #[component]
 pub fn SearchBox() -> Element {
     let search_results = state_fn!(search_engine).result;

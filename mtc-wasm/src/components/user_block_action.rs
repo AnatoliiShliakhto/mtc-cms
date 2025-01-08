@@ -1,5 +1,6 @@
 use super::*;
 
+/// A toggle button for blocking a user.
 #[component]
 pub fn UserBlockAction(
     #[props]

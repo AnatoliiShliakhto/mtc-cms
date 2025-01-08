@@ -1,5 +1,13 @@
 use super::*;
 
+/// A component for rendering a form select field with a label and options.
+///
+/// # Parameters
+///
+/// - `name`: The name attribute for the select element.
+/// - `title`: The title to be displayed as a label for the select field.
+/// - `selected`: The ID of the currently selected option.
+/// - `items`: A vector of `Entry` items, each providing an ID and a title for the select options.
 #[component]
 pub fn FormSelectField(
     #[props(into)]

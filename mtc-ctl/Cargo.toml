@@ -1,0 +1,13 @@
+[package]
+name = "mtc-ctl"
+edition.workspace = true
+version.workspace = true
+description.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+license.workspace = true
+
+[dependencies]
+ratatui = { workspace = true }
+ansi-to-tui = { workspace = true }

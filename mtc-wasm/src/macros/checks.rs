@@ -1,3 +1,4 @@
+/// Checks if the user has the given permission.
 #[macro_export]
 macro_rules! check_permission {
     ($permission:ident) => {
@@ -7,6 +8,7 @@ macro_rules! check_permission {
     };
 }
 
+/// Checks if the user has the given role.
 #[macro_export]
 macro_rules! check_role {
     ($role:ident) => {
@@ -16,6 +18,7 @@ macro_rules! check_role {
     };
 }
 
+/// Checks if the response is null.
 #[macro_export]
 macro_rules! check_response {
     ($response:ident) => {

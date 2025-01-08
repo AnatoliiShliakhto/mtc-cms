@@ -1,5 +1,15 @@
 use super::*;
 
+/// Renders a panel with actions for content lists.
+///
+/// The component expects the following props:
+///
+/// - `future`: A resource that is restarted when the user clicks on the
+///   "Refresh" button.
+/// - `schema`: The schema slug of the content being displayed.
+///
+/// The component uses the `is_show` signal to manage the display of the modal
+/// form.
 #[component]
 pub fn ContentListActions<T: PartialEq + Clone + 'static>(
     #[props]

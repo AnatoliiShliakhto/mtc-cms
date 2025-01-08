@@ -1,3 +1,4 @@
+/// Build breadcrumbs
 #[macro_export]
 macro_rules! breadcrumbs {
     () => {

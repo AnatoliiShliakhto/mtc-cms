@@ -1,15 +1,29 @@
 use super::*;
 
+/// The component renders a panel on the right side of the screen with
+/// several buttons to perform actions on the personnel table.
+///
+/// The buttons are:
+///
+/// - Sync: Retrieves the list of personnel from the server.
+/// - Add: Opens the form to add a new personnel entry.
+/// - Paste from Clipboard: Copies the list of personnel from the clipboard.
+/// - Copy to Clipboard: Copies the list of personnel to the clipboard.
+/// - Upload: Opens a file dialog to select a JSON file with personnel data.
+/// - Export: Exports the personnel data to a JSON file.
+/// - Clear: Clears the personnel table.
 #[component]
 pub fn PersonnelActions() -> Element {
     let mut users = state_fn!(personnel);
-    let columns = state_fn!(personnel_columns);
-    let column_login = columns.login;
-    let column_rank = columns.rank;
-    let column_name = columns.name;
-    let column_password = columns.password;
-    let column_group = columns.group;
-    let column_access = columns.access;
+    let PersonnelColumns {
+        actions: column_actions,
+        login: column_login,
+        rank: column_rank,
+        name: column_name,
+        password: column_password,
+        group: column_group,
+        access: column_access,
+    } = state_fn!(personnel_columns);
 
     let from_clipboard = move |_| async move {
         if let Ok(Value::String(value)) = eval(JS_PASTE_FROM_CLIPBOARD).recv().await {

@@ -1,5 +1,6 @@
 use super::*;
 
+/// Permission model structure
 #[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Permission {
     pub id: Cow<'static, str>,

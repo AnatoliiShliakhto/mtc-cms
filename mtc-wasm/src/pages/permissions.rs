@@ -1,5 +1,17 @@
 use super::*;
 
+/// Component for showing and managing all permissions.
+///
+/// Shows a table with the name of each permission, and the three derived
+/// permissions for reading, writing and deleting.
+///
+/// The component also provides a button for deleting each permission.
+///
+/// The component is only visible if the user has the permission for viewing
+/// roles.
+///
+/// The component also provides an action button for creating new permissions,
+/// which is only visible if the user has the permission for writing roles.
 #[component]
 pub fn Permissions() -> Element {
     breadcrumbs!("menu-permissions");

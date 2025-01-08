@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use database::*;
-use logger::*;
 
 mod config;
 mod logger;
@@ -11,17 +10,18 @@ pub mod prelude {
     pub use super::{
         Provider,
         config::*,
+        logger::*,
     };
 }
 
 pub struct Provider;
 
 impl Provider {
+    /// Initializes a new [`Config`] instance with default values.
     pub fn config_init() -> Config {
-        let config = Config::init();
-        logger_init(&config.log_path);
-        config
+        Config::init()
     }
+    /// Initializes the database connection using the provided configuration.
     pub async fn database_init(config: &Config) -> Database {
         database_init(config).await.unwrap()
     }

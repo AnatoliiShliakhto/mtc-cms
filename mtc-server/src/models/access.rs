@@ -1,5 +1,6 @@
 use super::*;
 
+/// Access model structure
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct Access {
     pub level: i32,
@@ -17,10 +18,7 @@ impl Access {
 
 impl Default for Access {
     fn default() -> Self {
-        Self {
-            level: 999,
-            full: false,
-        }
+        Self { level: 999, full: false }
     }
 }
 

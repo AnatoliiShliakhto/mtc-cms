@@ -1,5 +1,6 @@
 use super::*;
 
+/// User model structure
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct User {
     pub id: Cow<'static, str>,

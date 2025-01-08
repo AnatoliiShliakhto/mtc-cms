@@ -1,5 +1,26 @@
 use super::*;
 
+/// Handles the request to sync the user's state.
+///
+/// This function is used to re-authenticate the user and sync the user's state
+/// with the server. It is called by the client when the user's state changes,
+/// such as when the user logs in or out, or when the user's permissions change.
+///
+/// The function first checks the user's ID and if it is empty, it returns the default
+/// [`AuthState`]. If the user's ID is not empty, it finds the user in the database and
+/// creates an [`AuthState`] object from the user's state. It then increments the user's
+/// access count and sets the user's state in the session. Finally, it returns the
+/// [`AuthState`] object and the user's custom permissions.
+///
+/// # Errors
+///
+/// Returns a `GenericError` if there is an error finding the user or incrementing
+/// the user's access count.
+///
+/// # Response
+///
+/// Returns a JSON response containing the [`AuthState`] object and the user's custom
+/// permissions.
 pub async fn sync_handler(
     state: State<Arc<AppState>>,
     session: Session,

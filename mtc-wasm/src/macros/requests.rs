@@ -1,3 +1,4 @@
+/// Returns a [`use_resource`] future that resolves to a [`Value`]
 #[macro_export]
 macro_rules! value_future {
     ($url:expr) => {
@@ -31,6 +32,7 @@ macro_rules! value_future {
     };
 }
 
+/// Returns a `fetch` future that resolves to a [`Value`]
 #[macro_export]
 macro_rules! value_request {
     ($url:expr) => {
@@ -53,6 +55,7 @@ macro_rules! value_request {
     };
 }
 
+/// Returns a future that `GET` send and check response status
 #[macro_export]
 macro_rules! get_request {
     ($url:expr) => {
@@ -65,6 +68,7 @@ macro_rules! get_request {
     };
 }
 
+/// Returns a future that `POST` send and check response status
 #[macro_export]
 macro_rules! post_request {
     ($url:expr) => {
@@ -87,6 +91,7 @@ macro_rules! post_request {
     };
 }
 
+/// Returns a future that `PATCH` send and check response status
 #[macro_export]
 macro_rules! patch_request {
     ($url:expr) => {
@@ -109,6 +114,7 @@ macro_rules! patch_request {
     };
 }
 
+/// Returns a future that `DELETE` send and check response status
 #[macro_export]
 macro_rules! delete_request {
     ($url:expr) => {

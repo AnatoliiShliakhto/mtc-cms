@@ -1,5 +1,16 @@
 use super::*;
 
+/// Page for showing and managing all users.
+///
+/// Shows a table with the login, rank, name and group of each user.
+///
+/// The component also provides a button for deleting each user.
+///
+/// The component is only visible if the user has the permission for viewing
+/// roles.
+///
+/// The component also provides an action button for creating new users,
+/// which is only visible if the user has the permission for writing roles.
 #[component]
 pub fn Users() -> Element {
     breadcrumbs!("menu-users");

@@ -1,5 +1,6 @@
 use super::*;
 
+/// The main menu of the WASM application.
 #[component]
 pub fn MainMenu() -> Element {
 

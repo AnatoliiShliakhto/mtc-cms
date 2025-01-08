@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component that renders a toggle switch to mark content as published or unpublished.
 #[component]
 pub fn PublishedAction(
     #[props]

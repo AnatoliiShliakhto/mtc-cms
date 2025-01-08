@@ -1,3 +1,4 @@
+/// Closes the dialog
 #[macro_export]
 macro_rules! close_dialog {
     () => {
@@ -5,6 +6,7 @@ macro_rules! close_dialog {
     };
 }
 
+/// Displays an alert dialog
 #[macro_export]
 macro_rules! alert_dialog {
     ($message:expr) => {
@@ -24,6 +26,7 @@ macro_rules! alert_dialog {
     };
 }
 
+/// Displays a success dialog
 #[macro_export]
 macro_rules! success_dialog {
     ($message:expr) => {
@@ -43,6 +46,7 @@ macro_rules! success_dialog {
     };
 }
 
+/// Displays an error dialog
 #[macro_export]
 macro_rules! error_dialog {
     ($message:expr) => {
@@ -62,6 +66,7 @@ macro_rules! error_dialog {
     };
 }
 
+/// Displays an info dialog
 #[macro_export]
 macro_rules! info_dialog {
     ($message:expr) => {
@@ -81,6 +86,7 @@ macro_rules! info_dialog {
     };
 }
 
+/// Displays a warning dialog
 #[macro_export]
 macro_rules! warning_dialog {
     ($message:expr) => {

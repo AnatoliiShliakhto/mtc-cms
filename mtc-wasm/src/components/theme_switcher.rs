@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component that switches between light and dark themes.
 #[component]
 pub fn ThemeSwitcher() -> Element {
     let mut dark_theme =

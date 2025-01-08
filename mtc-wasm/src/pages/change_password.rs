@@ -1,5 +1,18 @@
 use super::*;
 
+/// A component for changing the user's password.
+///
+/// This component is only available if the user is authenticated.
+///
+/// It contains a form with three fields: `current-password`, `new-password` and
+/// `password-confirmation`. The `current-password` and `new-password` fields are
+/// required and must be filled in. The `password-confirmation` field must match
+/// the `new-password` field.
+///
+/// When the form is submitted, a PATCH request is sent to the server with the
+/// current password and the new password. If the request is successful, a
+/// success dialog is displayed. If the request fails, an error dialog is
+/// displayed.
 #[component]
 pub fn ChangePassword() -> Element {
     breadcrumbs!("menu-change-password");

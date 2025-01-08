@@ -1,5 +1,15 @@
 use super::*;
 
+/// Page for creating a new permission.
+///
+/// This page is protected by the [`PERMISSION_ROLES_WRITE`] permission.
+///
+/// The page contains a form with a single text field for the permission slug.
+/// If the form is submitted successfully, the user is redirected to the
+/// permission list page.
+///
+/// The page also contains a cancel button that redirects to the permission
+/// list page when clicked.
 #[component]
 pub fn PermissionCreate() -> Element {
     breadcrumbs!("menu-permissions");

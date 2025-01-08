@@ -1,5 +1,18 @@
 use super::*;
 
+/// Initializes the application state with the provided internationalization (i18n) data.
+///
+/// This function parses the given i18n string data, expected to be in a key=value CSV format,
+/// and populates a `BTreeMap` with language entries. It also sets up a new session using
+/// a UUID stored in local storage, and provides a default state for various application
+/// components including client, auth, breadcrumbs, dialog, roles, groups, menu, pages,
+/// personnel, and platform.
+///
+/// # Parameters
+/// - `i18n`: A string slice containing i18n data in CSV format.
+///
+/// # Returns
+/// - A `Signal` containing the session string.
 pub fn use_init_state(i18n: &str) -> Signal<Cow<'static, str>> {
     let mut lang_entries =
         BTreeMap::<Cow<'static, str>, Cow<'static, str>>::new();
@@ -38,10 +51,15 @@ pub fn use_init_state(i18n: &str) -> Signal<Cow<'static, str>> {
     }).session
 }
 
+/// Returns the global application state context.
+///
+/// This hook returns a `UseState` object, which contains all the
+/// application state that can be accessed by the application.
 pub fn use_state() -> UseState {
     consume_context::<UseState>()
 }
 
+/// WASM application state
 #[derive(Clone, Copy)]
 pub struct UseState {
     session: Signal<Cow<'static, str>>,

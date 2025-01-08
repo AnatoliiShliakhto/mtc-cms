@@ -1,3 +1,4 @@
+/// Build API URL
 #[macro_export]
 macro_rules! url {
     ($first:expr) => {

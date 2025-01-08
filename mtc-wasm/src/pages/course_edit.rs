@@ -1,5 +1,18 @@
 use super::*;
 
+/// Component for editing or creating a course entry.
+///
+/// # Props
+/// - `slug`: The unique identifier for the course content.
+/// - `id`: The ID of the course entry being edited or created.
+/// - `is_new`: A boolean indicating if the course entry is new.
+///
+/// # Description
+/// This component provides a form interface for editing or creating a course entry,
+/// allowing the user to modify the title, description, and links associated with
+/// the course. It manages the course data state and handles form submission and
+/// deletion operations. The component also checks permissions and displays
+/// additional actions such as publishing and storage management.
 #[component]
 pub fn CourseEdit(
     #[props(into)]

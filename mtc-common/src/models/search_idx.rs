@@ -1,5 +1,6 @@
 use super::*;
 
+/// Search index structure
 #[derive(Serialize, Debug, Deserialize, Clone, PartialEq)]
 pub struct SearchIdx {
     pub kind: SearchKind,

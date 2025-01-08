@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+/// Custom MTC-WASM error type
 #[derive(Debug, PartialEq)]
 pub enum Error {
     Generic(Cow<'static, str>),

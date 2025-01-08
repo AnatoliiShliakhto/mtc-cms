@@ -12,3 +12,4 @@ pub static JS_FILE_DOWNLOAD: &str = include_str!("file_download.js");
 pub static JS_DOWNLOADS: &str = include_str!("downloads.js");
 pub static JS_REMOVE_DOWNLOAD: &str = include_str!("remove_download.js");
 pub static JS_CLEAR_DOWNLOADS: &str = include_str!("clear_downloads.js");
+pub static JS_BARCODE_SCAN: &str = include_str!("barcode_scan.js");

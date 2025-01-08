@@ -1,5 +1,11 @@
 use super::*;
 
+/// A component to be used as a fallback when no route matches the current path.
+///
+/// This component displays a "404" message and offers a link to the home page, a link to sign in,
+/// and a link to go back to the previous page if it exists.
+///
+/// The component automatically clears the breadcrumb trail when it is rendered.
 #[component]
 pub fn NotFound() -> Element {
     breadcrumbs!();

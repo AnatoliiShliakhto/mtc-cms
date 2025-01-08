@@ -1,5 +1,6 @@
 use super::*;
 
+/// A component that displays the current breadcrumb trail.
 #[component]
 pub fn Breadcrumbs() -> Element {
     let breadcrumbs = state!(breadcrumbs);
@@ -10,9 +11,9 @@ pub fn Breadcrumbs() -> Element {
 
     rsx! {
         div {
-            class: "bg-base-100 text-base-content sm:sticky top-12 z-[20] flex \
-                    w-full px-5 bg-opacity-90 backdrop-blur transition-shadow \
-                    duration-100 [transform:translate3d(0,0,0)] qr-element",
+            class: "bg-base-100 text-base-content sm:sticky top-12 z-[20] flex",
+            class: "w-full px-5 bg-opacity-90 backdrop-blur transition-shadow",
+            class: "duration-100 [transform:translate3d(0,0,0)] qr-element",
             div {
                 class: "breadcrumbs",
                 ul {

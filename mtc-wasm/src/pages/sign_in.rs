@@ -1,5 +1,18 @@
 use super::*;
 
+/// Displays a sign-in form for users to log in to the system.
+///
+/// If the user is already authenticated, this component redirects
+/// to the main page.
+///
+/// The component renders a centered div with a hero section
+/// containing a header, announcement message, and a card with a
+/// sign-in form. The form contains login and password fields, and
+/// a submit button. The form is submitted with a POST request to
+/// the authentication API.
+///
+/// If the user is on an Android device, the component renders a
+/// second button to scan a QR code for device linking.
 #[component]
 pub fn SignIn() -> Element {
     breadcrumbs!("menu-sign-in");
