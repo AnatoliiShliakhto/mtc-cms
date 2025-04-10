@@ -7,7 +7,7 @@ pub fn SearchBox() -> Element {
 
     rsx! {
         section {
-            class: "prose prose-base w-full max-w-full flex flex-wrap grow mt-3 px-4 sm:px-0 \
+            class: "prose-base w-full max-w-full flex flex-wrap grow mt-3 px-4 sm:px-0 \
             ck-content justify-center",
             article {
                 class: "flex grow flex-col max-w-full lg:max-w-4xl overflow-x-auto",

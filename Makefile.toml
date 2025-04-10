@@ -1,0 +1,96 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[config]
+default_to_workspace = false
+
+[tasks.build]
+disabled = true
+
+[tasks.test]
+disabled = true
+
+[tasks.install]
+dependencies = ["install-dioxus", "install-cross"]
+script_runner = "@shell"
+script = '''
+mkdir -p ./data/cert
+mkdir -p ./data/private
+mkdir -p ./data/public
+mkdir -p ./data/www
+mkdir -p ./data/bin
+'''
+
+[tasks.install-dioxus]
+install_crate = "dioxus-cli"
+
+[tasks.install-cross]
+install_crate = "cross"
+
+[tasks.db]
+script_runner = "@shell"
+script = '''
+surreal start --log info --user root --password root --bind 0.0.0.0:8000 rocksdb://./data/db
+'''
+
+[tasks.css]
+script_runner = "@shell"
+script = '''
+npx @tailwindcss/cli -i ./mtc-wasm/input.css -o ./assets/tailwind.css --minify
+'''
+
+[tasks.css-watch]
+script_runner = "@shell"
+script = '''
+npx @tailwindcss/cli -i ./mtc-wasm/input.css -o ./assets/tailwind.css --watch
+'''
+
+[tasks.ui]
+dependencies = ["css"]
+script_runner = "@shell"
+script = '''
+dx build --package mtc-wasm
+cp -rf ./assets/* ./target/dx/mtc-wasm/debug/web/public/assets/*
+'''
+
+[tasks.ui-release]
+dependencies = ["css"]
+script_runner = "@shell"
+script = '''
+dx build --package mtc-wasm --release
+rm -rf ./data/www
+rm -rf ./target/dx/mtc-wasm/release/web/public/wasm
+cp -rf ./target/dx/mtc-wasm/release/web/public/* ./data/www/*
+cp -rf ./assets/* ./data/www/assets/*
+'''
+
+[tasks.srv]
+command = "cargo"
+args = ["run", "--package", "mtc-server"]
+
+[tasks.srv-release]
+script_runner = "@shell"
+script = '''
+cross build --release --target x86_64-unknown-linux-musl
+rm -f ./data/bin/mtc-server
+cp ./target/x86_64-unknown-linux-musl/release/mtc-server ./data/bin/mtc-server
+'''
+
+[tasks.android]
+script_runner = "@shell"
+script = '''
+cargo tauri android build --apk
+rm -f ./data/bin/com.mtc_cms.app.apk
+cp ./mtc-app/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk ./data/bin/com.mtc_cms.app.apk
+'''
+
+[tasks.desktop]
+script_runner = "@shell"
+script = '''
+$msi_file = "242 цпп_0.1.0_x64_uk-UA.msi"
+$exe_file = "242 цпп_0.1.0_x64-setup.exe"
+rm -f ./data/bin/$msi_file
+rm -f ./data/bin/$exe_file
+cp ./target/release/bundle/msi/$msi_file ./data/bin/$msi_file
+cp ./target/release/bundle/nsis/$msi_file ./data/bin/$exe_file
+'''

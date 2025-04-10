@@ -9,8 +9,8 @@ pub struct Role {
     pub user_access_level: i32,
     pub user_access_all: bool,
     pub permissions: Vec<Cow<'static, str>>,
-    pub created_at: Cow<'static, Datetime>,
-    pub updated_at: Cow<'static, Datetime>,
+    pub created_at: Cow<'static, str>,
+    pub updated_at: Cow<'static, str>,
     pub created_by: Cow<'static, str>,
     pub updated_by: Cow<'static, str>,
 }

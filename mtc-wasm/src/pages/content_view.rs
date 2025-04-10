@@ -49,7 +49,7 @@ pub fn ContentView(
                 { response().key_string("title") }
             }
             div {
-                class: "prose prose-base flex grow flex-col max-w-full lg:max-w-4xl",
+                class: "prose-base flex grow flex-col max-w-full lg:max-w-4xl",
                 for field in response().key_obj::<Vec<Field>>("fields")
                 .unwrap_or_default().iter() {{
                     match field.kind {

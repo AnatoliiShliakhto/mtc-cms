@@ -1,23 +1,5 @@
 use super::*;
 
-/// Initializes the database connection using the provided configuration.
-///
-/// This function sets up a connection to the database by calling `db_pre_init` with the appropriate
-/// database path based on whether the code is running in debug mode or release mode. It then retrieves
-/// and logs the SurrealDB version. After establishing the connection, it switches to the specified
-/// namespace and database as defined in the configuration.
-///
-/// # Arguments
-///
-/// * `config` - A reference to the [`Config`] struct containing the database configuration details.
-///
-/// # Returns
-///
-/// * `Result<Database>` - Returns a [`Database`] object on success or an error if the initialization fails.
-///
-/// # Errors
-///
-/// This function will return an error if the database initialization or namespace/database selection fails.
 pub async fn database_init(config: &Config) -> Result<Database> {
     let db = db_pre_init(&match cfg!(debug_assertions) {
         true => "127.0.0.1:8000".into(),

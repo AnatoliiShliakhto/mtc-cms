@@ -1,3 +1,5 @@
+use ratatui::crossterm::style::Stylize;
+
 use super::*;
 
 pub fn draw_header(f: &mut Frame, app: &App, area: Rect) {

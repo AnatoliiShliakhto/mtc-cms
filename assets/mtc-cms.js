@@ -37,6 +37,10 @@ window.platform = window.platform || 'web';
 window.editorInstances = window.editorInstances || [];
 window.contentId = window.contentId || '';
 
+document.addEventListener('contextmenu', event => {
+    event.preventDefault();
+});
+
 const tauri = window.__TAURI__ || undefined;
 
 if (tauri) {
@@ -57,7 +61,7 @@ class ImageUploadAdapter {
     }
 
     upload() {
-        let api_url = 'https://localhost/api/storage/public/' + window.contentId;
+        let api_url = window.location.origin +'/api/storage/public/' + window.contentId;
 
         return this.loader.file
             .then(file => new Promise((resolve, reject) => {

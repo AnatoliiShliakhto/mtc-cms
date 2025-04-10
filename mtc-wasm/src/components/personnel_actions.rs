@@ -74,7 +74,7 @@ pub fn PersonnelActions() -> Element {
                             array.push(
                                 format!(
                                     "{} ({})",
-                                    access.format("%d/%m/%Y").to_string(),
+                                    access.parse::<DateTime<Local>>().unwrap_or_default().format("%d/%m/%Y").to_string(),
                                     &details.access_count
                                 ).into()
                             )

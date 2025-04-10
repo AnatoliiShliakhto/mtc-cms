@@ -27,7 +27,7 @@ pub fn Users() -> Element {
 
     rsx! {
         section {
-            class: "w-full flex-grow xl:pr-16",
+            class: "w-full grow xl:pr-16",
             form {
                 class: "w-full mb-6 pr-16 xl:pr-0",
                 autocomplete: "off",
@@ -36,7 +36,7 @@ pub fn Users() -> Element {
                     archive.set(event.get_bool("archive"));
                 },
                 label {
-                    class: "input input-bordered input-sm flex grow",
+                    class: "input input-sm flex grow",
                     class: "mx-2 sm:mx-4 items-center gap-2",
                     input {
                         class: "grow peer",

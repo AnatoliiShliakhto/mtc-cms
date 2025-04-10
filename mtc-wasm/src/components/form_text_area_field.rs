@@ -22,13 +22,9 @@ pub fn FormTextAreaField(
 
     rsx! {
         label {
-            class: "w-full form-control",
-            div {
-                class: "label",
-                span {
-                    class: "label-text text-neutral",
-                    "⌘ " { t!(title.as_str()) }
-                }
+            class: "w-full floating-label mt-4",
+            span {
+                "⌘ " { t!(title.as_str()) }
             }
             textarea {
                 name,

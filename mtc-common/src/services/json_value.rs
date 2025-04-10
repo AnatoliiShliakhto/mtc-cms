@@ -88,7 +88,8 @@ impl JsonValueService for Value {
     ///
     /// assert_eq!(result, 100_000usize);
     /// ```
-    fn key_obj<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
+    fn key_obj<T: DeserializeOwned>(&self, key: &str) -> Option<T>
+    {
         self
             .as_object()
             .and_then(|obj| obj.get(key))

@@ -36,7 +36,7 @@ pub fn FormHtmlField(
                     "⌘ " { title }
                 }
             }
-            article { class: "prose prose-sm md:prose-base max-w-full",
+            article { class: "prose-sm md:prose-base max-w-full",
                 textarea {
                     id: name.clone(),
                     name: name.clone(),

@@ -9,8 +9,8 @@ pub struct Content {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
     pub published: bool,
-    pub created_at: Cow<'static, Datetime>,
-    pub updated_at: Cow<'static, Datetime>,
+    pub created_at: Cow<'static, str>,
+    pub updated_at: Cow<'static, str>,
     pub created_by: Cow<'static, str>,
     pub updated_by: Cow<'static, str>,
 }

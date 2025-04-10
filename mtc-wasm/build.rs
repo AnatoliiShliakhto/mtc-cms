@@ -1,4 +1,4 @@
-use std::env;
+ use std::env;
 use std::fs;
 use std::path::Path;
 
@@ -10,9 +10,7 @@ fn main() {
         .map(|line| {
         if line.contains("window.downloadDirectory = '") {
             format!(r#"window.downloadDirectory = '{}';"#, env!("DOWNLOAD_DIR"))
-        } else if line.contains("let api_url =") {
-            format!(r#"        let api_url = '{}/api/storage/public/' + window.contentId;"#, env!("FRONT_END_URL"))
-        } else{
+        } else {
             line.to_string()
         }
     }).collect::<Vec<String>>()

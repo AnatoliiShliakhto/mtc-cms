@@ -66,7 +66,7 @@ pub fn ChangePassword() -> Element {
                         }
                     }
                     div { 
-                        class: "card w-full max-w-sm shrink-0 border input-bordered rounded",
+                        class: "card bg-base-100 card-border w-full max-w-sm shrink-0 shadow-xl",
                         form { 
                             class: "card-body",
                             id: "password-form",

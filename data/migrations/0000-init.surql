@@ -425,16 +425,8 @@ DEFINE FIELD permission ON TABLE search_index TYPE string;
 DEFINE INDEX idx_search_url ON TABLE search_index COLUMNS url UNIQUE;
 
 DEFINE ANALYZER search_lowercase TOKENIZERS blank, class, punct
-FILTERS lowercase, ascii, ngram(1,20), snowball(russian), snowball(english);
+FILTERS lowercase, ascii, ngram(2,20), snowball(russian), snowball(english);
 DEFINE INDEX idx_search_title ON search_index FIELDS title SEARCH ANALYZER search_lowercase BM25;
-
-CREATE schemas CONTENT {
-    slug: 'schemas',
-    title: 'Schemas',
-    permission: 'schemas',
-    created_by: $login,
-    updated_by: $login
-};
 
 REMOVE TABLE IF EXISTS api_keys;
 DEFINE TABLE api_keys SCHEMAFULL;

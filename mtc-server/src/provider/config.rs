@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use super::*;
 
-/// Server configuration model structure
 #[derive(Debug, Clone)]
 pub struct Config {
     pub host: Cow<'static, str>,
@@ -83,7 +82,6 @@ impl Config {
         }
     }
 
-    //use this func if u wanna read env variables at runtime env! macro instead
     fn get_env(name: &str) -> Cow<str> {
         std::env::var(name)
             .map_err(|_| error!("ENV VARIABLE missing: {name}"))

@@ -43,7 +43,7 @@ pub fn LinkingQrCode() -> Element {
                         }
                     }
                     div {
-                        class: "card w-full max-w-sm shrink-0 border input-bordered rounded",
+                        class: "card w-full max-w-sm shrink-0 border rounded",
                         div {
                             class: "card-body",
                             img {

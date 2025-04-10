@@ -10,12 +10,14 @@ mod repository;
 mod types;
 mod models;
 
-pub mod prelude {
-    pub use {
-        mtc_common::prelude::*,
+pub(crate) mod prelude {
+    pub(crate) use {
+        ::mtc_common::prelude::*,
+        ::server_macros::handler,
+
         std::{
-            future::Future, net::SocketAddr, path::PathBuf, sync::Arc,
-            collections::BTreeSet,
+            net::SocketAddr, path::PathBuf, sync::Arc,
+            collections::BTreeSet, fmt::Write,
         },
 
         serde::{de::DeserializeOwned, Deserialize, Serialize},
@@ -49,7 +51,7 @@ pub mod prelude {
         },
 
         argon2::{Argon2, password_hash::SaltString, PasswordHasher, PasswordVerifier, PasswordHash},
-        tracing::log::{error, info},
+        tracing::log::{error, warn, info},
         tracing_appender::{
             rolling::{RollingFileAppender, Rotation},
             non_blocking::WorkerGuard,
@@ -100,6 +102,7 @@ async fn main() {
         SessionStore::new(Some(SessionSurrealPool::new(db.clone())), session_config)
             .await
             .unwrap();
+
 
     let state = Arc::new(AppState::init(config, db));
 

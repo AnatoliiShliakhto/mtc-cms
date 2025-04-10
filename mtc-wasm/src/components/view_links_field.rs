@@ -17,7 +17,10 @@ pub fn ViewLinksField(
         dl { class: "file-stack",
             for link in links.iter() {
                 if link.url.is_empty() {
-                    dt { span { { link.title.clone() } } }
+                    dt {
+                        span { class: "text-accent", "#" }
+                        span { class: "text-accent ml-1", { link.title.clone() } }
+                    }
                 } else {
                     dd {
                         { LinkItem(link.title.clone(), link.url.clone()) }

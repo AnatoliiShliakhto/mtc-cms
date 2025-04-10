@@ -62,7 +62,7 @@ pub fn Personnel() -> Element {
 
     rsx!{
         section {
-            class: "w-full flex-grow xl:pr-16",
+            class: "w-full grow xl:pr-16",
             if is_admin {
                 details {
                     class: "collapse collapse-arrow bg-base-200 rounded",
@@ -206,7 +206,7 @@ pub fn Personnel() -> Element {
                                     span {
                                         class: "text-sm",
                                         if let Some(access) = user.last_access {
-                                            { access.format("%d.%m.%y").to_string() }
+                                            { access.parse::<DateTime<Local>>().unwrap_or_default().format("%d.%m.%y").to_string() }
                                             " [" { user.access_count.to_string() } "]"
                                         }
                                     }

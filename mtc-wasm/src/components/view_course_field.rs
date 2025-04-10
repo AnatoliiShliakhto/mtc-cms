@@ -99,7 +99,7 @@ pub fn ViewCourseField(
             class: "flex flex-nowrap w-full pb-4 justify-end",
             if is_busy() {
                 div {
-                    class: "flex flex-nowrap p-3 border input-bordered rounded shadow-md",
+                    class: "flex flex-nowrap p-3 border rounded shadow-md",
                     { format!("{}: {} / {}", t!("action-loading"), files_count(), files_total()) }
                 }
             } else {
@@ -233,7 +233,7 @@ fn CourseChildView(
                     }
                 }
                 if current_entry.links.is_some() {
-                    div { class: "prose prose-base mt-4 max-w-full",
+                    div { class: "prose-base mt-4 max-w-full",
                         ViewLinksField {
                             value: current_entry.links
                         }

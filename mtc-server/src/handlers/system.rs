@@ -1,52 +1,27 @@
 use super::*;
 
-/// Handler for `/system/info` route.
-///
-/// Returns information about the system in JSON format, including
-/// system information, migrations, and sitemap.
-///
-/// Requires the [`PERMISSION_SCHEMAS_READ`] permission.
-///
-/// # Errors
-///
-/// Returns a `GenericError` if the permission check fails.
+#[handler(session, permission = "schemas::read")]
 pub async fn find_system_info_handler(
     state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<impl IntoResponse> {
-    session.has_permission(PERMISSION_SCHEMAS_READ).await?;
-
+) {
     let system_info = state.repository.find_system_info().await?;
     let migrations = state.repository.find_migrations().await?;
-    let sitemap = state.repository.get_system_value("sitemap".into()).await?;
-    let mut json_obj = json!({});
+    let sitemap = state.repository.get_system_value("sitemap").await?;
 
-    json_obj.insert_value("info", json!(system_info));
-    json_obj.insert_value("migrations", json!(migrations));
-    json_obj.insert_value("sitemap", json!(sitemap));
+    let mut response = Map::new();
+    response.insert("info".to_string(), json!(system_info));
+    response.insert("migrations".to_string(), json!(migrations));
+    response.insert("sitemap".to_string(), json!(sitemap));
 
-    json_obj.to_response()
+    Ok(Json(response))
 }
 
-/// Handler for `/system/migrate` route.
-///
-/// Runs migrations for the current system.
-///
-/// If there are no existing migrations, this handler will create a new user
-/// with the provided `login` and `password` and set up the migrations table.
-///
-/// If there are existing migrations, this handler will require the
-/// [`PERMISSION_ADMINISTRATOR`] role to continue.
-///
-/// # Errors
-///
-/// Returns a `GenericError` if the permission check fails or if there is an
-/// error running a migration.
+#[handler(result)]
 pub async fn migration_handler(
     state: State<Arc<AppState>>,
     session: Session,
     Payload(payload): Payload<Value>,
-) -> Result<impl IntoResponse> {
+) {
     let mut migrations = state.repository.find_migrations().await?;
     let mut login = session.get_auth_login().await.unwrap_or_default();
     let mut password = Cow::Borrowed("");
@@ -81,50 +56,25 @@ pub async fn migration_handler(
 
         state.repository.update_migrations(migrations.clone()).await?;
     }
-
-    Ok(StatusCode::OK)
 }
 
-/// Handler for `/system/search_idx_rebuild` route.
-///
-/// Rebuilds the search index.
-///
-/// Requires the [`PERMISSION_ADMINISTRATOR`] role.
-///
-/// # Errors
-///
-/// Returns a `SessionError` if the permission check fails.
+#[handler(session, permission = "schemas::write", result)]
 pub async fn search_idx_rebuild_handler(
     state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<impl IntoResponse> {
-    if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
-        Err(SessionError::AccessForbidden)?
-    }
-
-    state.repository.rebuild_search_idx().await?;
-
-    Ok(())
+) {
+    tokio::spawn(async move {
+        warn!("Rebuilding search index...");
+        let _ = state.repository.rebuild_search_idx().await;
+        warn!("Search index rebuilt.");
+    });
 }
 
-/// Handler for `/system/search` route.
-///
-/// Searches for content that matches the provided search query.
-///
-/// The search query is sanitized to remove any non-alphanumeric characters
-/// except for whitespace, hyphens, and underscores.
-///
-/// The search results include only records that the current user has access to.
-///
-/// # Errors
-///
-/// Returns a `GenericError` if the search query is empty or if there is an error
-/// running the search query.
+#[handler]
 pub async fn search_handler(
     state: State<Arc<AppState>>,
     session: Session,
     Payload(payload): Payload<Value>,
-) -> Result<impl IntoResponse> {
+) {
     let Some(payload) = payload.as_str() else {
         Err(GenericError::BadRequest)?
     };
@@ -144,62 +94,33 @@ pub async fn search_handler(
             .unwrap_or((PERMISSION_PUBLIC, "")).0.to_owned().into())
         .collect::<BTreeSet<Cow<'static, str>>>();
 
-    let search_idx = state
+    state
         .repository
-        .search_content(payload.into(), user_custom_permissions)
-        .await?;
-
-    search_idx.to_response()
+        .search_content(payload, user_custom_permissions)
+        .await
+        .map(Json)
 }
 
-/// Handler for `/system/sitemap_build` route.
-///
-/// Builds the sitemap for the system.
-///
-/// Requires the [`PERMISSION_ADMINISTRATOR`] role.
-///
-/// # Errors
-///
-/// Returns a `SessionError` if the permission check fails or if there is an
-/// error building the sitemap.
+#[handler(session, permission = "schemas::write")]
 pub async fn sitemap_build_handler(
     state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<impl IntoResponse> {
-    if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
-        Err(SessionError::AccessForbidden)?
-    }
-
-    state.repository.sitemap_build().await?;
-
-    Ok(())
+) {
+    state.repository.sitemap_build().await
 }
 
-/// Handler for `/system/course_files_update` route.
-///
-/// Updates the `course_files` collection.
-///
-/// Requires the [`PERMISSION_ADMINISTRATOR`] role.
-///
-/// # Errors
-///
-/// Returns a `SessionError` if the permission check fails or if there is an
-/// error updating the `course_files` collection.
+#[handler(session, permission = "schemas::write", result)]
 pub async fn course_files_update_handler(
     state: State<Arc<AppState>>,
-    session: Session,
-) -> Result<impl IntoResponse> {
-    if !session.get_auth_state().await?.has_role(ROLE_ADMINISTRATOR) {
-        Err(SessionError::AccessForbidden)?
-    }
-
+) {
     state.repository.drop_course_files().await?;
 
-    let courses = state.repository.find_content_list("course".into(), true).await?;
+    let courses = state.repository.find_content_list("course", true).await?;
 
     for course in courses.iter() {
         let files = state.repository.get_course_files(course.slug.clone()).await?;
         state.repository.update_course_files(course.slug.clone(), files).await?;
     }
-    Ok(())
 }
+
+#[handler(result)]
+pub async fn health_handler() {}

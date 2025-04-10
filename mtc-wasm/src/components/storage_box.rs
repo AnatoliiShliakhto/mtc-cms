@@ -171,7 +171,7 @@ pub fn StorageBox(
                     div { class: "divider my-0" }
                     form {
                         input {
-                            class: "file-input file-input-bordered mt-1 w-full",
+                            class: "file-input mt-1 w-full",
                             class: if download_progress().eq(&101i64) {
                                 "file-input-error"
                             } else if download_progress().eq(&100i64) {

@@ -5,8 +5,8 @@ mod session;
 mod service_worker;
 mod headers_check;
 
-pub mod prelude {
-    pub use {
+pub(crate) mod prelude {
+    pub(crate) use {
         super::{
             protected_storage::*,
             session::*,

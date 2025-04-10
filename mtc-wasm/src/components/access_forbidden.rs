@@ -1,11 +1,5 @@
 use super::*;
 
-/// A component that renders a 403 Forbidden page.
-///
-/// This component is used when a user requests a page that they do not have
-/// access to. It displays a 403 error code and a message indicating that the
-/// user does not have access to the requested page. It also provides a link
-/// back to the home page and a link to sign in.
 #[component]
 pub fn AccessForbidden() -> Element {
 

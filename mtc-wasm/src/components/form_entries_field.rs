@@ -74,7 +74,7 @@ pub fn FormEntriesField(
                 }
             }
             div {
-                class: "rounded border p-3 collapse bg-base-100 input-bordered",
+                class: "rounded border p-3 collapse bg-base-100",
                 tabindex: 0,
                 div {
                     class: "p-0 collapse-title",

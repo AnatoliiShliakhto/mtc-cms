@@ -1,220 +1,162 @@
 use super::*;
 
 pub trait PermissionsRepository {
-    fn find_permission_list(&self)
-        -> impl Future<Output = Result<Vec<Entry>>> + Send;
-    fn find_permissions_by_login(
+    async fn find_permission_list(&self) -> Result<Vec<Entry>>;
+    async fn find_permissions_by_login(
         &self,
-        login: Cow<'static, str>,
-    ) -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
-    fn find_custom_permissions(&self)
-        -> impl Future<Output = Result<Vec<Cow<'static, str>>>> + Send;
-    fn create_custom_permission(
+        login: impl ToString,
+    ) -> Result<Vec<Cow<'static, str>>>;
+    async fn find_custom_permissions(&self) -> Result<Vec<Cow<'static, str>>>;
+    async fn create_custom_permission(
         &self,
-        permission: Cow<'static, str>,
-        by: Cow<'static, str>,
-    ) -> impl Future<Output = Result<()>> + Send;
-    fn delete_custom_permission(&self, permission: Cow<'static, str>)
-        -> impl Future<Output = Result<()>> + Send;
-    fn assign_permissions_to_role(
-        &self, id: Cow<'static, str>,
+        permission: impl ToString,
+        by: impl ToString,
+    ) -> Result<()>;
+    async fn delete_custom_permission(&self, permission: impl ToString) -> Result<()>;
+    async fn assign_permissions_to_role(
+        &self,
+        id: impl ToString,
         permissions: Vec<Cow<'static, str>>,
-    ) -> impl Future<Output = Result<()>> + Send;
+    ) -> Result<()>;
 }
 
 impl PermissionsRepository for Repository {
-    /// Finds all permissions in the database, ordered by slug.
-    ///
-    /// # Return Value
-    ///
-    /// A vector of [`Entry`] objects.
-    ///
-    /// # Errors
-    ///
-    /// - `GenericError::DatabaseError` if there was an error querying the database.
     async fn find_permission_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
-            SELECT record::id(id) as id, slug, slug as title FROM permissions ORDER BY slug;
+            SELECT id.id() as id, slug, slug as title FROM permissions ORDER BY slug;
             "#;
 
-        let permissions = self.database.query(sql)
+        self.database.query(sql)
             .await?
-            .take::<Vec<Entry>>(0)?;
-
-        Ok(permissions)
+            .take::<Vec<Entry>>(0)
+            .map(Ok)?
     }
 
-    /// Retrieves the list of permissions associated with a user login.
-    ///
-    /// # Arguments
-    ///
-    /// * `login` - The login identifier of the user.
-    ///
-    /// # Returns
-    ///
-    /// A result containing a vector of permission slugs associated with the user.
-    /// If no permissions are found, returns a default permission [`PERMISSION_PUBLIC_READ`].
-    ///
-    /// # Errors
-    ///
-    /// - `GenericError::DatabaseError` if there was an error querying the database.
     async fn find_permissions_by_login(
         &self,
-        login: Cow<'static, str>,
+        login: impl ToString,
     ) -> Result<Vec<Cow<'static, str>>> {
         let sql = r#"
             SELECT VALUE array::sort(array::distinct(->user_roles->roles->role_permissions->permissions.slug))
             FROM users WHERE login=$login;
             "#;
 
-        let permissions = self.database.query(sql)
-            .bind(("login", login))
+        self.database.query(sql)
+            .bind(("login", login.to_string()))
             .await?
             .take::<Option<Vec<Cow<str>>>>(0)?
-            .unwrap_or(vec![PERMISSION_PUBLIC_READ.into()]);
-
-        Ok(permissions)
+            .map_or(Ok(vec![Cow::Borrowed("public::read")]), Ok)
     }
 
-    /// Retrieves the list of custom permissions defined in the system.
-    ///
-    /// # Returns
-    ///
-    /// A result containing a vector of permission slugs associated with the custom permissions.
-    ///
-    /// # Errors
-    ///
-    /// - `GenericError::DatabaseError` if there was an error querying the database.
     async fn find_custom_permissions(&self) -> Result<Vec<Cow<'static, str>>> {
         let sql = r#"
             array::distinct(SELECT VALUE string::split(slug, "::")[0]
             FROM permissions WHERE is_custom = true);
             "#;
 
-        let permissions = self.database.query(sql)
+        self.database.query(sql)
             .await?
-            .take::<Vec<Cow<str>>>(0)?;
-
-        Ok(permissions)
+            .take::<Vec<Cow<str>>>(0)
+            .map(Ok)?
     }
 
-    /// Creates a new custom permission in the system.
-    ///
-    /// The `permission` argument is used as the slug for the three
-    /// permissions created: `permission::read`, `permission::write`,
-    /// and `permission::delete`. The `by` argument is used to set the
-    /// `created_by` field for the permissions.
-    ///
-    /// The three permissions are also automatically assigned to the
-    /// `administrator` role.
-    ///
-    /// # Errors
-    ///
-    /// - `GenericError::DatabaseError` if there was an error querying
-    ///   the database.
     async fn create_custom_permission(
-        &self, permission: Cow<'static, str>,
-        by: Cow<'static, str>,
+        &self,
+        permission: impl ToString,
+        by: impl ToString,
     ) -> Result<()> {
-        let sql = [
-            r#"
-                BEGIN TRANSACTION;
-                
-                CREATE permissions CONTENT {
-                    id: $permission_read_id,
-                    slug: $permission_read,
-                    is_custom: true,
-                    created_by: $by
-                };
+        let sql = r#"
+            BEGIN TRANSACTION;
 
-                CREATE permissions CONTENT {
-                    id: $permission_write_id,
-                    slug: $permission_write,
-                    is_custom: true,
-                    created_by: $by
-                };
+            LET $permission_read_rec = type::thing('permissions', $permission + '_read');
+            LET $permission_write_rec = type::thing('permissions', $permission + '_write');
+            LET $permission_delete_rec = type::thing('permissions', $permission + '_delete');
 
-                CREATE permissions CONTENT {
-                    id: $permission_delete_id,
-                    slug: $permission_delete,
-                    is_custom: true,
-                    created_by: $by
-                };
-            "#,
-            &format!(r#"
-                RELATE roles:administrator->role_permissions->permissions:{0}_read;
-                RELATE roles:administrator->role_permissions->permissions:{0}_write;
-                RELATE roles:administrator->role_permissions->permissions:{0}_delete;
-            
-                COMMIT TRANSACTION;
-            "#, permission)
-        ].concat();
+            CREATE $permission_read_rec CONTENT {
+                slug: $permission + '::read',
+                is_custom: true,
+                created_by: $by
+            };
+
+            CREATE $permission_write_rec CONTENT {
+                slug: $permission + '::write',
+                is_custom: true,
+                created_by: $by
+            };
+
+            CREATE $permission_delete_rec CONTENT {
+                slug: $permission + '::delete',
+                is_custom: true,
+                created_by: $by
+            };
+
+            RELATE roles:administrator->role_permissions->$permission_read_rec;
+            RELATE roles:administrator->role_permissions->$permission_write_rec;
+            RELATE roles:administrator->role_permissions->$permission_delete_rec;
+
+            COMMIT TRANSACTION;
+        "#;
 
 
         self.database
             .query(sql)
-            .bind(("by", by))
-            .bind(("permission_read_id", format!("{}_read", permission)))
-            .bind(("permission_read", format!("{}::read", permission)))
-            .bind(("permission_write_id", format!("{}_write", permission)))
-            .bind(("permission_write", format!("{}::write", permission)))
-            .bind(("permission_delete_id", format!("{}_delete", permission)))
-            .bind(("permission_delete", format!("{}::delete", permission)))
-            .await?;
+            .bind(("by", by.to_string()))
+            .bind(("permission", permission.to_string()))
+            .await?
+            .check()?;
 
         Ok(())
     }
 
-    async fn delete_custom_permission(&self, permission: Cow<'static, str>) -> Result<()> {
+    async fn delete_custom_permission(&self, permission: impl ToString) -> Result<()> {
+        let sql = r#"
+            BEGIN TRANSACTION;
+
+            DELETE FROM permissions WHERE slug=($permission + '::read') and is_custom = true;
+            DELETE FROM permissions WHERE slug=($permission + '::write') and is_custom = true;
+            DELETE FROM permissions WHERE slug=($permission + '::delete') and is_custom = true;
+
+            COMMIT TRANSACTION;
+        "#;
+
         self.database
-            .query(
-                r#"
-                BEGIN TRANSACTION;
-                
-                DELETE FROM permissions WHERE slug=$permission_read and is_custom = true;
-                DELETE FROM permissions WHERE slug=$permission_write and is_custom = true;
-                DELETE FROM permissions WHERE slug=$permission_delete and is_custom = true;
-                
-                COMMIT TRANSACTION;
-                "#,
-            )
-            .bind(("permission_read", format!("{}::read", permission)))
-            .bind(("permission_write", format!("{}::write", permission)))
-            .bind(("permission_delete", format!("{}::delete", permission)))
-            .await?;
+            .query(sql)
+            .bind(("permission", permission.to_string()))
+            .await?
+            .check()?;
 
         Ok(())
     }
 
-    /// Assigns a list of permissions to a role.
-    ///
-    /// # Arguments
-    /// * `id` - The ID of the role.
-    /// * `permissions` - The list of permissions to assign to the role.
     async fn assign_permissions_to_role(
         &self,
-        id: Cow<'static, str>,
+        id: impl ToString,
         permissions: Vec<Cow<'static, str>>,
     ) -> Result<()> {
-        let mut sql = vec!["BEGIN TRANSACTION;"];
-        let drop_permissions = format!(r#"
-            DELETE roles:{}->role_permissions;
-        "#, id);
-        sql.push(&drop_permissions);
+        let mut sql = r#"
+            BEGIN TRANSACTION;
+            LET $role_rec = type::thing('roles', $role_id);
+            DELETE $role_rec->role_permissions;
+        "#.to_string();
 
         let permissions = permissions
             .iter()
-            .map(|permission| format!(r#"
-                RELATE roles:{}->role_permissions->permissions:{};
-            "#, id, permission).into())
+            .enumerate()
+            .map(|(index, permission)| format!(r#"
+                LET $permission_{0}_rec = type::thing('permissions', '{1}');
+                RELATE $role_rec->role_permissions->$permission_{0}_rec;
+            "#, index, permission).into())
             .collect::<Vec<Cow<'static, str>>>().concat();
-        sql.push(&permissions);
-        sql.push("COMMIT TRANSACTION;");
+
+        sql.write_str(&permissions)?;
+        sql.write_str("COMMIT TRANSACTION;")?;
 
         self
             .database
-            .query(sql.concat())
-            .await?;
+            .query(sql)
+            .bind(("role_id", id.to_string()))
+            .await?
+            .check()?;
 
         Ok(())
     }

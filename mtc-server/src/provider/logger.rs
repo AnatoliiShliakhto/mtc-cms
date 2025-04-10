@@ -1,18 +1,5 @@
 use super::*;
 
-/// Initializes the logging system.
-///
-/// # Arguments
-///
-/// * `log_path`: Directory where to store the log files.
-///
-/// # Returns
-///
-/// A guard that should be stored to prevent the logging system from being dropped.
-///
-/// # Panics
-///
-/// If the logging system fails to initialize.
 pub fn logger_init(log_path: &str) -> WorkerGuard {
     let env_filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())

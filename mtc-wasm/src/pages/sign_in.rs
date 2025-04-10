@@ -73,9 +73,9 @@ pub fn SignIn() -> Element {
                         }
                     }
                     div {
-                        class: "card w-full max-w-sm shrink-0 border input-bordered rounded",
+                        class: "card bg-base-100 card-border w-full max-w-sm shrink-0 shadow-xl",
                         form {
-                            class: "card-body",
+                            class: "card-body pt-4",
                             id: "sign-in-form",
                             autocomplete: "off",
                             onsubmit: submit,
@@ -113,7 +113,7 @@ pub fn SignIn() -> Element {
                             }
                         } else {
                             div {
-                                class: "card-actions px-8 pb-8",
+                                class: "card-actions px-6 pb-8",
                                 button {
                                     form: "sign-in-form",
                                     class: "btn w-full btn-primary",

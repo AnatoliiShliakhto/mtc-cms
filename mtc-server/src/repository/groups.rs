@@ -1,207 +1,145 @@
 use super::*;
 
 pub trait GroupsRepository {
-    fn find_group_list(&self)
-        -> impl Future<Output = Result<Vec<Entry>>> + Send;
-    fn find_group_by_login(&self, login: Cow<'static, str>)
-        -> impl Future<Output = Result<Cow<'static, str>>> + Send;
-    fn find_group(&self, id: Cow<'static, str>)
-        -> impl Future<Output = Result<Group>> + Send;
-    fn update_group(&self, payload: Value, by: Cow<'static, str>)
-        -> impl Future<Output = Result<()>> + Send;
-    fn delete_group(&self, id: Cow<'static, str>)
-        -> impl Future<Output = Result<()>> + Send;
-    fn assign_group_to_user(
+    async fn find_group_list(&self) -> Result<Vec<Entry>>;
+    async fn find_group_by_login(&self, login: impl ToString) -> Result<Cow<str>>;
+    async fn find_group(&self, id: impl ToString) -> Result<Group>;
+    async fn update_group(&self, payload: Value, by: impl ToString) -> Result<()>;
+    async fn delete_group(&self, id: impl ToString) -> Result<()>;
+    async fn assign_group_to_user(
         &self,
-        id: Cow<'static, str>,
-        group: Cow<'static, str>,
-    ) -> impl Future<Output = Result<()>> + Send;
+        id: impl ToString,
+        group: impl ToString,
+    ) -> Result<()>;
 }
 
 impl GroupsRepository for Repository {
-    /// Finds a list of all groups.
-    ///
-    /// # Response
-    ///
-    /// A JSON response with a list of groups as [`Entry`].
     async fn find_group_list(&self) -> Result<Vec<Entry>> {
         let sql = r#"
-        SELECT record::id(id) as id, slug, title FROM groups ORDER BY slug;
-        "#;
-
-        let groups = self
-            .database
-            .query(sql)
-            .await?
-            .take::<Vec<Entry>>(0)?;
-
-        Ok(groups)
-    }
-
-    /// Finds the group of a user by login.
-    ///
-    /// # Arguments
-    ///
-    /// * `login`: The login of the user.
-    ///
-    /// # Response
-    ///
-    /// A JSON response with the slug of the group as a string.
-    /// If the user does not exist, an empty string is returned.
-    async fn find_group_by_login(&self, login: Cow<'static, str>) -> Result<Cow<'static, str>> {
-        let sql = r#"
-        array::at(SELECT VALUE ->user_groups->groups.slug FROM users WHERE login=$login, 0);
-        "#;
-
-        let group = self.database.query(sql)
-            .bind(("login", login))
-            .await?
-            .take::<Option<Cow<str>>>(0)?
-            .unwrap_or("".into());
-
-        Ok(group)
-    }
-
-    /// Finds a group by ID.
-    ///
-    /// # Arguments
-    ///
-    /// * `id`: The ID of the group to find.
-    ///
-    /// # Response
-    ///
-    /// A JSON response with the found group as a [`Group`].
-    /// If the group does not exist, an error is returned.
-    async fn find_group(&self, id: Cow<'static, str>) -> Result<Group> {
-        let sql = r#"
-        SELECT *, record::id(id) as id FROM ONLY type::record("groups:" + $id);
+            SELECT id.id() as id, slug, title FROM groups ORDER BY slug;
         "#;
 
         self
             .database
             .query(sql)
-            .bind(("id", id))
+            .await?
+            .take::<Vec<Entry>>(0)
+            .map(Ok)?
+    }
+
+    async fn find_group_by_login(&self, login: impl ToString) -> Result<Cow<str>> {
+        let sql = r#"
+            array::at(SELECT VALUE ->user_groups->groups.slug FROM users WHERE login=$login, 0);
+        "#;
+
+        self.database.query(sql)
+            .bind(("login", login.to_string()))
+            .await?
+            .take::<Option<Cow<str>>>(0)?
+            .map_or(Ok(Cow::Borrowed("")), Ok)
+    }
+
+    async fn find_group(&self, id: impl ToString) -> Result<Group> {
+        let sql = r#"
+        SELECT *, id.id() as id FROM ONLY type::thing('groups', $group_id);
+        "#;
+
+        self
+            .database
+            .query(sql)
+            .bind(("group_id", id.to_string()))
             .await?
             .take::<Option<Group>>(0)?
             .ok_or(DatabaseError::EntryNotFound.into())
     }
 
-    /// Updates a group by ID.
-    ///
-    /// # Arguments
-    ///
-    /// * `payload`: A JSON payload with the new values for the group.
-    /// * `by`: The login of the user making the change.
-    ///
-    /// # Response
-    ///
-    /// * Ok(()) if the group was updated successfully.
-    ///
-    /// If the group does not exist and the `id` field is not present in the payload,
-    /// a new group is created with the provided values.
-    /// If the group does not exist and the `id` field is present in the payload,
-    /// an error is returned.
-    async fn update_group(&self, payload: Value, by: Cow<'static, str>) -> Result<()> {
-        let mut sql = vec![];
-        let id = payload.key_str("id").unwrap_or_default();
-        let slug = payload.key_str("slug").unwrap_or_default();
-        let title = payload.key_str("title").unwrap_or_default();
+    async fn update_group(&self, payload: Value, by: impl ToString) -> Result<()> {
+        let id = payload["id"].as_str().unwrap_or_default();
+        let slug = payload["slug"].as_str().unwrap_or_default();
+        let title = payload["title"].as_str().unwrap_or_default();
 
-        if payload.contains_key("id") && !id.is_empty() {
-            sql.push(r#"UPDATE type::record("groups:" + $id) MERGE {"#)
+        let mut sql = String::new();
+
+        if !id.is_empty() {
+            sql.write_str(r#"UPDATE type::thing('groups', $group_id) MERGE {"#)?
         } else {
-            sql.push(r#"
+            sql.write_str(r#"
             CREATE groups CONTENT {
                 created_by: $by,
-            "#)
+            "#)?
         }
 
-        if payload.contains_key("slug") {
-            sql.push(r#"
+        if !slug.is_empty() {
+            sql.write_str(r#"
             slug: $slug,
-            "#)
+            "#)?
         }
 
-        if payload.contains_key("title") {
-            sql.push(r#"
+        if !title.is_empty() {
+            sql.write_str(r#"
             title: $title,
-            "#)
+            "#)?
         }
 
-        sql.push(r#"
+        sql.write_str(r#"
             updated_by: $by
         };
-        "#);
+        "#)?;
 
         self
             .database
-            .query(sql.concat())
-            .bind(("id", id))
-            .bind(("slug", slug))
-            .bind(("title", title))
-            .bind(("by", by))
-            .await?;
+            .query(sql)
+            .bind(("group_id", id.to_string()))
+            .bind(("slug", slug.to_string()))
+            .bind(("title", title.to_string()))
+            .bind(("by", by.to_string()))
+            .await?
+            .check()?;
 
         Ok(())
     }
 
-    /// Deletes a group by ID.
-    ///
-    /// # Arguments
-    ///
-    /// * `id`: The ID of the group to delete.
-    ///
-    /// # Response
-    ///
-    /// * Ok(()) if the group was deleted successfully.
-    ///
-    /// If the group does not exist, an error is returned.
-    async fn delete_group(&self, id: Cow<'static, str>) -> Result<()> {
+    async fn delete_group(&self, id: impl ToString) -> Result<()> {
         let sql = r#"
-            DELETE type::record("groups:" + $id);
+            DELETE type::thing('groups', $group_id);
         "#;
 
         self
             .database
             .query(sql)
-            .bind(("id", id))
-            .await?;
+            .bind(("group_id", id.to_string()))
+            .await?
+            .check()?;
 
         Ok(())
     }
 
 
-    /// Assigns a group to a user.
-    ///
-    /// # Arguments
-    ///
-    /// * `id`: The ID of the user to assign the group to.
-    /// * `group`: The ID of the group to assign.
-    ///
-    /// # Response
-    ///
-    /// * `Ok(())` if the group was assigned successfully.
-    ///
-    /// If the group does not exist, an error is returned.
-    async fn assign_group_to_user(&self, id: Cow<'static, str>, group: Cow<'static, str>) -> Result<()> {
-        let mut sql = vec!["BEGIN TRANSACTION;"];
-        let drop_groups = format!(r#"
-            DELETE users:{}->user_groups;
-        "#, id);
-        sql.push(&drop_groups);
+    async fn assign_group_to_user(&self, id: impl ToString, group: impl ToString) -> Result<()> {
+        let id = id.to_string();
+        let group = group.to_string();
 
-            let group_query = format!(r#"
-                RELATE users:{}->user_groups->groups:{};
-            "#, id, group);
+        let mut sql = r#"
+            BEGIN TRANSACTION;
+            LET $user_rec = type::thing('users', $user_id);
+            DELETE $user_rec->user_groups;
+        "#.to_string();
+
         if !group.is_empty() {
-            sql.push(&group_query);
+            sql.write_str(r#"
+            LET $group_rec = type::thing('groups', $group_id);
+            RELATE $user_rec->user_groups->$group_rec;
+            "#)?;
         }
-        sql.push("COMMIT TRANSACTION;");
+        sql.write_str("COMMIT TRANSACTION;")?;
 
         self
             .database
-            .query(sql.concat())
-            .await?;
+            .query(sql)
+            .bind(("user_id", id))
+            .bind(("group_id", group))
+            .await?
+            .check()?;
 
         Ok(())
     }
