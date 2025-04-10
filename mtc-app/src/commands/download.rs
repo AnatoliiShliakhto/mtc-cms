@@ -1,22 +1,5 @@
 use super::*;
 
-/// Downloads a file from a specified URL and saves it to a given path.
-///
-/// # Arguments
-///
-/// * `app` - The application handle used to access the filesystem.
-/// * `state` - The application state containing the HTTP client.
-/// * `url` - The URL of the file to be downloaded.
-/// * `path` - The destination path where the downloaded file will be saved.
-///
-/// # Returns
-///
-/// * `Result<(), `[`Error`]`>` - Returns an empty result on success, or an error if the download or file write fails.
-///
-/// # Errors
-///
-/// Returns an error if the HTTP request fails or if the response status code is not `200 OK`.
-/// Additionally, returns an error if writing to the file fails.
 #[command(async)]
 pub async fn download(
     app: AppHandle,

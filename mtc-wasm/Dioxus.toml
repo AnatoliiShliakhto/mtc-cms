@@ -11,7 +11,7 @@ default_platform = "web"
 out_dir = "../data/www"
 
 # resource (assets) file folder
-asset_dir = "../assets"
+#asset_dir = "../assets"
 #sub_package = "mtc-wasm"
 
 [web.app]

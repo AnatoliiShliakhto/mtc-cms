@@ -27,7 +27,7 @@ pub fn FormSchemaKindField(
                     "⌘ " { t!("field-schema-type") }
                 }
             }
-            select { class: "select input-bordered focus:input-primary",
+            select { class: "select focus:input-primary",
                 name: "kind",
                 disabled,
                 option {

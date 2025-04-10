@@ -1,35 +1,22 @@
 use super::*;
 
-/// Handle a sign in request. This function can be called with a
-/// user's login and password, or with an API key. The user's
-/// authentication state is stored in the session.
-///
-/// # Errors
-///
-/// * `GenericError::BadRequest` if the request is malformed
-/// * `SessionError::InvalidCredentials` if the user's login or password
-///   is invalid
-/// * `SessionError::UserBlocked` if the user is blocked
-///
-/// # Response
-///
-/// A successful response is a `200 OK status code`.
+#[handler(result)]
 pub async fn sign_in_handler(
     state: State<Arc<AppState>>,
     session: Session,
     Payload(payload): Payload<Value>,
-) -> Result<impl IntoResponse> {
+) {
     let api_key = payload.key_str("api_key").unwrap_or_default();
     if !api_key.is_empty() {
         let re = regex::Regex::new(UUID_PATTERN).unwrap();
         if !re.is_match(&api_key) {
-            return Err(GenericError::BadRequest)?
+            Err(GenericError::BadRequest)?
         }
     }
 
     let login: Cow<'static, str> =
-        Cow::Owned(payload.key_str("login").unwrap_or_default().to_uppercase());
-    let password = payload.key_str("password").unwrap_or_default();
+        Cow::Owned(payload.key_str("login").unwrap_or_default().to_uppercase().replace(' ', ""));
+    let password = payload.key_str("password").unwrap_or_default().replace(' ', "");
 
     if !login.is_empty() & password.is_empty() { Err(GenericError::BadRequest)? }
 
@@ -77,51 +64,26 @@ pub async fn sign_in_handler(
         state.repository.update_user_api_key(
             user.id,
             api_key,
-            session.get_session_id().to_string().into(),
+            session.get_session_id().to_string(),
             payload.key_str("os").unwrap_or_default(),
             payload.key_str("device").unwrap_or_default(),
         ).await.ok()
     });
-
-    Ok(StatusCode::OK)
 }
 
-/// Clear the user session in the Database and log them out.
+#[handler(result)]
 pub async fn sign_out_handler(
     session: Session,
 ) -> Result<impl IntoResponse> {
     session.clear();
-
-    Ok(StatusCode::OK)
 }
 
-/// Handles the user's password change request.
-///
-/// This handler validates the current password and updates it with the new password provided
-/// in the payload. The user must be authenticated and not blocked to perform this action.
-///
-/// # Arguments
-///
-/// * `state` - Shared application state containing configuration and repository access.
-/// * `session` - User session for retrieving authentication state.
-/// * `payload` - JSON payload containing `current_password` and `new_password` strings.
-///
-/// # Errors
-///
-/// Returns `SessionError::AccessForbidden` if the user is not authenticated.
-/// Returns `GenericError::BadRequest` if required keys are missing from the payload.
-/// Returns `SessionError::InvalidCredentials` if the current password is incorrect.
-/// Returns `SessionError::UserBlocked` if the user is blocked.
-/// Returns `SessionError::PasswordHash` if there is an error hashing the password.
-///
-/// # Response
-///
-/// Returns a 200 status code on successful password change.
+#[handler]
 pub async fn change_password_handler(
     state: State<Arc<AppState>>,
     session: Session,
     Payload(payload): Payload<Value>,
-) -> Result<impl IntoResponse> {
+) {
     let auth_state = session.get_auth_state().await?;
     if !auth_state.is_authenticated() { Err(SessionError::AccessForbidden)? }
 
@@ -155,33 +117,14 @@ pub async fn change_password_handler(
         Err(SessionError::PasswordHash)?
     };
 
-    state.repository.set_user_password(user.id, password_hash.to_string().into()).await?;
-
-    Ok(StatusCode::OK)
+    state.repository.set_user_password(user.id, password_hash.to_string()).await
 }
 
-/// Generates a QR code for user sign-in using an encrypted API key.
-///
-/// This handler retrieves the authenticated user's API key, encrypts it,
-/// and generates a QR code in SVG format for sign-in purposes. The QR code
-/// contains the encrypted API key prefixed with "MTC:000:".
-///
-/// # Arguments
-///
-/// * `state` - Shared application state containing configuration and repository access.
-/// * `session` - User session for retrieving authentication state and user ID.
-///
-/// # Errors
-///
-/// Returns `SessionError::AccessForbidden` if the user is not authenticated.
-///
-/// # Response
-///
-/// Returns an SVG image with a content-type of "image/svg+xml" on success.
+#[handler]
 pub async fn sign_in_qr_code_handler(
     state: State<Arc<AppState>>,
     session: Session,
-) -> Result<impl IntoResponse> {
+) {
     let auth_state = session.get_auth_state().await?;
     if !auth_state.is_authenticated() { Err(SessionError::AccessForbidden)? };
 

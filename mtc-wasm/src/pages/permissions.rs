@@ -33,7 +33,7 @@ pub fn Permissions() -> Element {
 
     rsx! {
         section { 
-            class: "w-full flex-grow xl:pr-16",
+            class: "w-full grow xl:pr-16",
             table { 
                 class: "entry-table",
                 thead {

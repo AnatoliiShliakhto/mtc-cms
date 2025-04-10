@@ -3,8 +3,8 @@ use crate::prelude::*;
 mod payload;
 mod access;
 
-pub mod prelude {
-    pub use super::{
+pub(crate) mod prelude {
+    pub(crate) use super::{
         access::*,
         payload::*,
     };

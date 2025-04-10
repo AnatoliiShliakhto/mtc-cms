@@ -1,15 +1,5 @@
 use super::*;
 
-/// Renders a content actions component.
-///
-/// This component renders a content actions component, given a schema
-/// and slug for a content entry. It renders a button to edit the content
-/// entry. The button is only visible if the user has the writer role.
-///
-/// # Props
-///
-/// * `schema`: The schema slug identifying the content type.
-/// * `slug`: The unique slug for the specific content entry.
 #[component]
 pub fn ContentActions(
     #[props(into)]

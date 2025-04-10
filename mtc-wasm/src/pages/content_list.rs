@@ -27,7 +27,7 @@ pub fn ContentList(
     rsx! {
         section {
             class: if is_writer {
-                "w-full flex-grow xl:pr-16"
+                "w-full grow xl:pr-16"
             } else {
                 "w-full max-w-full flex flex-wrap grow mt-3 px-4 sm:px-0 ck-content justify-center"
             },

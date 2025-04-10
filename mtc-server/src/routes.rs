@@ -1,19 +1,5 @@
 use crate::prelude::*;
 
-/// Construct a set of routes for the MTC server.
-///
-/// This function returns a set of routes that are used by the MTC server.
-/// The routes are grouped by category, such as content, schemas, users,
-/// roles, permissions, and system (for administrative tasks).
-///
-/// # Arguments
-///
-/// * `state` - The application state object, which is shared among all
-///   routes.
-///
-/// # Returns
-///
-/// A `Router` object that contains the routes.
 pub fn routes(
     state: Arc<AppState>
 ) -> Router {
@@ -76,6 +62,7 @@ pub fn routes(
         .route("/system", get(find_system_info_handler))
         .route("/search", post(search_handler))
         .route("/sync", get(sync_handler))
+        .route("/health", get(health_handler))
 
         .with_state(state)
 }

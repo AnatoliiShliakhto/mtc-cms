@@ -1,11 +1,89 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+/*    themes: emerald --default, dracula --prefersdark;*/
+    root: ":root";
+/*    exclude: checkbox, footer, typography, glass, rootcolor, rootscrollgutter;*/
+}
+
+@plugin "daisyui/theme" {
+    name: "dark";
+    default: false;
+    prefersdark: true;
+    color-scheme: "dark";
+    --color-base-100: oklch(28.822% 0.022 277.508);
+    --color-base-200: oklch(26.805% 0.02 277.508);
+    --color-base-300: oklch(24.787% 0.019 277.508);
+    --color-base-content: oklch(87% 0.01 258.338);
+    --color-primary: oklch(70% 0.165 254.624);
+    --color-primary-content: oklch(15.092% 0.036 346.812);
+    --color-secondary: oklch(89% 0.196 126.665);
+    --color-secondary-content: oklch(14.84% 0.029 301.883);
+    --color-accent: oklch(78% 0.115 274.713);
+    --color-accent-content: oklch(16.678% 0.024 66.558);
+    --color-neutral: oklch(39.445% 0.032 275.524);
+    --color-neutral-content: oklch(87.889% 0.006 275.524);
+    --color-info: oklch(88.263% 0.093 212.846);
+    --color-info-content: oklch(17.652% 0.018 212.846);
+    --color-success: oklch(87.099% 0.219 148.024);
+    --color-success-content: oklch(17.419% 0.043 148.024);
+    --color-warning: oklch(95.533% 0.134 112.757);
+    --color-warning-content: oklch(19.106% 0.026 112.757);
+    --color-error: oklch(68.22% 0.206 24.43);
+    --color-error-content: oklch(13.644% 0.041 24.43);
+    --radius-selector: 0.25rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.25rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+    name: "light";
+    default: true;
+    prefersdark: false;
+    color-scheme: "light";
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(93% 0 0);
+    --color-base-300: oklch(86% 0 0);
+    --color-base-content: oklch(20% 0.042 265.755);
+    --color-primary: oklch(58% 0.158 241.966);
+    --color-primary-content: oklch(100% 0 0);
+    --color-secondary: oklch(55% 0.046 257.417);
+    --color-secondary-content: oklch(100% 0 0);
+    --color-accent: oklch(60% 0.118 184.704);
+    --color-accent-content: oklch(100% 0 0);
+    --color-neutral: oklch(37% 0.044 257.287);
+    --color-neutral-content: oklch(100% 0 0);
+    --color-info: oklch(60% 0.126 221.723);
+    --color-info-content: oklch(100% 0 0);
+    --color-success: oklch(62% 0.194 149.214);
+    --color-success-content: oklch(100% 0 0);
+    --color-warning: oklch(85% 0.199 91.936);
+    --color-warning-content: oklch(0% 0 0);
+    --color-error: oklch(70% 0.191 22.216);
+    --color-error-content: oklch(0% 0 0);
+    --radius-selector: 0.25rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.25rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
 
 @layer components {
 
     body {
-        @apply antialiased forced-color-adjust-none touch-manipulation;
+        @apply antialiased forced-color-adjust-none; /* touch-manipulation;*/
     }
 
     .div-centered {
@@ -18,7 +96,7 @@
     }
 
     .input-field {
-        @apply input input-bordered focus:input-primary
+        @apply input focus:input-primary
     }
 
     .ck-content .table table {
@@ -67,7 +145,6 @@
         @apply absolute bottom-7 top-3.5 w-[1px];
         inset-inline-start: 0;
         --tw-bg-opacity: 1;
-        background-color: var(--fallback-bc, oklch(var(--bc) / var(--tw-bg-opacity)));
         opacity: 0.1;
         content: "";
     }

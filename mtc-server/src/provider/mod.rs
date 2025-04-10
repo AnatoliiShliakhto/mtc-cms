@@ -6,15 +6,15 @@ mod logger;
 mod database;
 
 
-pub mod prelude {
-    pub use super::{
+pub(crate) mod prelude {
+    pub(crate) use super::{
         Provider,
         config::*,
         logger::*,
     };
 }
 
-pub struct Provider;
+pub(crate) struct Provider;
 
 impl Provider {
     /// Initializes a new [`Config`] instance with default values.

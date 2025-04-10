@@ -24,7 +24,7 @@ pub fn FormPermissionsField(
                 }
             }
             select {
-                class: "select select-bordered input-bordered focus:input-primary",
+                class: "select focus:input-primary",
                 name: "permission",
                 for permission in permissions.iter() {
                     option {

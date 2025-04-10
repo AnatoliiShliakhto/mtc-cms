@@ -12,11 +12,11 @@ pub struct User {
     pub access_count: i32,
     pub access_level: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_access: Cow<'static, Option<Datetime>>,
+    pub last_access: Option<Cow<'static, str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub fields: Cow<'static, Option<Value>>,
-    pub created_at: Cow<'static, Datetime>,
-    pub updated_at: Cow<'static, Datetime>,
+    pub fields: Option<Cow<'static, Value>>,
+    pub created_at: Cow<'static, str>,
+    pub updated_at: Cow<'static, str>,
     pub created_by: Cow<'static, str>,
     pub updated_by: Cow<'static, str>,
 }
@@ -31,8 +31,8 @@ impl Default for User {
             blocked: false,
             access_level: 999,
             access_count: 0,
-            last_access: Cow::Borrowed(&None),
-            fields: Cow::Borrowed(&None),
+            last_access: Default::default(),
+            fields: Default::default(),
             created_at: Default::default(),
             updated_at: Default::default(),
             created_by: "".into(),

@@ -119,7 +119,7 @@ pub fn FormFieldsField(
                     }
                 }
                 select {
-                    class: "select input-bordered focus:input-primary",
+                    class: "select focus:input-primary",
                     name: "kind",
                     option {
                         initial_selected: true,

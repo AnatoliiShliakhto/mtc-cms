@@ -10,8 +10,8 @@ mod storage_utils;
 mod content;
 mod system;
 
-pub mod prelude {
-    pub use super::{
+pub(crate) mod prelude {
+    pub(crate) use super::{
         Repository,
         groups::*,
         permissions::*,
@@ -25,7 +25,7 @@ pub mod prelude {
     };
 }
 
-pub struct Repository {
+pub(crate) struct Repository {
     database: Arc<Database>,
     config: Arc<Config>,
 }

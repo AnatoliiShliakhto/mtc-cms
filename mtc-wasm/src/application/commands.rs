@@ -1,6 +1,5 @@
 use super::*;
 
-/// Checks if the Tauri framework is available in the current environment.
 pub fn is_tauri() -> bool {
     js_sys::Reflect::has(
         &JsValue::from(web_sys::window().unwrap()),
@@ -8,11 +7,6 @@ pub fn is_tauri() -> bool {
         .unwrap_or_default()
 }
 
-/// Sets the current session in the Tauri environment.
-///
-/// This function takes a `session` string argument and calls the Tauri
-/// `set_session` command with the argument. The command is expected to
-/// set the session key in the current environment.
 pub async fn set_tauri_session(session: String) {
     #[derive(Serialize)]
     struct SetSessionArgs {

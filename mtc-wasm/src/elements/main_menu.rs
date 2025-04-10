@@ -8,8 +8,8 @@ pub fn MainMenu() -> Element {
         aside {
             class: "flex flex-col bg-base-200 min-h-screen w-full sm:w-80",
             div { 
-                class: "bg-base-200 sticky top-0 z-20 flex items-center justify-center",
-                class: "gap-2 bg-opacity-90 min-h-12 h-12 backdrop-blur",
+                class: "sticky bg-base-200 top-0 z-20 flex items-center justify-center",
+                class: "gap-2 bg-opacity-90 min-h-12 h-12 backdrop-blur-sm",
                 div { 
                     class: "inline-flex w-full flex-nowrap",
                     button { 

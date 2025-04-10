@@ -28,18 +28,14 @@ pub fn FormTextField(
 
     rsx! {
         label {
-            class: "w-full form-control",
-            div {
-                class: "label",
-                span {
-                    class: "label-text text-neutral",
-                    "⌘ " { t!(title.as_str()) }
-                }
+            class: "w-full floating-label mt-4",
+            span {
+                "⌘ " { t!(title.as_str()) }
             }
             input {
                 r#type,
                 name,
-                class: "input-field",
+                class: "w-full input validator",
                 initial_value,
                 pattern,
                 required,

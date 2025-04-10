@@ -41,7 +41,7 @@ pub fn EntryInfoBox(
             }
             div {
                 tabindex: "0",
-                class: "dropdown-content bg-base-100 rounded border input-bordered shadow-md \
+                class: "dropdown-content bg-base-100 rounded border shadow-md \
                 flex flex-col min-w-44 mr-2 gap-1 label-text p-5 z-[10] opacity-100",
                 span {
                     class: "italic label-text text-primary",

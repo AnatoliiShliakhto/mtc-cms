@@ -10,7 +10,7 @@ pub struct UserDetails {
     pub group: Cow<'static, str>,
     pub state: UserState,
     pub password: Cow<'static, str>,
-    pub last_access: Option<Datetime>,
+    pub last_access: Option<Cow<'static, str>>,
     pub access_count: i32,
 }
 
@@ -22,7 +22,7 @@ pub struct UserDetailsDto {
     pub group: Cow<'static, str>,
     pub password: Cow<'static, str>,
     pub blocked: bool,
-    pub last_access: Option<Datetime>,
+    pub last_access: Option<Cow<'static, str>>,
     pub access_count: i32,
 }
 

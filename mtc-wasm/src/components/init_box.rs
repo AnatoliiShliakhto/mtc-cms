@@ -42,7 +42,7 @@ pub fn InitBox() -> Element {
                         }
                     }
                     div {
-                        class: "card w-full max-w-sm shrink-0 border input-bordered rounded",
+                        class: "card w-full max-w-sm shrink-0 border rounded",
                         form {
                             class: "card-body",
                             autocomplete: "off",

@@ -1,6 +1,7 @@
 [package]
 name = "mtc-common"
 description = "Military training center CMS Model"
+resolver = "3"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
@@ -12,5 +13,4 @@ license.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_repr = { workspace = true }
-surrealdb-sql = { workspace = true }
 chrono = { workspace = true }

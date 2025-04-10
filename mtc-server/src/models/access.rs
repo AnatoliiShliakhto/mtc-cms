@@ -1,6 +1,5 @@
 use super::*;
 
-/// Access model structure
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct Access {
     pub level: i32,

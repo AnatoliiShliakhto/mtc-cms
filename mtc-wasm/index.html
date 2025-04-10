@@ -3,34 +3,32 @@
 <head>
     <title>242-й центр підготовки підрозділів</title>
     <meta charset="UTF-8">
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-    <meta name="title" content="242-й центр підготовки підрозділів"/>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="title" content="242-й центр підготовки підрозділів">
     <meta name="description" content='242-й центр підготовки підрозділів Оперативного командування "Північ"'>
-    <meta property="og:locale" content="uk_UA" />
-    <meta property="og:type" content="article" />
-    <meta property="og:title" content="242-й центр підготовки підрозділів" />
-    <meta property="og:description" content='242-й центр підготовки підрозділів Оперативного командування "Північ"' />
-    <meta property="og:url" content="https://242.org.ua/" />
-    <meta property="og:site_name" content="242 цпп" />
-    <meta property="og:image" content="https://242.org.ua/assets/logo.webp" />
-    <meta property="og:image:width" content="404" />
-    <meta property="og:image:height" content="404" />
-    <meta property="og:image:type" content="image/webp" />
-    <link rel="icon" href="/./assets/favicon.ico"/>
-    <link rel="preload" href="/./assets/ckeditor/ckeditor5.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossOrigin="anonymous"/>
-    <link rel="preload" href="/./assets/tailwind.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossOrigin="anonymous"/>
-    <link rel="preload" href="/./wasm/mtc-wasm_bg.wasm" as="fetch" type="application/wasm" crossOrigin="anonymous"/>
-    <link rel="preload" href="/./wasm/mtc-wasm.js" as="script" crossOrigin="anonymous"/>
-    <script src="/./assets/mtc-cms.js" type="module" crossOrigin="anonymous" async></script>
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="242-й центр підготовки підрозділів">
+    <meta property="og:description" content='242-й центр підготовки підрозділів Оперативного командування "Північ"'>
+    <meta property="og:url" content="https://242.org.ua/">
+    <meta property="og:site_name" content="242 цпп">
+    <meta property="og:image" content="https://242.org.ua/assets/logo.webp">
+    <meta property="og:image:width" content="404">
+    <meta property="og:image:height" content="404">
+    <meta property="og:image:type" content="image/webp">
+    <link rel="icon" href="/./assets/favicon.ico">
+    <link rel="preload" href="/./assets/ckeditor/ckeditor5.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin>
+    <link rel="preload" href="/./assets/tailwind.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin>
+    <script src="/./assets/mtc-cms.js" type="module" crossorigin async></script>
     <noscript>
         <link rel="stylesheet" href="/./assets/ckeditor/ckeditor5.css"/>
         <link rel="stylesheet" href="/./assets/tailwind.css"/>
     </noscript>
-    <link rel="preload" href="/./wasm/mtc-wasm.js" as="script" crossOrigin="anonymous"/>
 </head>
 <body class="bg-base-100 has-[*[qr-scanner]]:qr-scanning">
+<div id="main"></div>
 <div id="wasm-preloader" style="display:grid;place-items:center;width:100vw;height:100vh;">
     <h1 style="display:none;">242-й центр підготовки підрозділів</h1>
     <div style="display:flex;flex-direction:column;gap:1.25rem;align-items:center;">
@@ -43,18 +41,5 @@
         </div>
     </div>
 </div>
-<div id="main"></div>
-<script>
-    import("/./wasm/mtc-wasm.js").then(
-        ({ default: init }) => {
-            init("/./wasm/mtc-wasm_bg.wasm").then((wasm) => {
-                document.getElementById("wasm-preloader").remove();
-                if (wasm.__wbindgen_start == undefined) {
-                    wasm.main();
-                }
-            });
-        }
-    );
-</script>
 </body>
 </html>

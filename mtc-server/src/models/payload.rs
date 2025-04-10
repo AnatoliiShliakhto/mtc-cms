@@ -12,12 +12,6 @@ where
 {
     type Rejection = Error;
 
-    /// Extracts the payload from the request body. Supports the following content types:
-    ///
-    /// * `application/json`
-    /// * `application/x-www-form-urlencoded`
-    ///
-    /// If the content type is not supported, returns a `GenericError::UnsupportedMediaType` error.
     async fn from_request(req: Request, state: &S) -> std::result::Result<Self, Self::Rejection> {
         match req.headers().get(CONTENT_TYPE).and_then(|value| value.to_str().ok()) {
             Some(content_type) if content_type.starts_with("application/json") => {
