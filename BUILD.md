@@ -7,7 +7,7 @@ surreal start --log info --user root --password root --bind 0.0.0.0:8000 rocksdb
 
 ### Compile TailwindCSS assets
 ```bash
-npx tailwindcss -i ./mtc-wasm/input.css -o ./assets/tailwind.css --minify
+npx tailwindcss -i ./mtc-wasm/assets/css/input.css -o ./assets/css/tailwind.css --minify
 ```
 
 ### MTC-Server (back-end)
