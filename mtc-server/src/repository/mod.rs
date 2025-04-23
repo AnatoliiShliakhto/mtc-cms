@@ -9,6 +9,7 @@ mod schemas;
 mod storage_utils;
 mod content;
 mod system;
+mod quizzes;
 
 pub(crate) mod prelude {
     pub(crate) use super::{
@@ -22,6 +23,7 @@ pub(crate) mod prelude {
         storage_utils::*,
         content::*,
         system::*,
+        quizzes::*,
     };
 }
 

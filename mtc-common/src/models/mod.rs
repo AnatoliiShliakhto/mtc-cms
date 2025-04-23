@@ -24,6 +24,7 @@ mod schema_entry_details;
 mod query_uuid;
 mod file_entry;
 mod group_stat;
+mod quizzes;
 
 pub mod prelude {
     pub use super::{
@@ -51,5 +52,6 @@ pub mod prelude {
         query_uuid::*,
         file_entry::*,
         group_stat::*,
+        quizzes::*,
     };
 }
