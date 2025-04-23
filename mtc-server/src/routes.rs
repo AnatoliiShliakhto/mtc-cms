@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use axum::routing::patch;
 
 pub fn routes(
     state: Arc<AppState>
@@ -30,10 +31,18 @@ pub fn routes(
             .delete(delete_user_handler)
         )
 
+        .route("/quizzes", post(create_quiz_handler).get(find_quizzes_handler))
+        .route("/quizzes/{quiz_id}", patch(update_quiz_handler).delete(delete_quiz_handler).get(find_quiz_handler))
+        .route("/quizzes/{quiz_id}/assignments", post(assign_user_quizzes_handler))
+        .route("/quizzes/assignments", get(find_my_quizzes_handler))
+        .route("/quizzes/assignments/{user_id}", get(find_user_quizzes_handler))
+        .route("/quizzes/{quiz_id}/assignments/completions", post(complete_my_quiz_handler))
+        .route("/quizzes/{quiz_id}/assignments/{user_id}/completions", post(complete_user_quiz_handler))
+
         .route("/roles", get(find_custom_role_list_handler))
         .route("/role", post(update_role_handler))
         .route("/role/{id}", get(find_role_handler)
-            .delete(delete_role_handler)
+            .delete(delete_role_handler),
         )
 
         .route("/groups", get(find_group_list_handler))

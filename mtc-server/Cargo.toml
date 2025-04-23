@@ -23,6 +23,7 @@ axum = { workspace = true }
 axum-server = { workspace = true }
 axum_session = { workspace = true }
 axum_session_surreal = { workspace = true }
+axum-extra = { workspace = true }
 
 tower = { workspace = true }
 tower-http = { workspace = true }
