@@ -1,7 +1,6 @@
 [env]
 FRONT_END_URL="https://localhost"
 APP_TITLE="Military training center CMS"
-DOWNLOAD_DIR="mtc-app"
 
 HOST="0.0.0.0"
 HTTP_PORT="80"

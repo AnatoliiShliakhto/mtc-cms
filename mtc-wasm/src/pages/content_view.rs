@@ -1,16 +1,5 @@
 use super::*;
 
-/// A component to view a content entry, given the schema and slug to identify the entry.
-///
-/// The component renders the content fields as a list of [`Prose`] elements, with the
-/// field type determining the specific component used to render the field. The
-/// [`ContentActions`] component is also rendered if the user has the writer role.
-///
-/// # Props
-///
-/// * `schema`: The schema to render the content entry for.
-/// * `slug`: The slug of the content entry to render.
-/// * `arg`: An optional argument to pass to the [`ViewCourseField`] component.
 #[component]
 pub fn ContentView(
     #[props(into)]
@@ -65,6 +54,11 @@ pub fn ContentView(
                         },
                         FieldKind::Html => rsx! {
                             ViewHtmlField {
+                                value: content.key_string(&field.slug)
+                            }
+                        },
+                        FieldKind::PlainHtml => rsx! {
+                            ViewPlainHtmlField {
                                 value: content.key_string(&field.slug)
                             }
                         },

@@ -1,23 +1,5 @@
 use super::*;
 
-/// A component that renders a table of fields, along with a form to add new ones.
-///
-/// This component is designed to be used within a form element, and will submit the form
-/// when the user clicks the "Add" button.
-///
-/// The component takes a single prop, `items`, which should be a `Vec<Field>`. The
-/// component will render a table with columns for the field kind, slug, and title.
-/// Each row in the table will contain a button to remove the field, and the field
-/// data will be rendered as hidden inputs in the form.
-///
-/// The component also renders a form with three fields: a select with options for the
-/// field kind, a text input for the slug, and a text input for the title. When the
-/// form is submitted, the component will add a new field to the `items` vector and
-/// re-render the table.
-///
-/// The component uses the [`use_signal`] hook to keep track of the `items` vector, and
-/// the `onsubmit` event handler to add new fields to the vector when the form is
-/// submitted.
 #[component]
 pub fn FormFieldsField(
     #[props]
@@ -135,8 +117,16 @@ pub fn FormFieldsField(
                         { t!("field-html") }
                     }
                     option {
+                        value: "plainhtml",
+                        { t!("field-plainhtml") }
+                    }
+                    option {
                         value: "links",
                         { t!("field-links") }
+                    }
+                    option {
+                        value: "course",
+                        { t!("field-course") }
                     }
                 }
             }

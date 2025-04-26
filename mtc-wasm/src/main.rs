@@ -111,6 +111,9 @@ fn main() {
 
         rsx! {
             Title { { t!("site-title") } }
+            document::Stylesheet {
+                href: asset!("/assets/css/tailwind.css")
+            }
             ErrorBoundary {
                 handle_error: |errors: ErrorContext| {
                     match errors.show() {

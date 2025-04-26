@@ -5,11 +5,11 @@
 /mtc-app/gen/schemas/
 /data/
 !/data/migrations/
-/assets/tailwind.css
 /package-lock.json
 /Cargo.lock
 
 /mtc-wasm/src/packs/utc242/
+/mtc-wasm/assets/css/tailwind.css
 /.cargo/config.toml
 
 /mtc-wasm/resources/css/tailwind.css

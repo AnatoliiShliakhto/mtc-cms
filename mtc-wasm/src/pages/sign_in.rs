@@ -1,18 +1,40 @@
+use std::collections::HashMap;
+use std::sync::LazyLock;
 use super::*;
 
-/// Displays a sign-in form for users to log in to the system.
-///
-/// If the user is already authenticated, this component redirects
-/// to the main page.
-///
-/// The component renders a centered div with a hero section
-/// containing a header, announcement message, and a card with a
-/// sign-in form. The form contains login and password fields, and
-/// a submit button. The form is submitted with a POST request to
-/// the authentication API.
-///
-/// If the user is on an Android device, the component renders a
-/// second button to scan a QR code for device linking.
+static CHAR_MAP: LazyLock<HashMap<char, char>> = LazyLock::new(|| {
+    [
+        ('A', 'А'),
+        ('B', 'В'),
+        ('E', 'Е'),
+        ('I', 'І'),
+        ('C', 'С'),
+        ('K', 'К'),
+        ('L', 'І'),
+        ('O', 'О'),
+        ('P', 'Р'),
+        ('T', 'Т'),
+        ('H', 'Н'),
+        ('M', 'М'),
+        ('X', 'Х'),
+    ].into_iter().collect()
+});
+fn latin_to_cyrillic(input: &str) -> String {
+    let mut result = String::new();
+    let mut i = 0;
+
+    while i < input.len() {
+        let ch = input[i..].chars().next().unwrap();
+        if let Some(&cyr) = CHAR_MAP.get(&ch) {
+            result.push(cyr);
+        } else {
+            result.push(ch);
+        }
+        i += ch.len_utf8();
+    }
+    result
+}
+
 #[component]
 pub fn SignIn() -> Element {
     breadcrumbs!("menu-sign-in");
@@ -28,7 +50,7 @@ pub fn SignIn() -> Element {
 
     let submit = move |event: Event<FormData>| {
         let payload = json!({
-            "login": event.get_str("login"),
+            "login": event.get_str("login").map(|login| latin_to_cyrillic(&login.to_uppercase())),
             "password": event.get_str("password")
         });
         spawn(async move {

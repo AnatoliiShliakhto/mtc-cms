@@ -28,7 +28,7 @@ pub fn FormTextAreaField(
             }
             textarea {
                 name,
-                class: "w-full h-24 rounded textarea textarea-bordered",
+                class: "w-full h-48 textarea",
                 initial_value,
                 required,
             }

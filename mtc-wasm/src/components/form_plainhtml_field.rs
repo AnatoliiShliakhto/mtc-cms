@@ -1,7 +1,7 @@
 use super::*;
 
 #[component]
-pub fn FormTextField(
+pub fn FormPlainHtmlField(
     #[props(into)]
     name: String,
     #[props(into)]
@@ -10,10 +10,6 @@ pub fn FormTextField(
     required: Option<bool>,
     #[props]
     initial_value: Option<String>,
-    #[props]
-    pattern: Option<String>,
-    #[props]
-    r#type: Option<String>,
 ) -> Element {
 
     rsx! {
@@ -22,12 +18,10 @@ pub fn FormTextField(
             span {
                 "⌘ " { t!(title.as_str()) }
             }
-            input {
-                r#type,
+            textarea {
                 name,
-                class: "w-full input validator",
+                class: "w-full h-48 textarea",
                 initial_value,
-                pattern,
                 required,
             }
         }

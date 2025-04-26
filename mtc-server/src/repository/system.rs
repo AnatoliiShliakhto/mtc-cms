@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use super::*;
 
 pub trait SystemTrait {
@@ -44,6 +45,7 @@ pub trait SystemTrait {
     async fn get_system_value(&self, key: impl ToString) -> Result<Value>;
     async fn update_system_value(&self, key: impl ToString, value: Value) -> Result<()>;
     async fn sitemap_build(&self) -> Result<()>;
+    async fn get_groups_stat(&self) -> Result<Vec<GroupStat>>;
 }
 
 impl SystemTrait for Repository {
@@ -407,7 +409,7 @@ impl SystemTrait for Repository {
     async fn sitemap_build(&self) -> Result<()> {
         let url = format!(
             "https://{}",
-            self.config.front_end_url
+            self.config.server.front_end_url
                 .replace("/", "")
                 .replace("https:", "").
                 to_string()
@@ -456,11 +458,34 @@ impl SystemTrait for Repository {
         self.update_system_value("sitemap", Value::from(count)).await?;
 
         tokio::fs::write(
-            format!("{}/sitemap.xml", self.config.www_path),
+            format!("{}/sitemap.xml", self.config.paths.www_path),
             sitemap.join("\n"),
         ).await?;
 
         Ok(())
+    }
+
+    async fn get_groups_stat(&self) -> Result<Vec<GroupStat>> {
+        self
+            .database
+            .query(r#"
+            SELECT 
+                title,
+                count(<-user_groups<-(users WHERE last_access > $month_start AND blocked = false)) as online,
+                count(<-user_groups<-(users WHERE blocked = false)) as total
+            FROM groups ORDER BY title;
+            "#)
+            .bind(("month_start",
+                   Utc::now()
+                       .date_naive()
+                       .with_day(1)
+                       .unwrap()
+                       .and_hms_opt(0, 0, 0)
+                       .unwrap()
+            ))
+            .await?
+            .take::<Vec<GroupStat>>(0)
+            .map(Ok)?
     }
 }
 

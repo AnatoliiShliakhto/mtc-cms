@@ -211,7 +211,7 @@ impl UserRepository for Repository {
 
         if !password.is_empty() {
             let Ok(salt) =
-                SaltString::from_b64(&self.config.password_salt) else {
+                SaltString::from_b64(&self.config.security.password_salt) else {
                 Err(SessionError::PasswordHash)?
             };
 

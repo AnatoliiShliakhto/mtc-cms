@@ -8,7 +8,7 @@ pub fn SideMenu() -> Element {
     rsx! {
         Menu {}
         if auth.has_role(ROLE_WRITER) {
-            div { class: "divider my-0" }
+            li {}
             li {
                 details {
                     summary {
@@ -46,7 +46,7 @@ pub fn SideMenu() -> Element {
             }
         }
         if auth.has_role(ROLE_ADMINISTRATOR) {
-            div { class: "divider my-0" }
+            li {}
             li {
                 details {
                     summary {
@@ -87,11 +87,11 @@ pub fn SideMenu() -> Element {
                 }
             }
         }
-        div { class: "divider my-0" }
+        li {}
         li {
             details {
                 summary {
-                    Icon { icon: Icons::Tablet, class: "size-8 sm:size-6" }
+                    Icon { icon: Icons::Tablet, class: "size-8 sm:size-6 text-neutral" }
                     { t!( "menu-application") }
                 }
                 ul {

@@ -82,7 +82,7 @@ pub(crate) mod prelude {
 #[tokio::main]
 async fn main() {
     let config = Provider::config_init();
-    let _guard = logger_init(&config.log_path);
+    let _guard = logger_init(&config.paths.log_path);
 
     info!("\x1b[38;5;11m🌟 MTC-CMS Server 🌟\x1b[0m");
 
@@ -95,7 +95,7 @@ async fn main() {
 
     let session_config = SessionConfig::default()
         .with_table_name("sessions")
-        .with_lifetime(Duration::minutes(config.session_expiration))
+        .with_lifetime(Duration::minutes(config.security.session_expiration))
         .with_mode(SessionMode::Persistent);
 
     let session_store =
@@ -107,8 +107,8 @@ async fn main() {
     let state = Arc::new(AppState::init(config, db));
 
     let tls_config = RustlsConfig::from_pem_file(
-        PathBuf::from(&*state.config.cert_path).join("ssl.crt"),
-        PathBuf::from(&*state.config.cert_path).join("private.key"),
+        PathBuf::from(&*state.config.paths.cert_path).join("ssl.crt"),
+        PathBuf::from(&*state.config.paths.cert_path).join("private.key"),
     ).await.unwrap();
 
     let compression_layer: CompressionLayer = CompressionLayer::new()
@@ -119,23 +119,23 @@ async fn main() {
     let static_headers = ServiceBuilder::new()
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
-            HeaderValue::from_str(&state.config.public_cache_control).unwrap())
+            HeaderValue::from_str(&state.config.cache.public_cache_control).unwrap())
         )
         .layer(SetResponseHeaderLayer::if_not_present(
             STRICT_TRANSPORT_SECURITY,
-            HeaderValue::from_str(&state.config.strict_transport_security).unwrap())
+            HeaderValue::from_str(&state.config.security.strict_transport_security).unwrap())
         )
         .layer(SetResponseHeaderLayer::if_not_present(
             X_CONTENT_TYPE_OPTIONS,
-            HeaderValue::from_str(&state.config.x_content_type_options).unwrap())
+            HeaderValue::from_str(&state.config.security.x_content_type_options).unwrap())
         )
         .layer(SetResponseHeaderLayer::if_not_present(
             CONTENT_SECURITY_POLICY,
-            HeaderValue::from_str(&state.config.content_security_policy).unwrap())
+            HeaderValue::from_str(&state.config.security.content_security_policy).unwrap())
         );
 
     let cors_layer = CorsLayer::new()
-            .allow_origin([state.config.front_end_url.parse().unwrap()])
+            .allow_origin([state.config.server.front_end_url.parse().unwrap()])
             .allow_headers([CONTENT_TYPE, ACCEPT_ENCODING,
                 HeaderName::from_static("session"),
             ])
@@ -149,44 +149,44 @@ async fn main() {
         .allow_credentials(true);
 
     let app = Router::new()
-        .nest_service(PRIVATE_ASSETS_PATH, ServeDir::new(&*state.config.private_storage_path))
+        .nest_service(PRIVATE_ASSETS_PATH, ServeDir::new(&*state.config.paths.private_storage_path))
         .layer(from_fn(middleware_protected_storage_handler))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
-            HeaderValue::from_str(&state.config.protected_cache_control).unwrap())
+            HeaderValue::from_str(&state.config.cache.protected_cache_control).unwrap())
         )
         .nest(API_PATH, routes(state.clone()))
         .layer(SessionLayer::new(session_store))
         .layer(SetResponseHeaderLayer::if_not_present(
             CACHE_CONTROL,
-            HeaderValue::from_str(&state.config.api_cache_control).unwrap())
+            HeaderValue::from_str(&state.config.cache.api_cache_control).unwrap())
         )
         .layer(from_fn(middleware_headers_check_handler))
         .fallback(Redirect::permanent("/"))
-        .nest_service(PUBLIC_ASSETS_PATH, ServeDir::new(&*state.config.storage_path))
+        .nest_service(PUBLIC_ASSETS_PATH, ServeDir::new(&*state.config.paths.storage_path))
         .route("/service_worker", get(service_worker_handler))
         .nest_service(
             "/assets",
-            ServeDir::new(format!("{}/assets", state.config.www_path))
+            ServeDir::new(format!("{}/assets", state.config.paths.www_path))
         )
         .nest_service(
             "/wasm",
-            ServeDir::new(format!("{}/wasm", state.config.www_path))
+            ServeDir::new(format!("{}/wasm", state.config.paths.www_path))
         )
         .route_service(
             "/",
-            ServeFile::new(format!("{}/index.html", state.config.www_path))
+            ServeFile::new(format!("{}/index.html", state.config.paths.www_path))
         )
         .layer(compression_layer)
         .layer(static_headers)
         .layer(cors_layer)
-        .layer(DefaultBodyLimit::max(state.config.max_body_limit));
+        .layer(DefaultBodyLimit::max(state.config.security.max_body_limit));
 
     info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{0}:{1}\x1b[0m -> {2}:{3}",
-        &state.config.host, &state.config.https_port,
-        &state.config.front_end_url, &state.config.https_port);
+        &state.config.server.host, &state.config.server.https_port,
+        &state.config.server.front_end_url, &state.config.server.https_port);
 
-    let https_host: SocketAddr = format!("{}:{}", &state.config.host, &state.config.https_port)
+    let https_host: SocketAddr = format!("{}:{}", &state.config.server.host, &state.config.server.https_port)
         .parse().expect("Unable to parse socket address");
 
     // run AXUM server with TLS

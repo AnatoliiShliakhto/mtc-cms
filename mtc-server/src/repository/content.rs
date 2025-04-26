@@ -117,14 +117,14 @@ impl ContentRepository for Repository {
 
         sql.write_str(r#"updated_by: $by};"#)?;
 
-        if !id.is_empty() & !slug.is_empty() & table.eq("page")
+        if !id.is_empty() && !slug.is_empty() && table.eq("page")
             & current_slug.ne(&slug) {
             sql.write_str(r#"
             UPDATE schemas SET slug = $slug WHERE slug = $current_slug;
             "#)?
         }
 
-        if !id.is_empty() & !slug.is_empty() & table.eq("course")
+        if !id.is_empty() && !slug.is_empty() && table.eq("course")
             & current_slug.ne(&slug) {
             sql.write_str(r#"
             UPDATE schemas SET slug = $slug WHERE slug = $current_slug;

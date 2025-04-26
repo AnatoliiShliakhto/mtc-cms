@@ -1,12 +1,12 @@
 use super::*;
 
-/// Content field kind(str, text, html, links, course, decimal, datetime)
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum FieldKind {
     #[default]
     Str,
     Text,
     Html,
+    PlainHtml,
     Links,
     Course,
     Decimal,
@@ -20,6 +20,7 @@ impl FromStr for FieldKind {
         Ok(match s {
             "text" => FieldKind::Text,
             "html" => FieldKind::Html,
+            "plainhtml" => FieldKind::PlainHtml,
             "links" => FieldKind::Links,
             "course" => FieldKind::Course,
             "decimal" => FieldKind::Decimal,
@@ -34,6 +35,7 @@ impl Display for FieldKind {
         let str = match self {
             FieldKind::Text => "text",
             FieldKind::Html => "html",
+            FieldKind::PlainHtml => "plainhtml",
             FieldKind::Links => "links",
             FieldKind::Course => "course",
             FieldKind::DateTime => "datetime",

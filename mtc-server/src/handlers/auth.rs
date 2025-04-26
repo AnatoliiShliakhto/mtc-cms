@@ -110,7 +110,7 @@ pub async fn change_password_handler(
         Err(SessionError::InvalidCredentials)?
     }
 
-    let Ok(salt) = SaltString::from_b64(&state.config.password_salt) else {
+    let Ok(salt) = SaltString::from_b64(&state.config.security.password_salt) else {
         Err(SessionError::PasswordHash)?
     };
     let Ok(password_hash) = argon2.hash_password(new_password.as_bytes(), &salt) else {
