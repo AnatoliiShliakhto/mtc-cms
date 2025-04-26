@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./assets/**/*.{rs,html,js}", "./mtc-wasm/src/**/*.{rs,html,css,js}", "./mtc-wasm/**/*.html"],
+  content: ["./mtc-wasm/src/**/*.{rs,html,css,js}", "./**/*.{html}"],
   future: {
     hoverOnlyWhenSupported: true,
   },

@@ -28,19 +28,19 @@ pub trait StorageTrait {
 
 impl StorageTrait for Repository {
     fn get_public_dir_path(&self, dir: &str) -> Cow<'static, str> {
-        [&self.config.storage_path, dir].join("/").into()
+        [&self.config.paths.storage_path, dir].join("/").into()
     }
 
     fn get_public_asset_path(&self, path: &str, file: &str) -> Cow<'static, str> {
-        [&self.config.storage_path, path, file].join("/").into()
+        [&self.config.paths.storage_path, path, file].join("/").into()
     }
 
     fn get_private_dir_path(&self, dir: &str) -> Cow<'static, str> {
-        [&self.config.private_storage_path, dir].join("/").into()
+        [&self.config.paths.private_storage_path, dir].join("/").into()
     }
 
     fn get_private_asset_path(&self, path: &str, file: &str) -> Cow<'static, str> {
-        [&self.config.private_storage_path, path, file].join("/").into()
+        [&self.config.paths.private_storage_path, path, file].join("/").into()
     }
 
     async fn is_dir_exists_or_create(&self, path: &str) -> Result<bool> {
@@ -113,7 +113,7 @@ impl StorageTrait for Repository {
 
     async fn get_migration_files(&self) -> Result<BTreeSet<Cow<'static, str>>> {
         let mut files = BTreeSet::<Cow<'static, str>>::new();
-        if let Ok(mut folder) = fs::read_dir(&self.config.migration_path.to_string()).await {
+        if let Ok(mut folder) = fs::read_dir(&self.config.paths.migration_path.to_string()).await {
             while let Ok(Some(child)) = folder.next_entry().await {
                 if let Ok(meta) = child.metadata().await {
                     let file_name = child.file_name().into_string().unwrap_or_default();
@@ -128,7 +128,7 @@ impl StorageTrait for Repository {
     }
 
     async fn get_migration_file(&self, file_name: &str) -> Result<Cow<'static, str>> {
-        Ok(fs::read_to_string([&self.config.migration_path, file_name].join("/")).await?.into())
+        Ok(fs::read_to_string([&self.config.paths.migration_path, file_name].join("/")).await?.into())
     }
 
     async fn update_course_files(
@@ -136,34 +136,28 @@ impl StorageTrait for Repository {
         slug: Cow<'static, str>,
         files: Vec<Cow<'static, str>>,
     ) -> Result<()> {
-        let mut sql = vec![
-            r#"
-                BEGIN TRANSACTION;
-            "#.to_string()
-        ];
-
         for file in files {
             let Ok(meta) = fs::metadata(format!(
                 "{}{}",
-                self.config.data_path,
+                self.config.paths.data_path,
                 file,
             )).await else { continue };
             if meta.is_file() {
-                sql.push(format!(r#"
-                INSERT INTO
-	            course_files (course, name, size)
-	            VALUES ('{0}', '{1}', {2});
-                "#, slug, file, meta.len())
-                );
+                self
+                    .database
+                    .query(r#"
+                    CREATE course_files CONTENT {
+                        course: $course,
+                        name: $name,
+                        size: $size
+                    };
+                    "#)
+                    .bind(("course", slug.clone()))
+                    .bind(("name", file))
+                    .bind(("size", meta.len()))
+                    .await?;
             }
         }
-
-        sql.push(r#"COMMIT TRANSACTION;"#.to_string());
-
-        self
-            .database
-            .query(sql.concat())
-            .await?;
 
         Ok(())
     }

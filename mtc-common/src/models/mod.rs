@@ -23,6 +23,7 @@ mod search_idx_dto;
 mod schema_entry_details;
 mod query_uuid;
 mod file_entry;
+mod group_stat;
 
 pub mod prelude {
     pub use super::{
@@ -49,5 +50,6 @@ pub mod prelude {
         search_idx_dto::*,
         query_uuid::*,
         file_entry::*,
+        group_stat::*,
     };
 }

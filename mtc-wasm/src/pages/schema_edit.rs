@@ -1,15 +1,5 @@
 use super::*;
 
-/// Component for editing or creating a schema entry.
-///
-/// This component provides a form interface for editing existing schema entries
-/// or creating new ones. It fetches the schema data from the server and displays
-/// form fields corresponding to the schema's properties. The component handles
-/// form submission and deletion operations, as well as permission checks for
-/// viewing and editing schemas.
-///
-/// # Props
-/// - `id`: The ID of the schema entry to edit, or [`ID_CREATE`] to create a new entry.
 #[component]
 pub fn SchemaEdit(
     #[props(into)]

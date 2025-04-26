@@ -38,6 +38,8 @@ mod personnel_actions;
 mod personnel_columns_chooser;
 mod form_checkbox_field;
 mod view_links_search;
+mod form_plainhtml_field;
+mod view_plainhtml_field;
 
 pub mod prelude {
     pub use super::{
@@ -62,6 +64,7 @@ pub mod prelude {
         form_schema_kind_field::*,
         form_permissions_field::*,
         form_html_field::*,
+        form_plainhtml_field::*,
         form_text_area_field::*,
         form_checkbox_field::*,
         entry_info_box::*,
@@ -69,6 +72,7 @@ pub mod prelude {
         user_block_action::*,
         personnel_actions::*,
         view_html_field::*,
+        view_plainhtml_field::*,
         view_string_field::*,
         view_text_field::*,
         view_course_field::*,

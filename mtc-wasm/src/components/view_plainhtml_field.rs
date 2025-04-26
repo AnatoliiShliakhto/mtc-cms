@@ -1,7 +1,7 @@
 use super::*;
 
 #[component]
-pub fn ViewHtmlField(
+pub fn ViewPlainHtmlField(
     #[props(into)]
     value: Option<String>,
 ) -> Element {

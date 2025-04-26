@@ -40,7 +40,8 @@ pub fn ContentEdit(
             match field.kind {
                 FieldKind::Str
                 | FieldKind::Text
-                | FieldKind::Html => {
+                | FieldKind::Html
+                | FieldKind::PlainHtml => {
                     data.insert_value(
                         &field.slug,
                         event.get_str(&field.slug).into()
@@ -140,6 +141,13 @@ pub fn ContentEdit(
                                 initial_value: content.key_string(&field.slug)
                             }
                         },
+                        FieldKind::PlainHtml => rsx! {
+                            FormPlainHtmlField {
+                                name: &field.slug,
+                                title: &field.title,
+                                initial_value: content.key_string(&field.slug)
+                            }
+                        },
                         FieldKind::Links => {
                             let links_arr = content.key_obj::<Vec<LinkEntry>>(&field.slug)
                             .unwrap_or_default();
@@ -149,7 +157,7 @@ pub fn ContentEdit(
                                 .push(format!("{}; {}", link.title.trim(), link.url.trim()));
                             }
 
-                            rsx!{
+                            rsx! {
                                 FormTextAreaField {
                                     name: &field.slug,
                                     title: &field.title,

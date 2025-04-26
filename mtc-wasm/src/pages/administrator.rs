@@ -1,10 +1,5 @@
 use super::*;
 
-/// Administrator dashboard.
-///
-/// Shows some statistics about the application and allows the
-/// administrator to rebuild the search index, migrate the database,
-/// and rebuild the sitemap.
 #[component]
 pub fn Administrator() -> Element {
     breadcrumbs!("menu-administrator");
@@ -19,6 +14,12 @@ pub fn Administrator() -> Element {
         .key_obj::<Vec<Cow<'static, str>>>("migrations").unwrap_or_default().last() {
         migration.clone()
     } else { "0000-init.surql".into() };
+
+    let groups_stat = response().key_obj::<Vec<GroupStat>>("groups_stat").unwrap_or_default();
+    let groups_stat_total = format!("{} / {}",
+        groups_stat.iter().map(|x| x.online).sum::<i64>(),
+        groups_stat.iter().map(|x| x.total).sum::<i64>()
+    );
 
     let migrate = move |event: Event<MouseData>| {
         spawn(async move {
@@ -320,6 +321,50 @@ pub fn Administrator() -> Element {
                                 class: "btn btn-sm",
                                 onclick: sitemap,
                                 { t!("action-create") }
+                            }
+                        }
+                    }
+                }
+
+            }
+            div {
+                class: "flex grow flex-wrap gap-5",
+                div {
+                    class: "stats shadow-md",
+                    div {
+                        class: "stat",
+                        div {
+                            class: "stat-figure text-info",
+                            Icon { icon: Icons::Personnel, class: "size-12" }
+                        }
+                        div {
+                            class: "stat-title",
+                            { t!("message-stat-groups-title") }
+                        }
+                        div {
+                            class: "stat-desc",
+                            table {
+                                class: "table table-sm w-full",
+                                for group in groups_stat.into_iter() {
+                                    tr {
+                                        td {
+                                            { group.title }
+                                        }
+                                        td {
+                                            { format!("{} / {}", group.online, group.total) }
+                                        }
+                                    }
+                                }
+                                tr {
+                                    td {
+                                        class: "font-semibold text-info",
+                                        { "TOTAL" }
+                                    }
+                                    td {
+                                        class: "font-semibold text-info",
+                                        { groups_stat_total }
+                                    }
+                                }
                             }
                         }
                     }

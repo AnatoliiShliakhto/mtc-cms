@@ -198,11 +198,21 @@
     .personnel-list :where(li:not(:last-child), li:first-child:last-child) {
         @apply border-b-[1px] border-base-200;
     }
+}
 
-    .qr-scanning {
-        --tw-bg-opacity: 0;
+@layer utilities {
+    html {
+        scroll-padding-top: 5rem;
+        scroll-behavior: smooth;
+        background-color: transparent;
     }
-    .qr-scanning :where(.qr-element) {
+    body {
+        @apply bg-base-100;
+    }
+    body:has([qr-scanner]) {
+        --color-base-100: transparent;
+    }
+    body:has([qr-scanner]) :where(.qr-element) {
         @apply hidden;
     }
 }

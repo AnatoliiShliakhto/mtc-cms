@@ -1,6 +1,31 @@
 use super::*;
+use std::path::Path;
+use std::sync::LazyLock;
 
-static JS_SERVICE_WORKER: &str = include_str!("../js/sw.js");
+static JS_SERVICE_WORKER: LazyLock<String> = LazyLock::new(|| {
+    let mut precache = vec!["".to_string(), "/index.html".to_string()];
+
+    let mut path = Path::new(env!("DATA_PATH")).join("www");
+    if cfg!(debug_assertions) {
+        path = Path::new("./target/dx/mtc-wasm/debug/web/public").into()
+    }
+
+    for entry in std::fs::read_dir(path.join("assets")).unwrap() {
+        let entry = entry.unwrap();
+        if entry.metadata().unwrap().is_file() {
+            let filename = entry.file_name().to_str().unwrap().to_string();
+            if !filename.ends_with(".br") {
+                precache.push(format!("/assets/{}", filename));
+            }
+        }
+    }
+
+    let sw = std::fs::read_to_string(path.join("sw.js")).unwrap_or(
+        include_str!("../../../mtc-wasm/assets/js/sw.js").to_string()
+    );
+
+    sw.replace("['/index.html']", &format!("{:?}", precache))
+});
 
 #[derive(Deserialize)]
 pub struct ServiceWorkerQuery {
@@ -16,15 +41,7 @@ pub async fn service_worker_handler(
         Err(GenericError::BadRequest)?
     }
 
-    let precache = tokio::fs::read_to_string(format!("{}/www/precache", env!("DATA_PATH")))
-        .await
-        .ok()
-        .map(|s| s.lines().map(ToString::to_string).collect::<Vec<_>>())
-        .unwrap_or_default();
-
-    let service_worker = JS_SERVICE_WORKER
-        .replace("['/index.html']", &format!("{:?}", precache))
-        .replace("{session}", &service_worker.session);
+    let service_worker = JS_SERVICE_WORKER.replace("{session}", &service_worker.session);
 
     Ok(([
             (CONTENT_TYPE, "application/javascript"),

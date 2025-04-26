@@ -1,16 +1,24 @@
-let obj = JSON.stringify(await dioxus.recv());
-let file = new Blob([obj], { type: "application/json" });
+const obj = JSON.stringify(await dioxus.recv());
+const file = new Blob([obj], {type: "application/json"});
 
-if( window.showSaveFilePicker ) {
-    let opts = {
-        types: [{
-            description: 'JSON',
-            accept: {'application/json': ['.json']},
-        }],
+if (window.showSaveFilePicker) {
+    const opts = {
+        types: [
+            {
+                description: 'JSON',
+                accept: {'application/json': ['.json']},
+            },
+        ],
         suggestedName: 'mtc-users',
     };
-    let handle = await showSaveFilePicker(opts);
-    let writable = await handle.createWritable();
-    await writable.write(file);
-    writable.close();
-} else { alert( "File save error" ); }
+    try {
+        const handle = await window.showSaveFilePicker(opts);
+        const writable = await handle.createWritable();
+        await writable.write(file);
+        await writable.close();
+    } catch (error) {
+        console.error("Error saving file:", error);
+    }
+} else {
+    alert("File save not supported in this browser");
+}

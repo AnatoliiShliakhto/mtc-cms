@@ -1,12 +1,10 @@
 {
-  "devDependencies": {
-    "@tailwindcss/cli": "^4.0.8",
-    "@tailwindcss/typography": "^0.5.16",
-    "npm": "^11.2.0",
-    "tailwindcss": "^4.0.8"
-  },
   "dependencies": {
-    "@tauri-apps/plugin-store": "^2.2.0",
-    "daisyui": "^5.0.4"
+    "npm": "^11.2.0",
+    "@tailwindcss/cli": "^4.1.4",
+    "tailwindcss": "^4.1.4",
+    "@tailwindcss/typography": "^0.5.16",
+    "daisyui": "^5.0.4",
+    "@tauri-apps/plugin-store": "^2.2.0"
   }
 }

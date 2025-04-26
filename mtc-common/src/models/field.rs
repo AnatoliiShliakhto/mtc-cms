@@ -1,6 +1,5 @@
 use super::*;
 
-/// Content field model structure
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Field {
     pub kind: FieldKind,

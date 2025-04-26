@@ -7,11 +7,13 @@ pub async fn find_system_info_handler(
     let system_info = state.repository.find_system_info().await?;
     let migrations = state.repository.find_migrations().await?;
     let sitemap = state.repository.get_system_value("sitemap").await?;
+    let groups_stat = state.repository.get_groups_stat().await?;
 
     let mut response = Map::new();
     response.insert("info".to_string(), json!(system_info));
     response.insert("migrations".to_string(), json!(migrations));
     response.insert("sitemap".to_string(), json!(sitemap));
+    response.insert("groups_stat".to_string(), json!(groups_stat));
 
     Ok(Json(response))
 }
@@ -28,7 +30,7 @@ pub async fn migration_handler(
 
     if migrations.is_empty() {
         let pwd = payload.key_str("password").unwrap_or(ROLE_ADMINISTRATOR.into());
-        let salt = SaltString::from_b64(&state.config.password_salt).unwrap();
+        let salt = SaltString::from_b64(&state.config.security.password_salt).unwrap();
 
         let argon2 = Argon2::default();
         let Ok(password_hash) = argon2.hash_password(pwd.as_bytes(), &salt) else {

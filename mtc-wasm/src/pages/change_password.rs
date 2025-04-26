@@ -52,7 +52,7 @@ pub fn ChangePassword() -> Element {
             class: "div-centered",        
             div { 
                 class: "hero",
-                div { 
+                div {
                     class: "hero-content flex-col lg:flex-row-reverse",
                     div { 
                         class: "text-center lg:text-left w-full sm:max-w-sm",
@@ -95,7 +95,7 @@ pub fn ChangePassword() -> Element {
                             div { 
                                 class: "form-control mt-6",
                                 button {
-                                    class: "btn btn-primary",
+                                    class: "btn w-full btn-primary",
                                     r#type: "submit",
                                     Icon { icon: Icons::Lock, class: "size-6" }
                                     { t!("action-change-password") }
