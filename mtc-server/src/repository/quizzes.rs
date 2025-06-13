@@ -17,7 +17,7 @@ impl QuizRepository for Repository {
     async fn create_quiz(&self, mut request: CreateQuizRequest) -> Result<Quiz> {
         let query = r#"
         BEGIN TRANSACTION;
-            $category_record_ids = $categories.map(|$category| (CREATE categories CONTENT $category).id[0]);
+            $category_record_ids = $categories.map(|$category| (CREATE quiz_categories CONTENT $category).id[0]);
             LET $quiz_record = CREATE quizzes CONTENT $quiz;
             UPDATE $quiz_record SET category_ids = $category_record_ids;
             RETURN SELECT *, id.id() as id, category_ids.*.{id: id.id(), title, success_score, sample_size, questions} as categories FROM $quiz_record.id;
@@ -49,7 +49,7 @@ impl QuizRepository for Repository {
             } END;
             IF count($categories) > 0 THEN {
                 DELETE $quiz_record.category_ids;
-                $category_record_ids = $categories.map(|$category| (CREATE categories CONTENT $category).id[0]);
+                $category_record_ids = $categories.map(|$category| (CREATE quiz_categories CONTENT $category).id[0]);
                 UPDATE $quiz_record SET category_ids = $category_record_ids;
             } END;
             UPDATE $quiz_record MERGE $quiz_patch;

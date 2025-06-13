@@ -32,6 +32,7 @@ fn CustomRouter(
         "auth/linking-qr-code" => return rsx! { LinkingQrCode {} },
         "personnel" => return rsx! { Personnel {} },
         "personnel/add" => return rsx! { PersonnelAdd {} },
+        "administrator/quizzes" => return rsx! { Quizzes {} },
         "administrator/permissions" => return rsx! { Permissions {} },
         "administrator/groups" => return rsx! { Groups {} },
         "administrator/roles" => return rsx! { Roles {} },
@@ -62,6 +63,7 @@ fn CustomRouter(
                         "role" => rsx! { RoleEdit { id: route[2].clone() } },
                         "user" => rsx! { UserEdit { id: route[2].clone() } },
                         "schema" => rsx! { SchemaEdit { id: route[2].clone() } },
+                        "quizzes" => rsx! { QuizEdit { id: route[2].clone() } },
                         _ => rsx! { NotFound {} },
                     }
                 }
@@ -71,6 +73,17 @@ fn CustomRouter(
         4 => {
             match route[0].as_str() {
                 "content" => rsx! { ContentView { schema: route[1].clone(), slug: route[2].clone(), arg: route[3].clone() } },
+                "administrator" => {
+                    match route[1].as_str() {
+                        "quizzes" => {
+                            match route[3].as_str() {
+                                "assignments" => rsx! { QuizAssign { id: route[2].clone() } },
+                                _ => rsx! { NotFound {} },
+                            }
+                        }
+                        _ => rsx! { NotFound {} },
+                    }
+                }
                 _ => rsx! { NotFound {} },
             }
         }

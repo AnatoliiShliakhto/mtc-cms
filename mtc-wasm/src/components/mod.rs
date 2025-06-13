@@ -12,6 +12,7 @@ mod form_text_field;
 mod entry_info_box;
 mod editor_actions;
 mod form_num_field;
+mod form_date_field;
 mod form_toggle_field;
 mod form_entries_field;
 mod form_select_field;
@@ -57,6 +58,7 @@ pub mod prelude {
         published_action::*,
         form_text_field::*,
         form_num_field::*,
+        form_date_field::*,
         form_toggle_field::*,
         form_entries_field::*,
         form_select_field::*,

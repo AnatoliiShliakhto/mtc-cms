@@ -65,6 +65,11 @@ pub fn SideMenu() -> Element {
                             { t!("menu-permissions") }
                         }
                         MenuItem {
+                            route: route!(API_ADMINISTRATOR, API_QUIZZES),
+                            permission: PERMISSION_QUIZZES_READ,
+                            { t!("menu-quizzes") }
+                        }
+                        MenuItem {
                             route: route!(API_ADMINISTRATOR, API_GROUPS),
                             permission: PERMISSION_GROUPS_READ,
                             { t!("menu-groups") }

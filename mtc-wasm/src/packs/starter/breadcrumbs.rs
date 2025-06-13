@@ -70,6 +70,11 @@ pub fn build_breadcrumbs(slug: &str) {
             | "menu-app-data" => vec![
                 (t!("menu-application"), ""),
             ],
+            
+            "menu-quizzes" => vec![
+                (t!("menu-administrator"), "/administrator"),
+                (t!("menu-quizzes"), "/administrator/quizzes")
+            ],
 
             _ => vec![],
         };

@@ -5,6 +5,9 @@ mod sign_in;
 mod change_password;
 mod administrator;
 mod permissions;
+mod quizzes;
+mod quiz_edit;
+mod quiz_assign;
 mod permission_create;
 mod search;
 mod groups;
@@ -28,30 +31,33 @@ mod app_data;
 
 pub mod prelude {
     pub use super::{
-        not_found::*,
-        sign_in::*,
-        change_password::*,
         administrator::*,
-        permissions::*,
-        permission_create::*,
-        groups::*,
-        group_edit::*,
-        search::*,
-        roles::*,
-        role_edit::*,
-        users::*,
-        user_edit::*,
-        schemas::*,
-        schema_edit::*,
+        app_data::*,
+        change_password::*,
+        content_edit::*,
         content_list::*,
         content_view::*,
-        content_edit::*,
         course_edit::*,
+        group_edit::*,
+        groups::*,
+        js_exec::*,
+        linking_qr_code::*,
+        not_found::*,
+        permission_create::*,
+        permissions::*,
         personnel::*,
         personnel_add::*,
-        linking_qr_code::*,
         qr_sign_in::*,
-        js_exec::*,
-        app_data::*,
+        quizzes::*,
+        quiz_edit::*,
+        quiz_assign::*,
+        role_edit::*,
+        roles::*,
+        schema_edit::*,
+        schemas::*,
+        search::*,
+        sign_in::*,
+        user_edit::*,
+        users::*,
     };
 }
