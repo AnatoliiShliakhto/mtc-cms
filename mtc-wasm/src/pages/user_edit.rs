@@ -60,7 +60,7 @@ pub fn UserEdit(
                 h3 {
                     class: "flex w-full flex-wrap pt-3",
                     class: "justify-center text-2xl font-semibold text-center",
-                    { details.rank.clone() } " " { details.name.clone() }
+                    { &*details.rank } " " { &*details.name }
                 }
             }
             form {

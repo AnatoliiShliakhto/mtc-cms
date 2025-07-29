@@ -1,0 +1,41 @@
+/* style.css */
+#wasm-preloader {
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+#wasm-preloader h1 {
+    display: none;
+}
+
+#wasm-preloader > div {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+}
+
+#wasm-preloader img {
+    width: 13rem;
+    height: 13rem;
+}
+
+#wasm-preloader span:nth-of-type(1) {
+    font-size: 2rem;
+    line-height: 2.25rem;
+    font-weight: 600;
+}
+
+#wasm-preloader span:nth-of-type(2) {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+}
+
+#wasm-preloader .loading-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}

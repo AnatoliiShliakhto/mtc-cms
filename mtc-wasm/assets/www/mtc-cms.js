@@ -284,7 +284,7 @@ window.openIfExists = async (file) => {
     return false;
 };
 
-window.downloadFile = async (url, path) => {
+window.tauriDownloadFile = async (url, path) => {
     try {
         await tauri.core.invoke('download', {url, path});
         return true;
@@ -314,7 +314,7 @@ window.linkDownloadThenOpen = async (element) => {
 
     if (tauri) {
         try {
-            if (await downloadFile(fileUrl, filePath)) {
+            if (await tauriDownloadFile(fileUrl, filePath)) {
                 await openIfExists(filePath);
                 element.classList.remove('text-error');
             } else {

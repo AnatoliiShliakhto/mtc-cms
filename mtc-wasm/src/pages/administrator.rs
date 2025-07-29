@@ -247,7 +247,7 @@ pub fn Administrator() -> Element {
                         }
                         div {
                             class: "stat-value text-lg",
-                            { last_migration }
+                            { &*last_migration }
                         }
                         div {
                             class: "stat-desc",
@@ -348,7 +348,7 @@ pub fn Administrator() -> Element {
                                 for group in groups_stat.into_iter() {
                                     tr {
                                         td {
-                                            { group.title }
+                                            { &*group.title }
                                         }
                                         td {
                                             { format!("{} / {}", group.online, group.total) }

@@ -1,5 +1,6 @@
-use std::ops::DerefMut;
 use super::*;
+use std::ops::DerefMut;
+use wasm_bindgen_futures::JsFuture;
 
 /// Renders the application data section, providing cache and downloads management.
 ///
@@ -30,44 +31,52 @@ pub fn AppData() -> Element {
 
     if !is_web {
         use_hook(move || {
-            spawn( async move {
-                let Ok(result) = eval(JS_DOWNLOADS).recv::<Vec<FileEntry>>().await
-                else { return };
-                files.set(result.iter().map(|file| (
-                    file.path.to_string(),
-                    file.size
-                )).collect::<BTreeMap<String, i32>>());
+            spawn(async move {
+                match JsFuture::from(jsFfiListDownloadedFiles()).await {
+                    Ok(jsValue) => {
+                        let filePathToSize =
+                            serde_wasm_bindgen::from_value::<Vec<FileEntry>>(jsValue)
+                                .unwrap_or_default()
+                                .iter()
+                                .map(|file| (file.path.to_string(), file.size))
+                                .collect::<BTreeMap<String, i32>>();
+                        files.set(filePathToSize);
+                    }
+                    Err(_) => error!("failed to invoke jsFfiListDownloadedFiles"),
+                }
             });
         })
     }
 
     let clear_cache = Callback::new(move |event: MouseEvent| {
         spawn(async move {
-            if let Ok(Value::Bool(result)) = eval(JS_SW_CLEAR_CACHE).recv().await {
-                success_dialog!("message-success-cache-clear")
-            } else {
-                error_dialog!("error-cache-clear")
+            match JsFuture::from(jsFfiClearCacheServiceWorker()).await {
+                Ok(_) => success_dialog!("message-success-cache-clear"),
+                Err(_) => error_dialog!("error-cache-clear"),
             }
         });
     });
 
     let clear_downloads = Callback::new(move |event: MouseEvent| {
         spawn(async move {
-            if let Ok(Value::Bool(result)) = eval(JS_CLEAR_DOWNLOADS).recv().await {
-                files.write_unchecked().deref_mut().clear();
-                success_dialog!("message-success-downloads-clear")
-            } else {
-                error_dialog!("error-downloads-clear")
-            }
+            match JsFuture::from(jsFfiRemoveDownloadedFiles()).await {
+                Ok(_) => {
+                    files.write_unchecked().deref_mut().clear();
+                    success_dialog!("message-success-downloads-clear")
+                }
+                Err(_) => error_dialog!("error-downloads-clear"),
+            };
         });
     });
 
     let delete_file = move |filename: String| {
-        let js_eval = JS_REMOVE_DOWNLOAD.replace("{file}", &filename);
         spawn(async move {
-            if eval(&js_eval).await.is_ok() {
-                files.write_unchecked().deref_mut().remove(&filename);
-            }
+            match JsFuture::from(jsFfiRemoveDownloadedFile(&filename)).await {
+                Ok(_) => {
+                    files.write_unchecked().deref_mut().remove(&filename);
+                }
+                Err(_) => error!("failed invoke jsFfiRemoveDownloadedFile"),
+            };
         });
     };
 
@@ -174,10 +183,15 @@ pub fn AppData() -> Element {
                             rsx! {
                                 tr {
                                     td {
-                                        "onclick": format!(
-                                            "openIfExists(window.downloadDirectory + '{}')",
-                                            file_name,
-                                        ),
+                                        onclick: {
+                                            let file_name = file_name.clone();
+                                            move |event| {
+                                                let file_name = file_name.clone();
+                                                spawn(async move {
+                                                    jsFfiHandleOpenFileIfExistEvent(event, &file_name).await;
+                                                });
+                                            }
+                                        },
                                         { file_name.clone() } }
                                     td { { human_bytes(file_size as f64) } }
                                     td {

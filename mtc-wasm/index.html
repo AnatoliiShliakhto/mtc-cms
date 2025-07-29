@@ -19,18 +19,19 @@
     <meta property="og:image:height" content="404">
     <meta property="og:image:type" content="image/webp">
     <link rel="icon" href="/./assets/favicon.ico">
-    <link rel="preload" href="/./assets/ckeditor/ckeditor5.css" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin>
+    <link rel="stylesheet" href="/./assets/ckeditor/ckeditor5.css">
+    <link rel="stylesheet" href="/./assets/wasm-preloader.css">
     <script src="/./assets/mtc-cms.js" type="module" crossorigin async></script>
 </head>
 <body>
 <div id="main"></div>
-<div id="wasm-preloader" style="display:grid;place-items:center;width:100vw;height:100vh;">
-    <h1 style="display:none;">242-й центр підготовки підрозділів</h1>
-    <div style="display:flex;flex-direction:column;gap:1.25rem;align-items:center;">
-        <img style="width:13rem;height:13rem;" src="/./assets/logo.webp" alt="{app_title}">
-        <span style="font-size:2rem;line-height:2.25rem;font-weight:600;">242</span>
-        <span style="font-size:1.5rem;line-height:2rem;font-weight:600;">центр підготовки підрозділів</span>
-        <div style="display:inline-flex;align-items:center;gap:0.75rem;">
+<div id="wasm-preloader">
+    <h1>242-й центр підготовки підрозділів</h1>
+    <div>
+        <img src="/./assets/logo.webp" alt="{app_title}">
+        <span>242</span>
+        <span>центр підготовки підрозділів</span>
+        <div class="loading-indicator">
             <span>
                 <svg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><rect x='1' y='1' width='6' height='22'><animate attributeName='y' values='1;5;1' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite'/><animate attributeName='height' values='22;14;22' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite'/><animate attributeName='opacity' values='1;0.2;1' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite'/></rect><rect x='9' y='1' width='6' height='22'><animate attributeName='y' values='1;5;1' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite' begin='-0.65s'/><animate attributeName='height' values='22;14;22' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite' begin='-0.65s'/><animate attributeName='opacity' values='1;0.2;1' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite' begin='-0.65s'/></rect><rect x='17' y='1' width='6' height='22'><animate attributeName='y' values='1;5;1' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite' begin='-0.5s'/><animate attributeName='height' values='22;14;22' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite' begin='-0.5s'/><animate attributeName='opacity' values='1;0.2;1' keyTimes='0;0.938;1' dur='.8s' repeatCount='indefinite' begin='-0.5s'/></rect></svg>
             </span>
