@@ -5,10 +5,15 @@
   "version": "0.1.0",
   "identifier": "com.mtc-cms.app",
   "build": {
-    "frontendDist": "https://242.org.ua",
-    "devUrl": "https://242.org.ua",
+    "frontendDist": "https://242.mil.gov.ua",
+    "devUrl": "https://242.mil.gov.ua",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""
+  },
+  "plugins": {
+    "shell": {
+      "open": "**"
+    }
   },
   "app": {
     "withGlobalTauri": true,

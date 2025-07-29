@@ -11,10 +11,10 @@ try {
             if (meta && meta.size === fileSize) {
                 dioxus.send(true);
             } else {
-                dioxus.send(await downloadFile(fileUrl, filePath));
+                dioxus.send(await tauriDownloadFile(fileUrl, filePath));
             }
         } else {
-            dioxus.send(await downloadFile(fileUrl, filePath));
+            dioxus.send(await tauriDownloadFile(fileUrl, filePath));
         }
     } else {
         const response = await fetch(fileUrl);

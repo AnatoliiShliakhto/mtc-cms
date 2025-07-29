@@ -74,19 +74,29 @@ pub fn ViewLinksSearch(
                                 //class: "group-hover:animate-pulse",
                                 onclick: move |_| state_fn!(search_engine_clear),
                                 to: &*item.url,
-                                { item.title.to_owned() }
+                                { &*item.title }
                             }
                         } else if item.kind == SearchKind::Link {
                             a {
                                 href: &*item.url,
-                                "onclick": "linkOpen(this); return false;",
-                                { item.title.to_owned() }
+                                onclick: move |event| {
+                                    event.prevent_default();
+                                    event.stop_propagation();
+                                    jsFfiHandleOpenLinkEvent(event);
+                                },
+                                { &*item.title }
                             }
                         } else {
                             a {
                                 href: &*item.url,
-                                "onclick": "linkDownloadThenOpen(this); return false;",
-                                { item.title.to_owned() }
+                                onclick: move |event| {
+                                    event.prevent_default();
+                                    event.stop_propagation();
+                                    spawn(async move {
+                                        jsFfiHandleOpenDownloadedLinkEvent(event).await;
+                                    });
+                                },
+                                { &*item.title }
                             }
                         }
                     }

@@ -30,8 +30,8 @@ pub(crate) mod prelude {
             },
             http::{
                 header::{
-                    CACHE_CONTROL, STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS,
-                    CONTENT_TYPE, ACCEPT_ENCODING, CONTENT_SECURITY_POLICY,
+                    CACHE_CONTROL, STRICT_TRANSPORT_SECURITY, X_FRAME_OPTIONS,
+                    X_CONTENT_TYPE_OPTIONS, CONTENT_TYPE, ACCEPT_ENCODING, CONTENT_SECURITY_POLICY,
                 },
                 HeaderValue, HeaderName, status::StatusCode},
             middleware::{Next, from_fn}, Router, Form, Json,
@@ -46,7 +46,7 @@ pub(crate) mod prelude {
         tower::ServiceBuilder,
         tower_http::{
             compression::CompressionLayer, cors::CorsLayer,
-            services::{ServeDir, ServeFile},
+            services::{ServeDir},
             set_header::SetResponseHeaderLayer,
         },
 
@@ -103,8 +103,9 @@ async fn main() {
             .await
             .unwrap();
 
+    let template = Provider::template_init(&config).await;
 
-    let state = Arc::new(AppState::init(config, db));
+    let state = Arc::new(AppState::init(config, db, template));
 
     let tls_config = RustlsConfig::from_pem_file(
         PathBuf::from(&*state.config.paths.cert_path).join("ssl.crt"),
@@ -130,8 +131,8 @@ async fn main() {
             HeaderValue::from_str(&state.config.security.x_content_type_options).unwrap())
         )
         .layer(SetResponseHeaderLayer::if_not_present(
-            CONTENT_SECURITY_POLICY,
-            HeaderValue::from_str(&state.config.security.content_security_policy).unwrap())
+            X_FRAME_OPTIONS,
+            HeaderValue::from_str(&state.config.security.x_frame_options).unwrap())
         );
 
     let cors_layer = CorsLayer::new()
@@ -173,9 +174,12 @@ async fn main() {
             "/wasm",
             ServeDir::new(format!("{}/wasm", state.config.paths.www_path))
         )
-        .route_service(
+        .route(
             "/",
-            ServeFile::new(format!("{}/index.html", state.config.paths.www_path))
+            get({
+                let state = state.clone();
+                move || async move { get_index_html(state).await }
+            }),
         )
         .layer(compression_layer)
         .layer(static_headers)

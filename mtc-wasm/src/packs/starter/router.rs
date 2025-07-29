@@ -13,13 +13,12 @@ pub enum Route {
 ///
 /// It uses the route path as a string to determine which component to render.
 #[component]
-fn CustomRouter(
-    #[props(into)]
-    route: Vec<String>,
-) -> Element {
-    eval(r#"window.CkEditorDestroy?.()"#);
+fn CustomRouter(#[props(into)] route: Vec<String>) -> Element {
+    jsFfiDestroyCkEditor();
 
-    if route.is_empty() { return rsx! { Home {} } }
+    if route.is_empty() {
+        return rsx! { Home {} };
+    }
 
     let static_route = route.join("/");
 
@@ -37,43 +36,37 @@ fn CustomRouter(
         "administrator/roles" => return rsx! { Roles {} },
         "administrator/users" => return rsx! { Users {} },
         "administrator/schemas" => return rsx! { Schemas {} },
-        "administrator/permission/create"=> return rsx! { PermissionCreate {} },
+        "administrator/permission/create" => return rsx! { PermissionCreate {} },
         "administrator/js" => return rsx! { JsExec {} },
         "application/data" => return rsx! { AppData {} },
         _ => {}
     }
 
     match route.len() {
-        2 => {
-            match route[0].as_str() {
-                "content" => rsx! { ContentList { schema: route[1].clone() } },
-                "search" => rsx! { Search { pattern: route[1].clone() } },
+        2 => match route[0].as_str() {
+            "content" => rsx! { ContentList { schema: route[1].clone() } },
+            "search" => rsx! { Search { pattern: route[1].clone() } },
+            _ => rsx! { NotFound {} },
+        },
+        3 => match route[0].as_str() {
+            "content" => rsx! { ContentView { schema: route[1].clone(), slug: route[2].clone() } },
+            "search" => rsx! { Search { pattern: route[1].clone() } },
+            "editor" => rsx! { ContentEdit { schema: route[1].clone(), slug: route[2].clone() } },
+            "administrator" => match route[1].as_str() {
+                "group" => rsx! { GroupEdit { id: route[2].clone() } },
+                "role" => rsx! { RoleEdit { id: route[2].clone() } },
+                "user" => rsx! { UserEdit { id: route[2].clone() } },
+                "schema" => rsx! { SchemaEdit { id: route[2].clone() } },
                 _ => rsx! { NotFound {} },
+            },
+            _ => rsx! { NotFound {} },
+        },
+        4 => match route[0].as_str() {
+            "content" => {
+                rsx! { ContentView { schema: route[1].clone(), slug: route[2].clone(), arg: route[3].clone() } }
             }
-        }
-        3 => {
-            match route[0].as_str() {
-                "content" => rsx! { ContentView { schema: route[1].clone(), slug: route[2].clone() } },
-                "search" => rsx! { Search { pattern: route[1].clone() } },
-                "editor" => rsx! { ContentEdit { schema: route[1].clone(), slug: route[2].clone() } },
-                "administrator" => {
-                    match route[1].as_str() {
-                        "group" => rsx! { GroupEdit { id: route[2].clone() } },
-                        "role" => rsx! { RoleEdit { id: route[2].clone() } },
-                        "user" => rsx! { UserEdit { id: route[2].clone() } },
-                        "schema" => rsx! { SchemaEdit { id: route[2].clone() } },
-                        _ => rsx! { NotFound {} },
-                    }
-                }
-                _ => rsx! { NotFound {} },
-            }
-        }
-        4 => {
-            match route[0].as_str() {
-                "content" => rsx! { ContentView { schema: route[1].clone(), slug: route[2].clone(), arg: route[3].clone() } },
-                _ => rsx! { NotFound {} },
-            }
-        }
+            _ => rsx! { NotFound {} },
+        },
         5 => {
             if route[0].eq("course") && route[1].eq("editor") {
                 rsx! {

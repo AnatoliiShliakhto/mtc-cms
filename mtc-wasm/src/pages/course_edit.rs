@@ -69,7 +69,7 @@ pub fn CourseEdit(
     };
 
     let content_id = response().key_string("id").unwrap_or_default();
-    eval(&format!("window.contentId = '{content_id}'"));
+    jsFfiSetContentId(&content_id);
 
     let course_submit = course.clone();
     let submit = move |event: Event<FormData>| {

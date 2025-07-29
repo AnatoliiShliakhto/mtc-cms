@@ -1,60 +1,79 @@
 #![allow(non_snake_case, unused_variables)]
 
 use prelude::*;
+use wasm_bindgen_futures::JsFuture;
 
-mod repository;
-mod services;
-mod error;
-mod pages;
-mod elements;
-mod icons;
+mod application;
 mod components;
+mod elements;
+mod error;
+mod icons;
+mod js;
 mod macros;
 mod packs;
-mod js;
-mod application;
+mod pages;
+mod repository;
+mod services;
 mod state;
 
 pub mod prelude {
-    pub static FRONT_END_URL: &str = env!("FRONT_END_URL");
-    pub static API_ENDPOINT: &str = dioxus_core::const_format::concatcp!(env!("FRONT_END_URL"), "/api");
+    pub static FRONT_END_URL: LazyLock<String> = LazyLock::new(|| {
+        if cfg!(debug_assertions) {
+            "https://localhost".to_string()
+        } else {
+            web_sys::window()
+                .and_then(|w| w.location().href().ok())
+                .unwrap_or_default().trim_end_matches('/').to_string()
+        }
+    });
+    pub static API_ENDPOINT: LazyLock<String> = LazyLock::new(|| {
+        let url = if cfg!(debug_assertions) {
+            "https://localhost".to_string()
+        } else {
+            web_sys::window()
+                .and_then(|w| w.location().href().ok())
+                .unwrap_or_default().trim_end_matches('/').to_string()
+        };
+        format!("{url}/api")
+    });
 
     pub use crate::{
-        state::prelude::*,
-        packs::prelude::*, // site packs
+        application::prelude::*,
         components::prelude::*,
         elements::prelude::*,
         error::*,
         icons::prelude::*,
+        js::*,
+        macros::prelude::*,
+        packs::prelude::*, // site packs
+        pages::prelude::*,
         repository::prelude::*,
         services::prelude::*,
-        pages::prelude::*,
-        macros::prelude::*,
-        js::*,
-        application::prelude::*,
+        state::prelude::*,
     };
 
-    pub use mtc_common::prelude::*;
-    pub use dioxus::prelude::{*, document::{eval, Title}};
-    pub use reqwest::{Client, Response};
     pub use chrono::{DateTime, Local};
+    pub use dioxus::prelude::*;
     pub use futures_util::StreamExt;
     pub use gloo_storage::{LocalStorage, SessionStorage, Storage};
     pub use human_bytes::*;
-    pub use magic_crypt::{MagicCryptTrait, new_magic_crypt};
+    pub use magic_crypt::{new_magic_crypt, MagicCryptTrait};
+    pub use mtc_common::prelude::*;
+    pub use reqwest::{Client, Response};
 
     pub use serde::{Deserialize, Serialize};
     pub use serde_json::{json, Value};
+    use std::sync::LazyLock;
     pub use std::{
         borrow::Cow,
         collections::{BTreeMap, BTreeSet},
-        str::FromStr,
-        iter::zip,
         ffi::OsStr,
+        iter::zip,
         path::Path,
+        str::FromStr,
     };
-    pub use wasm_bindgen::JsCast;
     pub use tracing::error;
+    pub use wasm_bindgen::JsCast;
 }
 
 fn main() {
@@ -63,16 +82,27 @@ fn main() {
         let session = use_init_state(I18N_UK_UA);
 
         // register ServiceWorker with SessionId
-        eval(&JS_SW_REGISTER.replace("{session}", &session()));
+        spawn(async move {
+            if JsFuture::from(jsFfiInitializeServiceWorker(&*session())).await.is_err() {
+                error!("failed to invoke jsFfiInitializeServiceWorker");
+            }
+        });
 
-        use_hook(move || spawn(async move {
-            if !is_tauri() { return }
-            let Ok(result) = tauri_invoke_without_args("get_platform")
-                .await else { return };
-            let Some(platform) = result.as_string() else { return };
-            set_tauri_session(session().to_string()).await;
-            state!(set_platform, platform.into());
-        }));
+        use_hook(move || {
+            spawn(async move {
+                if !is_tauri() {
+                    return;
+                }
+                let Ok(result) = tauri_invoke_without_args("get_platform").await else {
+                    return;
+                };
+                let Some(platform) = result.as_string() else {
+                    return;
+                };
+                set_tauri_session(session().to_string()).await;
+                state!(set_platform, platform.into());
+            })
+        });
 
         use_effect(move || {
             let search_engine = state_fn!(search_engine);
@@ -99,18 +129,14 @@ fn main() {
 
         use_hook(move || {
             spawn(async move {
-                if let Ok(Value::Bool(sw_present)) = eval(JS_SW_CHECK).recv().await {
-                    if sw_present {
-                        sync_task.send(SyncAction::RefreshState())
-                    } else {
-                        error_dialog!("error-sw-unsupported")
-                    }
+                match JsFuture::from(jsFfiCheckServiceWorker()).await {
+                    Ok(_) => sync_task.send(SyncAction::RefreshState()),
+                    Err(_) => error_dialog!("error-sw-unsupported"),
                 }
             });
         });
-
+        jsFfiSetTitle(t!("site-title").as_ref());
         rsx! {
-            Title { { t!("site-title") } }
             document::Stylesheet {
                 href: asset!("/assets/css/tailwind.css")
             }
@@ -133,8 +159,7 @@ fn main() {
                 button {
                     id: "scrollUpButton",
                     class: "btn btn-circle btn-neutral opacity-60 hover:opacity-100 hidden",
-                    onmounted: |_| { eval(JS_SCROLL_UP); },
-                    "onclick": "window.scrollTo(0, 0)",
+                    onmounted: |_| { jsFfiInitializeScrollUpButton() },
                     Icon { icon: Icons::ArrowUp, class: "size-8" }
                 }
             }

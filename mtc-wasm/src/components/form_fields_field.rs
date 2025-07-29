@@ -58,8 +58,8 @@ pub fn FormFieldsField(
                                     .concat().as_str())
                                 }
                             }
-                            td { { field.slug.clone() } }
-                            td { { field.title.clone() } }
+                            td { { &*field.slug } }
+                            td { { &*field.title } }
                         }
                     }
                 }

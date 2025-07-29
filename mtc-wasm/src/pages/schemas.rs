@@ -78,7 +78,7 @@ pub fn Schemas() -> Element {
                                     { schema.title.as_ref() }
                                 }
                                 td {
-                                    { details.permission }
+                                    { &*details.permission }
                                 }
                             }
                         }

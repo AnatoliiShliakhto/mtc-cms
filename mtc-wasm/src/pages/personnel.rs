@@ -175,31 +175,31 @@ pub fn Personnel() -> Element {
                                 if column_rank() {
                                     span {
                                         class: "",
-                                        { user.rank }
+                                        { &*user.rank }
                                     }
                                 }
                                 if column_name() {
                                     span {
                                         class: "col-span-2",
-                                        { user.name }
+                                        { &*user.name }
                                     }
                                 }
                                 if column_login() {
                                     span {
                                         class: "",
-                                        { login }
+                                        { &*login }
                                     }
                                 }
                                 if column_group() {
                                     span {
                                         class: "text-sm col-span-2",
-                                        { user.group }
+                                        { &*user.group }
                                     }
                                 }
                                 if column_password() {
                                     span {
                                         class: "text-sm",
-                                        { user.password }
+                                        { &*user.password }
                                     }
                                 }
                                 if column_access() {
