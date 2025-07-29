@@ -2,8 +2,6 @@
 #[macro_export]
 macro_rules! t {
     ($id:expr) => {
-        {
-            state!(i18n).get($id).unwrap_or(&Cow::Owned($id.to_string())).to_owned()
-        }
+        state!(i18n).get($id).map(|value| value.to_string()).unwrap_or_else(|| $id.to_string())
     };
 }

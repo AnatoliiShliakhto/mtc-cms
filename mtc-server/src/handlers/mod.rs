@@ -10,6 +10,7 @@ mod schemas;
 mod content;
 mod storage;
 mod system;
+mod index_html;
 
 pub(crate) mod prelude {
     pub(crate) use super::{
@@ -23,5 +24,6 @@ pub(crate) mod prelude {
         content::*,
         storage::*,
         system::*,
+        index_html::*,
     };
 }

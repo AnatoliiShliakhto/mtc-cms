@@ -86,7 +86,7 @@ pub fn FormEntriesField(
                                 div {
                                     class: "badge badge-outline text-success hover:cursor-pointer hover:text-error",
                                     onclick: move |_| badge_remove(id.clone()),
-                                    { get_badge_title(&item) }
+                                    { get_badge_title(&item).to_string() }
                                 }
                             }
                         }}
@@ -100,7 +100,7 @@ pub fn FormEntriesField(
                             rsx! {
                                 div { class: "badge badge-outline hover:cursor-pointer hover:text-success",
                                     onclick: move |_| badge_add(id.clone()),
-                                    { get_badge_title(&item) }
+                                    { get_badge_title(&item).to_string() }
                                 }
                             }
                         }}

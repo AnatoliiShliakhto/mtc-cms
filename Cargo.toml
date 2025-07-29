@@ -49,8 +49,9 @@ tracing = { version = "0.1.41" }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-appender = { version = "0.2.3" }
 
-dioxus = { version = "0.6.3", features = ["web", "router"] }
-dioxus-logger = { version = "0.6.2" }
+dioxus = { version = "0.7.0-rc.0", features = ["web", "router"] }
+dioxus-logger = { version = "0.7.0-rc.0" }
+
 reqwest = { version = "0.12.15", features = ["json", "zstd", "brotli"] }
 wasm-bindgen = { version = "0.2.100" }
 wasm-bindgen-futures = { version = "0.4.50" }

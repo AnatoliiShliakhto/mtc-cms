@@ -19,7 +19,7 @@ pub fn ViewLinksField(
                 if link.url.is_empty() {
                     dt {
                         span { class: "text-accent", "#" }
-                        span { class: "text-accent ml-1", { link.title.clone() } }
+                        span { class: "text-accent ml-1", { &*link.title } }
                     }
                 } else {
                     dd {
@@ -39,7 +39,7 @@ pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
             Icon { icon: Icons::Description, class: "size-4" }
             Link {
                 to: &*url,
-                { title }
+                { &*title }
             }
         };
     }
@@ -49,8 +49,8 @@ pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
             Icon { icon: Icons::Link45Deg, class: "size-4 text-primary" }
             a {
                 href: &*url,
-                "onclick": "linkOpen(this); return false;",
-                { title }
+                onclick: jsFfiHandleOpenLinkEvent,
+                { &*title }
             }
         };
     }
@@ -77,8 +77,8 @@ pub fn LinkItem(title: Cow<'static, str>, url: Cow<'static, str>) -> Element {
         }
         a {
             href: &*url,
-            "onclick": r#"linkDownloadThenOpen(this); return false;"#,
-            { title }
+            onclick: jsFfiHandleOpenDownloadedLinkEvent,
+            { &*title }
         }
     }
 }

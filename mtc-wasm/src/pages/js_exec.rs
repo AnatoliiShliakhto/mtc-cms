@@ -1,3 +1,4 @@
+use crate::prelude::document::eval;
 use super::*;
 
 /// A component that allows to execute arbitrary JavaScript code.
