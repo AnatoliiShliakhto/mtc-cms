@@ -69,8 +69,11 @@ extern "C" {
     #[wasm_bindgen(js_name = stopBarcodeScanner)]
     pub fn jsFfiStopBarcodeScanner() -> js_sys::Promise;
 
+    #[wasm_bindgen(js_name = openElementLink)]
+    pub fn jsFfiOpenElementLink(html_element: HtmlElement);
+
     #[wasm_bindgen(js_name = openLink)]
-    pub fn jsFfiOpenLink(html_element: HtmlElement);
+    pub fn jsFfiOpenLink(url: &str);
 
     #[wasm_bindgen(js_name = openDownloadedLink)]
     pub fn jsFfiOpenDownloadedLink(html_element: HtmlElement) -> js_sys::Promise;
@@ -80,12 +83,18 @@ extern "C" {
 
     #[wasm_bindgen(js_name = uploadPersonnel)]
     pub fn jsFfiUploadPersonnel();
+
+    #[wasm_bindgen(js_name = createHtml5QrcodeScanner)]
+    pub fn jsFfiCreateHtml5QrcodeScanner(html5QrcodeScannerElementId: &str) -> js_sys::Promise;
+
+    #[wasm_bindgen(js_name = destroyHtml5QrcodeScanner)]
+    pub fn jsFfiDestroyHtml5QrcodeScanner();
 }
 
 // Event Handlers
 pub fn jsFfiHandleOpenLinkEvent(event: Event<MouseData>) {
     if let Some(html_element) = target_html_element_opt(event) {
-        jsFfiOpenLink(html_element);
+        jsFfiOpenElementLink(html_element);
     }
 }
 

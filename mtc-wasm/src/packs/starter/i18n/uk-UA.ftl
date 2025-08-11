@@ -199,3 +199,68 @@ message-success-post = Запит виконано
 message-success-migration = Міграція Бази даних виконана
 message-success-index-rebuild = База даних успішно проіндексована
 message-success-sitemap-build = Карта сайту створена
+
+action-gate-pass-sync = Синхронізувати перепустки
+action-gate-pass-offline-mode = Валідувати без інтернету
+
+gate-pass-vehicle-body-type-sedan = Седан
+gate-pass-vehicle-body-type-hatchback = Хетчбек
+gate-pass-vehicle-body-type-wagon = Універсал
+gate-pass-vehicle-body-type-pickup = Пікап
+gate-pass-vehicle-body-type-suv = Позашляховик
+gate-pass-vehicle-body-type-coupe = Купе
+gate-pass-vehicle-body-type-truck = Вантажівка
+gate-pass-vehicle-body-type-bus = Автобус
+gate-pass-vehicle-body-type-minibus = Мікроавтобус
+gate-pass-vehicle-body-type-motorbike = Мотоцикл
+gate-pass-vehicle-body-type-scooter = Скутер
+
+gate-pass-vehicle-color-white = Білий
+gate-pass-vehicle-color-beige = Бежевий
+gate-pass-vehicle-color-grey = Сірий
+gate-pass-vehicle-color-darkgrey = Темно-сірий
+gate-pass-vehicle-color-blue = Синій
+gate-pass-vehicle-color-darkblue = Темно-синій
+gate-pass-vehicle-color-purple = Фіолетовий
+gate-pass-vehicle-color-red = Червоний
+gate-pass-vehicle-color-darkred = Темно-червоний
+gate-pass-vehicle-color-green = Зелений
+gate-pass-vehicle-color-darkgreen = Темно-зелений
+gate-pass-vehicle-color-yellow = Жовтий
+gate-pass-vehicle-color-orange = Помаранчевий
+gate-pass-vehicle-color-brown = Коричневий
+gate-pass-vehicle-color-black = Чорний
+
+message-gate-pass-scan-result-valid = Перепустка дійсна!
+message-gate-pass-scan-result-invalid = Перепустка недійсна!
+message-gate-pass-scan-result-not-found = Перепустка не існує у базі!
+message-gate-pass-scan-result-deleted = Перепустка була відізвана!
+message-gate-pass-scan-result-expired = Закінчився термін дії перепустки!
+message-gate-pass-allow-any-vehicle = Дозволено використовувати будь-який транспортний засіб!
+
+message-gate-pass-validation-scan-qr-code-unknown-error = Невідомий QR код, будь ласка, відскануйте QR код з перепустки.
+message-gate-pass-validation-scan-qr-code-scan-error = Помилка при скануванні QR коду, будь ласка, спробуйте ще раз.
+
+message-gate-pass-last-sync = Дата останньої синхронізації бази перепусток
+message-gate-pass-last-sync-not-found = не знайдена
+
+menu-gate-passes = Перепустки
+menu-gate-pass-validation = Валідатор перепусток
+menu-gate-pass-validation-scan = Валідатор за QR кодом
+menu-gate-pass-validation-scan-result = Результат валідації
+
+gate-pass-field-expired-at = Чинний до
+gate-pass-field-owner-last-name = Прізвище
+gate-pass-field-owner-first-name = Імʼя
+gate-pass-field-owner-middle-name = Побатькові
+gate-pass-field-owner-title = Звання
+gate-pass-field-owner-unit = Підрозділ
+gate-pass-field-vehicle-number-plate = Номерний знак
+gate-pass-field-vehicle-vin-code = VIN код
+gate-pass-field-vehicle-manufacturer = Марка
+gate-pass-field-vehicle-model = Модель
+gate-pass-field-vehicle-color = Колір
+gate-pass-field-vehicle-body-type = Тип кузова
+gate-pass-field-allow-any-vehicle = Дозволяє будь-який транспортний засіб
+gate-pass-field-owner-full-name = ПІБ
+gate-pass-field-vehicle-info = Транспортний засіб

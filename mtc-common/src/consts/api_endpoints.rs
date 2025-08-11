@@ -26,3 +26,4 @@ pub static API_COURSE: &str = "course";
 pub static API_ADMINISTRATOR: &str = "administrator";
 pub static API_EDITOR: &str = "editor";
 pub static API_SIGN_IN: &str = "sign-in";
+pub static API_GATE_PASSES: &str = "gate-passes";

@@ -6,8 +6,10 @@ pub fn FormTextField(
     name: String,
     #[props(into)]
     title: String,
-    #[props]
+    #[props(into)]
     required: Option<bool>,
+    #[props]
+    disabled: Option<bool>,
     #[props]
     initial_value: Option<String>,
     #[props]
@@ -29,6 +31,7 @@ pub fn FormTextField(
                 initial_value,
                 pattern,
                 required,
+                disabled,
             }
         }
     }

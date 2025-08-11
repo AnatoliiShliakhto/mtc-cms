@@ -64,6 +64,13 @@ pub fn SideMenu() -> Element {
                             permission: PERMISSION_ROLES_READ,
                             { t!("menu-permissions") }
                         }
+
+                        MenuItem {
+                            route: route!(API_ADMINISTRATOR, API_GATE_PASSES),
+                            permission: PERMISSION_GATE_PASS_READ,
+                            { t!("menu-gate-passes") }
+                        }
+
                         MenuItem {
                             route: route!(API_ADMINISTRATOR, API_GROUPS),
                             permission: PERMISSION_GROUPS_READ,
@@ -102,6 +109,22 @@ pub fn SideMenu() -> Element {
                     MenuItem {
                         route: route!("application", "data"),
                         { t!("menu-app-data") }
+                    }
+                }
+            }
+        }
+        if auth.has_permission(PERMISSION_GATE_PASS_VALIDATE) {
+            li {
+                details {
+                    summary {
+                        Icon { icon: Icons::QrScan, class: "size-8 sm:size-6 text-neutral" }
+                        { t!( "menu-gate-pass-validation") }
+                    }
+                    ul {
+                        MenuItem {
+                            route: route!("gate-pass-validation-scans"),
+                            { t!("menu-gate-pass-validation-scan") }
+                        }
                     }
                 }
             }

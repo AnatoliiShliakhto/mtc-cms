@@ -104,6 +104,13 @@ fn main() {
             })
         });
 
+        use_hook(move || {
+            spawn(async move {
+                let database = indexed_db().await.ok();
+                state!(set_indexed_db, database);
+            })
+        });
+
         use_effect(move || {
             let search_engine = state_fn!(search_engine);
             let pattern = search_engine.pattern;

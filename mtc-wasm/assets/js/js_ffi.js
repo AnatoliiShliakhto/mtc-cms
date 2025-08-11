@@ -318,9 +318,18 @@ export async function stopBarcodeScanner() {
     }
 }
 
-export function openLink(element) {
+export function openElementLink(element) {
     try {
-        window.linkOpen(element);
+        window.elementLinkOpen(element);
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export function openLink(url) {
+    try {
+        window.linkOpen(url);
     } catch (error) {
         console.error(error);
         throw error;
@@ -351,5 +360,34 @@ export function uploadPersonnel() {
     } catch (error) {
         console.error(error);
         throw error;
+    }
+
+}
+
+let activeHtml5QrcodeScanner = null;
+
+export async function createHtml5QrcodeScanner(html5QrcodeScannerElementId) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            destroyHtml5QrcodeScanner();
+            activeHtml5QrcodeScanner = new Html5QrcodeScanner(html5QrcodeScannerElementId, {fps: 10, qrbox: 500});
+
+            async function onScanSuccess(decodedText, decodedResult) {
+                resolve(decodedText);
+                destroyHtml5QrcodeScanner();
+            }
+
+            activeHtml5QrcodeScanner.render(onScanSuccess);
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    });
+}
+
+export function destroyHtml5QrcodeScanner() {
+    if (activeHtml5QrcodeScanner) {
+        activeHtml5QrcodeScanner.clear();
+        activeHtml5QrcodeScanner = null;
     }
 }

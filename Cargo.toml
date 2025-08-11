@@ -58,6 +58,7 @@ wasm-bindgen-futures = { version = "0.4.50" }
 serde-wasm-bindgen = { version = "0.6.5" }
 web-sys = { version = "0.3.77" }
 js-sys = { version = "0.3.77" }
+indexed-db = { version = "0.4.2" }
 
 tauri = { version = "2.5.1", features = ["rustls-tls"] }
 tauri-plugin-shell = { version = "2.2.1" }
