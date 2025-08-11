@@ -71,6 +71,11 @@ pub fn build_breadcrumbs(slug: &str) {
                 (t!("menu-application"), ""),
             ],
 
+            "menu-gate-passes" => vec![
+                (t!("menu-administrator"), "/administrator"),
+                (t!("menu-gate-passes"), "/administrator/gate-passes")
+            ],
+
             _ => vec![],
         };
 

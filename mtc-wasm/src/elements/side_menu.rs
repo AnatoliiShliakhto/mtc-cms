@@ -64,6 +64,13 @@ pub fn SideMenu() -> Element {
                             permission: PERMISSION_ROLES_READ,
                             { t!("menu-permissions") }
                         }
+
+                        MenuItem {
+                            route: route!(API_ADMINISTRATOR, API_GATE_PASSES),
+                            permission: PERMISSION_GATE_PASS_READ,
+                            { t!("menu-gate-passes") }
+                        }
+
                         MenuItem {
                             route: route!(API_ADMINISTRATOR, API_GROUPS),
                             permission: PERMISSION_GROUPS_READ,

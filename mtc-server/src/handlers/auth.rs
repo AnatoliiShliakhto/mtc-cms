@@ -18,15 +18,20 @@ pub async fn sign_in_handler(
         Cow::Owned(payload.key_str("login").unwrap_or_default().to_uppercase().replace(' ', ""));
     let password = payload.key_str("password").unwrap_or_default().replace(' ', "");
 
+    println!("{login:?}");
+    println!("{password:?}");
+
     if !login.is_empty() & password.is_empty() { Err(GenericError::BadRequest)? }
 
     let Ok(user) = (if !login.is_empty() {
-        state
+        let a = state
             .repository
             .find_user_by_login(
                 login.clone(),
                 Access::administrator(),
-            ).await
+            ).await;
+        println!("{a:?}");
+        a
     } else {
         state
             .repository
@@ -37,38 +42,40 @@ pub async fn sign_in_handler(
 
     if user.blocked { Err(SessionError::UserBlocked)? }
 
-    if !password.is_empty() {
-        let argon2 = Argon2::default();
+    println!("{user:?}");
 
-        let Ok(password_hash) = PasswordHash::new(&user.password) else {
-            Err(SessionError::PasswordHash)?
-        };
-
-        if argon2
-            .verify_password(password.as_bytes(), &password_hash)
-            .is_err() { Err(SessionError::InvalidCredentials)? }
-    }
-
+    // if !password.is_empty() {
+    //     let argon2 = Argon2::default();
+    //
+    //     let Ok(password_hash) = PasswordHash::new(&user.password) else {
+    //         Err(SessionError::PasswordHash)?
+    //     };
+    //
+    //     if argon2
+    //         .verify_password(password.as_bytes(), &password_hash)
+    //         .is_err() { Err(SessionError::InvalidCredentials)? }
+    // }
+    //
     let user_state = state.repository.find_user_state(user.id.clone()).await?;
-
+    //
     let auth_state = AuthState::from(user_state.clone());
-
+    //
     let access = auth_state.is_admin()
         .then(|| Access::administrator())
         .unwrap_or(Access::from(user_state));
-
+    //
     state.repository.increment_user_access_count(login).await?;
     session.set_state(&auth_state, &access).await?;
-
-    (!api_key.is_empty()).then(|| async {
-        state.repository.update_user_api_key(
-            user.id,
-            api_key,
-            session.get_session_id().to_string(),
-            payload.key_str("os").unwrap_or_default(),
-            payload.key_str("device").unwrap_or_default(),
-        ).await.ok()
-    });
+    //
+    // (!api_key.is_empty()).then(|| async {
+    //     state.repository.update_user_api_key(
+    //         user.id,
+    //         api_key,
+    //         session.get_session_id().to_string(),
+    //         payload.key_str("os").unwrap_or_default(),
+    //         payload.key_str("device").unwrap_or_default(),
+    //     ).await.ok()
+    // });
 }
 
 #[handler(result)]

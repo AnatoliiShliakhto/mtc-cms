@@ -39,6 +39,7 @@ fn CustomRouter(#[props(into)] route: Vec<String>) -> Element {
         "administrator/permission/create" => return rsx! { PermissionCreate {} },
         "administrator/js" => return rsx! { JsExec {} },
         "application/data" => return rsx! { AppData {} },
+        "administrator/gate-passes" => return rsx! { GatePasses {} },
         _ => {}
     }
 
@@ -57,6 +58,7 @@ fn CustomRouter(#[props(into)] route: Vec<String>) -> Element {
                 "role" => rsx! { RoleEdit { id: route[2].clone() } },
                 "user" => rsx! { UserEdit { id: route[2].clone() } },
                 "schema" => rsx! { SchemaEdit { id: route[2].clone() } },
+                "gate-passes" => rsx! { GatePassEdit { id: route[2].clone() } },
                 _ => rsx! { NotFound {} },
             },
             _ => rsx! { NotFound {} },

@@ -25,6 +25,8 @@ mod linking_qr_code;
 mod qr_sign_in;
 mod js_exec;
 mod app_data;
+mod gate_passes;
+mod gate_pass_edit;
 
 pub mod prelude {
     pub use super::{
@@ -53,5 +55,7 @@ pub mod prelude {
         qr_sign_in::*,
         js_exec::*,
         app_data::*,
+        gate_passes::*,
+        gate_pass_edit::*,
     };
 }

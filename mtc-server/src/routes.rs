@@ -1,3 +1,4 @@
+use axum::routing::patch;
 use crate::prelude::*;
 
 pub fn routes(
@@ -64,5 +65,23 @@ pub fn routes(
         .route("/sync", get(sync_handler))
         .route("/health", get(health_handler))
 
+        .route(
+            "/gate-passes", post(create_gate_pass_handler)
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}",
+            patch(update_gate_pass_handler)
+                .delete(delete_gate_pass_handler)
+                .get(find_gate_pass_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}/qr-codes", get(generate_gate_pass_qr_handler)
+        )
+        .route(
+            "/gate-pass-searches", post(find_gate_passes_handler),
+        )
+        .route(
+            "/gate-pass-syncs", post(find_sync_gate_passes_handler),
+        )
         .with_state(state)
 }

@@ -40,6 +40,7 @@ mod form_checkbox_field;
 mod view_links_search;
 mod form_plainhtml_field;
 mod view_plainhtml_field;
+mod form_date_field;
 
 pub mod prelude {
     pub use super::{
@@ -83,5 +84,6 @@ pub mod prelude {
         search_box::*,
         dialog_box::*,
         personnel_columns_chooser::*,
+        form_date_field::*,
     };
 } 

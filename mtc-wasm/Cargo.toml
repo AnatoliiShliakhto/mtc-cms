@@ -38,4 +38,4 @@ wasm-bindgen-futures = { workspace = true }
 serde-wasm-bindgen = { workspace = true }
 web-sys = { workspace = true }
 js-sys = { workspace = true }
-
+tokio = { version = "1.44.2", default-features = false, features = ["rt", "macros", "sync"]}

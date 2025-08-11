@@ -19,7 +19,7 @@ mod state;
 pub mod prelude {
     pub static FRONT_END_URL: LazyLock<String> = LazyLock::new(|| {
         if cfg!(debug_assertions) {
-            "https://localhost".to_string()
+            "https://localhost:4443".to_string()
         } else {
             web_sys::window()
                 .and_then(|w| w.location().href().ok())
@@ -28,7 +28,7 @@ pub mod prelude {
     });
     pub static API_ENDPOINT: LazyLock<String> = LazyLock::new(|| {
         let url = if cfg!(debug_assertions) {
-            "https://localhost".to_string()
+            "https://localhost:4443".to_string()
         } else {
             web_sys::window()
                 .and_then(|w| w.location().href().ok())
