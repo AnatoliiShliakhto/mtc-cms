@@ -1,5 +1,5 @@
 # MTC-CMS (Military Training Center CMS) 
->**WEB-SITE:** [242 Unit Training Center](https://242.org.ua)
+>**WEB-SITE:** [242 Unit Training Center](https://242.mil.gov.ua)
 
 RUST Content Management System (CMS) `In-Dev`
 
