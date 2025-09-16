@@ -4,7 +4,7 @@
   "description": "Desktop app permissions",
   "windows": ["*"],
   "remote": {
-    "urls": ["https://242.org.ua", "https://localhost"]
+    "urls": ["https://242.org.ua", "https://242.mil.gov.ua", "https://localhost"]
   },
   "permissions": [
     "core:default",

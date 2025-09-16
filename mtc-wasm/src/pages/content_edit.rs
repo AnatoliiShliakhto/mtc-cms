@@ -88,7 +88,7 @@ pub fn ContentEdit(
         });
     };
 
-    eval(&format!("window.contentId = '{id}'"));
+    jsFfiSetContentId(&id);
 
     rsx! {
         section {

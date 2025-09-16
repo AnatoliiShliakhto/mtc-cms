@@ -9,9 +9,11 @@ pub fn FormHtmlField(
     #[props]
     initial_value: Option<String>,
 ) -> Element {
-    let ckeditor_eval = format!("CkEditorCreate('#{name}')");
-    use_effect(move || {
-        eval(&ckeditor_eval);
+    use_effect({
+        let name = name.clone();
+        move || {
+            jsFfiCreateCkEditor(&name)
+        }
     });
 
     rsx! {

@@ -50,19 +50,19 @@ pub fn Permissions() -> Element {
                                     }
                                 }
                                 td {
-                                    { permission }
+                                    { &**permission }
                                 }
                                 td {
                                     class: "text-neutral",
-                                    { permission } { "::read" }
+                                    { &**permission } { "::read" }
                                 }
                                 td {
                                     class: "text-neutral",
-                                    { permission } { "::write" }
+                                    { &**permission } { "::write" }
                                 }
                                 td {
                                     class: "text-neutral",
-                                    { permission } { "::delete" }
+                                    { &**permission } { "::delete" }
                                 }
                             }
                         }

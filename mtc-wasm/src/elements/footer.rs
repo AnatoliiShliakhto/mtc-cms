@@ -4,12 +4,16 @@ use super::*;
 #[component]
 pub fn Footer() -> Element {
     rsx! {
-        footer { 
+        footer {
             class: "footer footer-center h-14 p-4 text-base-content rounded",
             a {
                 class: "link link-hover hover:text-primary",
                 href: "https://github.com/AnatoliiShliakhto/mtc-cms",
-                "onclick": "linkOpen(this); return false;",
+                onclick: move |event| {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    jsFfiHandleOpenLinkEvent(event);
+                },
                 { t!("site-copyright") }
             }
         }

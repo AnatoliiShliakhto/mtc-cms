@@ -4,7 +4,7 @@ use super::*;
 #[derive(Clone, PartialEq)]
 pub struct  DialogBoxArgs {
     pub kind: MessageKind,
-    pub message: Cow<'static, str>,
+    pub message: String,
     pub handler: Option<EventHandler<MouseEvent>>,
 }
 

@@ -30,7 +30,11 @@ pub fn ProfileController() -> Element {
                 class: "dropdown-content bg-base-200 text-base-content rounded-box",
                 class: "top-px max-h-[calc(100vh-11rem)] w-52 overflow-y-hidden",
                 class: "border border-white/5 shadow-2xl outline-1 outline-black/5 mt-16 z-1",
-                "onclick": "document.activeElement.blur()",
+                onclick: |event| {
+                    event.prevent_default();
+                    event.stop_propagation();
+                    jsFfiBlurActiveElement();
+                },
                 li {
                     Link {
                         class: "btn w-full justify-start rounded-none",

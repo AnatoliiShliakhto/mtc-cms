@@ -26,7 +26,7 @@ pub async fn sync_service(mut rx: UnboundedReceiver<SyncAction>) {
         match msg {
             SyncAction::RefreshState() => {
                 let Ok(response) =  state!(client)
-                    .get([API_ENDPOINT, "sync"].join("/"))
+                    .get([&API_ENDPOINT, "sync"].join("/"))
                     .send()
                     .await else { continue};
 

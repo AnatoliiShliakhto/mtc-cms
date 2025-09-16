@@ -51,6 +51,7 @@ script_runner = "@shell"
 script = '''
 dx build --package mtc-wasm
 cp -rf ./mtc-wasm/assets/www/* ./target/dx/mtc-wasm/debug/web/public/assets/*
+cp -rf ./mtc-wasm/assets/css/wasm-preloader.css ./target/dx/mtc-wasm/debug/web/public/assets/
 cp ./mtc-wasm/assets/js/sw.js ./target/dx/mtc-wasm/debug/web/public/sw.js
 '''
 

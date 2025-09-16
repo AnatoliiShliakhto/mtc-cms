@@ -30,7 +30,7 @@ pub fn SideMenu() -> Element {
                                     for page in state!(pages) {
                                         MenuItem {
                                             route: route!(API_CONTENT, page.slug),
-                                            { page.title }
+                                            { &*page.title }
                                         }
                                     }
                                 }

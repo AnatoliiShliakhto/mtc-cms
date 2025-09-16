@@ -1,4 +1,5 @@
 use super::*;
+use wasm_bindgen_futures::JsFuture;
 
 /// A component for rendering a course entry with a tree of child entries.
 ///
@@ -72,21 +73,21 @@ pub fn ViewCourseField(
             files_total.set(files.len());
             is_busy.set(true);
             for file in files.iter() {
-                let js_eval = JS_FILE_DOWNLOAD
-                    .replace("{url}", &*file.path)
-                    .replace("{size}", &file.size.to_string());
-                if let Ok(Value::Bool(result)) = eval(&js_eval).recv().await {
-                    if result {
+                match JsFuture::from(jsFfiDownloadFile(&*file.path, file.size))
+                    .await
+                    .map(|jsValue| jsValue.as_bool())
+                    .ok()
+                    .map(|file_downloaded_opt| file_downloaded_opt.unwrap_or(false))
+                    .filter(|file_downloaded| file_downloaded == &true)
+                {
+                    Some(file_downloaded) => {
                         *files_count.write() += 1;
-                    } else {
+                    }
+                    None => {
                         error_dialog!("error-file-download");
                         is_busy.set(false);
                         return;
                     }
-                } else {
-                    error_dialog!("error-file-download");
-                    is_busy.set(false);
-                    return;
                 }
             }
             is_busy.set(false);
@@ -138,7 +139,7 @@ pub fn ViewCourseField(
 
         if !current_entry.title.is_empty() {
             div { class: "text-lg font-medium gap-2",
-                { current_entry.title.clone() }
+                { &*current_entry.title }
             }
         }
         if is_writer {
@@ -163,7 +164,7 @@ pub fn ViewCourseField(
 
         if !current_entry.description.is_empty() {
             p { class: "whitespace-pre-line ml-3 text-sm",
-                { current_entry.description.clone() }
+                { &*current_entry.description }
             }
         }
         if current_entry.links.is_some() {
