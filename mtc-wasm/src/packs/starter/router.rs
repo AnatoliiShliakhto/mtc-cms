@@ -15,6 +15,7 @@ pub enum Route {
 #[component]
 fn CustomRouter(#[props(into)] route: Vec<String>) -> Element {
     jsFfiDestroyCkEditor();
+    jsFfiDestroyHtml5QrcodeScanner();
 
     if route.is_empty() {
         return rsx! { Home {} };
@@ -39,6 +40,9 @@ fn CustomRouter(#[props(into)] route: Vec<String>) -> Element {
         "administrator/permission/create" => return rsx! { PermissionCreate {} },
         "administrator/js" => return rsx! { JsExec {} },
         "application/data" => return rsx! { AppData {} },
+        "administrator/loops" => return rsx! { NavigationLoop {} },
+        "administrator/gate-passes" => return rsx! { GatePasses {} },
+        "gate-pass-validation-scans" => return rsx! { GatePassScanView {} },
         _ => {}
     }
 
@@ -57,8 +61,15 @@ fn CustomRouter(#[props(into)] route: Vec<String>) -> Element {
                 "role" => rsx! { RoleEdit { id: route[2].clone() } },
                 "user" => rsx! { UserEdit { id: route[2].clone() } },
                 "schema" => rsx! { SchemaEdit { id: route[2].clone() } },
+                "gate-passes" => rsx! { GatePassEdit { id: route[2].clone() } },
                 _ => rsx! { NotFound {} },
             },
+            "gate-pass-validation-scans" => match route[1].as_str() {
+                "errors" => rsx! { GatePassScanErrorView { error: route[2].clone() } },
+                "results" => rsx! { GatePassScanResultView { id: route[2].clone() } },
+                _ => rsx! { NotFound {} },
+            },
+
             _ => rsx! { NotFound {} },
         },
         4 => match route[0].as_str() {

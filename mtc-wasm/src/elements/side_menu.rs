@@ -45,7 +45,7 @@ pub fn SideMenu() -> Element {
                 }
             }
         }
-        if auth.has_role(ROLE_ADMINISTRATOR) {
+        if auth.has_role(ROLE_ADMINISTRATOR) || auth.has_role(ROLE_GATE_PASS_ADMINISTRATOR) {
             li {}
             li {
                 details {
@@ -54,34 +54,41 @@ pub fn SideMenu() -> Element {
                         { t!( "menu-administrator") }
                     }
                     ul {
-                        MenuItem {
-                            route: route!(API_ADMINISTRATOR, API_SCHEMAS),
-                            permission: PERMISSION_SCHEMAS_READ,
-                            { t!("menu-schemas") }
+                        if auth.has_role(ROLE_ADMINISTRATOR) {
+                            MenuItem {
+                                route: route!(API_ADMINISTRATOR, API_SCHEMAS),
+                                permission: PERMISSION_SCHEMAS_READ,
+                                { t!("menu-schemas") }
+                            }
+                            MenuItem {
+                                route: route!(API_ADMINISTRATOR, API_PERMISSIONS),
+                                permission: PERMISSION_ROLES_READ,
+                                { t!("menu-permissions") }
+                            }
+                            MenuItem {
+                                route: route!(API_ADMINISTRATOR, API_GROUPS),
+                                permission: PERMISSION_GROUPS_READ,
+                                { t!("menu-groups") }
+                            }
+                            MenuItem {
+                                route: route!(API_ADMINISTRATOR, API_ROLES),
+                                permission: PERMISSION_ROLES_READ,
+                                { t!("menu-roles") }
+                            }
+                            MenuItem {
+                                route: route!(API_ADMINISTRATOR, API_USERS),
+                                permission: PERMISSION_USERS_READ,
+                                { t!("menu-users") }
+                            }
+                            MenuItem {
+                                route: route!(API_ADMINISTRATOR, "js"),
+                                { t!("menu-js-exec") }
+                            }
                         }
                         MenuItem {
-                            route: route!(API_ADMINISTRATOR, API_PERMISSIONS),
-                            permission: PERMISSION_ROLES_READ,
-                            { t!("menu-permissions") }
-                        }
-                        MenuItem {
-                            route: route!(API_ADMINISTRATOR, API_GROUPS),
-                            permission: PERMISSION_GROUPS_READ,
-                            { t!("menu-groups") }
-                        }
-                        MenuItem {
-                            route: route!(API_ADMINISTRATOR, API_ROLES),
-                            permission: PERMISSION_ROLES_READ,
-                            { t!("menu-roles") }
-                        }
-                        MenuItem {
-                            route: route!(API_ADMINISTRATOR, API_USERS),
-                            permission: PERMISSION_USERS_READ,
-                            { t!("menu-users") }
-                        }
-                        MenuItem {
-                            route: route!(API_ADMINISTRATOR, "js"),
-                            { t!("menu-js-exec") }
+                            route: route!(API_ADMINISTRATOR, API_GATE_PASSES),
+                            permission: PERMISSION_GATE_PASS_READ,
+                            { t!("menu-gate-passes") }
                         }
                     }
                 }
@@ -102,6 +109,22 @@ pub fn SideMenu() -> Element {
                     MenuItem {
                         route: route!("application", "data"),
                         { t!("menu-app-data") }
+                    }
+                }
+            }
+        }
+        if auth.has_permission(PERMISSION_GATE_PASS_VALIDATE) {
+            li {
+                details {
+                    summary {
+                        Icon { icon: Icons::QrScan, class: "size-8 sm:size-6 text-neutral" }
+                        { t!( "menu-gate-pass-validation") }
+                    }
+                    ul {
+                        MenuItem {
+                            route: route!("gate-pass-validation-scans"),
+                            { t!("menu-gate-pass-validation-scan") }
+                        }
                     }
                 }
             }

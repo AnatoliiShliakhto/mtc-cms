@@ -17,12 +17,10 @@ use super::*;
 /// that contains the buttons.
 #[component]
 pub fn EntriesActions<T: PartialEq + 'static>(
-    #[props]
-    future: Resource<T>,
-    #[props]
-    route: Option<Route>,
-    #[props]
-    permission: Option<String>,
+    #[props] future: Resource<T>,
+    #[props] route: Option<Route>,
+    #[props] permission: Option<String>,
+    #[props(default)] extra_buttons: Vec<Element>,
 ) -> Element {
     let auth = state!(auth);
 
@@ -55,6 +53,7 @@ pub fn EntriesActions<T: PartialEq + 'static>(
                     }
                 }
             }
+            {extra_buttons.into_iter()}
         }
     }
 }

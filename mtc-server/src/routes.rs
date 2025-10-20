@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use axum::routing::patch;
 
 pub fn routes(
     state: Arc<AppState>
@@ -63,6 +64,41 @@ pub fn routes(
         .route("/search", post(search_handler))
         .route("/sync", get(sync_handler))
         .route("/health", get(health_handler))
-
+        .route(
+            "/gate-passes", post(create_gate_pass_handler),
+        )
+        .route(
+            "/gate-passes/imports", post(create_gate_passes_handler),
+        )
+        .route(
+            "/gate-passes/exports", post(find_gate_passes_handler),
+        )
+        .route(
+            "/gate-passes/searches", post(search_gate_passes_handler),
+        )
+        .route(
+            "/gate-passes/syncs", post(find_sync_gate_passes_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}",
+            patch(update_gate_pass_handler)
+                .delete(delete_gate_pass_handler)
+                .get(find_gate_pass_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}/blocks",
+            post(update_gate_pass_block_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}/emails", post(send_gate_pass_email_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}/backs", get(generate_gate_pass_back_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}/fronts", get(generate_gate_pass_front_handler),
+        )
+        .route(
+            "/gate-passes/{gate_pass_id}/validations", get(find_validation_gate_pass_handler))
         .with_state(state)
 }

@@ -22,6 +22,7 @@ dioxus-logger = { workspace = true }
 reqwest = { workspace = true}
 serde = { workspace = true }
 serde_json = { workspace = true }
+validator = { workspace = true }
 tracing = { workspace = true }
 gloo-storage = { workspace = true }
 csv = { workspace = true }
@@ -38,4 +39,5 @@ wasm-bindgen-futures = { workspace = true }
 serde-wasm-bindgen = { workspace = true }
 web-sys = { workspace = true }
 js-sys = { workspace = true }
-
+indexed-db = { workspace = true }
+tokio = { version = "1.44.2", default-features = false, features = ["rt", "macros", "sync"]}

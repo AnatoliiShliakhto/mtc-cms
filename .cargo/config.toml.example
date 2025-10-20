@@ -22,7 +22,7 @@ PUBLIC_CACHE_CONTROL="public; max-age=14400"
 PROTECTED_CACHE_CONTROL="private; max-age=14400"
 STRICT_TRANSPORT_SECURITY="max-age=63072000; includeSubDomains; preload"
 X_FRAME_OPTIONS="SAMEORIGIN"
-CONTENT_SECURITY_POLICY="default-src 'self' https://*.youtube.com https://*.gstatic.com https://*.googleapis.com https://*.youtube.com https://i.ytimg.com; frame-ancestors 'self'; script-src 'self' 'wasm-unsafe-eval' 'nonce-{{nonce}}'; img-src * data:; style-src 'self' 'unsafe-inline'; frame-src *"
+CONTENT_SECURITY_POLICY="default-src 'self' https://*.youtube.com https://*.gstatic.com https://*.googleapis.com https://*.youtube.com https://i.ytimg.com; frame-ancestors 'self'; script-src 'self' 'wasm-unsafe-eval' 'nonce-{{nonce}}'; img-src * data:; style-src 'self' 'unsafe-inline';"
 X_CONTENT_TYPE_OPTIONS="nosniff"
 
 [profile.dioxus-wasm]

@@ -19,6 +19,8 @@ pub fn FormCheckBoxField(
     title: String,
     #[props]
     initial_checked: Option<bool>,
+    #[props]
+    disabled: Option<bool>,
 ) -> Element {
 
     rsx! {
@@ -39,6 +41,7 @@ pub fn FormCheckBoxField(
                 class: "checkbox",
                 r#type: "checkbox",
                 initial_checked,
+                disabled
             }
             span {
                 class: "w-full",

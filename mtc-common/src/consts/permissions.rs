@@ -37,3 +37,10 @@ pub static PERMISSION_COURSE: &str = "course";
 pub static PERMISSION_COURSE_READ: &str = "course::read";
 pub static PERMISSION_COURSE_WRITE: &str = "course::write";
 pub static PERMISSION_COURSE_DELETE: &str = "course::delete";
+
+pub static PERMISSION_GATE_PASS_READ: &str = "gate_passes::read";
+pub static PERMISSION_GATE_PASS_WRITE: &str = "gate_passes::write";
+pub static PERMISSION_GATE_PASS_DELETE: &str = "gate_passes::delete";
+pub static PERMISSION_GATE_PASS_SYNC: &str = "gate_passes::sync";
+pub static PERMISSION_GATE_PASS_FULL_SYNC: &str = "gate_passes::full_sync";
+pub static PERMISSION_GATE_PASS_VALIDATE: &str = "gate_passes::validate";

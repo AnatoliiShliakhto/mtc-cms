@@ -2,8 +2,8 @@ use crate::prelude::MouseData;
 use dioxus::prelude::Event;
 use dioxus::web::WebEventExt;
 use tracing::error;
-use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::HtmlElement;
 
@@ -42,6 +42,9 @@ extern "C" {
     #[wasm_bindgen(js_name = clearFileInput)]
     pub fn jsFfiClearFileInput() -> js_sys::Promise;
 
+    #[wasm_bindgen(js_name = exportCsvFile)]
+    pub fn jsFfiExportCsvFile(contentCsvStr: &str, suggestedFileName: &str) -> js_sys::Promise;
+
     #[wasm_bindgen(js_name = exportJsonFile)]
     pub fn jsFfiExportJsonFile(contentJsonStr: &str, suggestedFileName: &str) -> js_sys::Promise;
 
@@ -69,8 +72,11 @@ extern "C" {
     #[wasm_bindgen(js_name = stopBarcodeScanner)]
     pub fn jsFfiStopBarcodeScanner() -> js_sys::Promise;
 
+    #[wasm_bindgen(js_name = openElementLink)]
+    pub fn jsFfiOpenElementLink(html_element: HtmlElement);
+
     #[wasm_bindgen(js_name = openLink)]
-    pub fn jsFfiOpenLink(html_element: HtmlElement);
+    pub fn jsFfiOpenLink(url: &str);
 
     #[wasm_bindgen(js_name = openDownloadedLink)]
     pub fn jsFfiOpenDownloadedLink(html_element: HtmlElement) -> js_sys::Promise;
@@ -78,14 +84,30 @@ extern "C" {
     #[wasm_bindgen(js_name = blurActiveElement)]
     pub fn jsFfiBlurActiveElement();
 
-    #[wasm_bindgen(js_name = uploadPersonnel)]
-    pub fn jsFfiUploadPersonnel();
+    #[wasm_bindgen(js_name = clickElement)]
+    pub fn jsFfiClickElement(element_id: &str);
+
+    #[wasm_bindgen(js_name = detectUserEnvironmentHtml5QrcodeCameras)]
+    pub fn jsFfiDetectUserEnvironmentHtml5QrcodeCameras() -> js_sys::Promise;
+
+    #[wasm_bindgen(js_name = createHtml5QrcodeScanner)]
+    pub fn jsFfiCreateHtml5QrcodeScanner(
+        html5QrcodeScannerElementId: &str,
+        camera_id: &str,
+        torch_on: bool,
+    ) -> js_sys::Promise;
+
+    #[wasm_bindgen(js_name = toggleHtml5QrcodeScannerTorch)]
+    pub fn jsFfiToggleHtml5QrcodeScannerTorch(turnOn: bool) -> js_sys::Promise;
+
+    #[wasm_bindgen(js_name = destroyHtml5QrcodeScanner)]
+    pub fn jsFfiDestroyHtml5QrcodeScanner();
 }
 
 // Event Handlers
 pub fn jsFfiHandleOpenLinkEvent(event: Event<MouseData>) {
     if let Some(html_element) = target_html_element_opt(event) {
-        jsFfiOpenLink(html_element);
+        jsFfiOpenElementLink(html_element);
     }
 }
 

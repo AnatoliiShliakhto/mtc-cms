@@ -69,6 +69,7 @@ class CacheManager {
         const keys = await caches.keys();
         await Promise.all(keys.map(key => caches.delete(key)));
         await this.cacheResources(CONFIG.cache.resources);
+        await clearIndexedDb();
     }
 
     static async fetchWithStrategy(request, strategy, networkManager) {
@@ -174,3 +175,23 @@ self.addEventListener('fetch', event => {
     }
     event.respondWith(CacheManager.fetchWithStrategy(modifiedRequest, strategy, networkManager));
 });
+
+async function clearIndexedDb() {
+    if (typeof indexedDB.databases !== 'function') {
+        console.warn("Function indexedDB.databases() is not available in browser");
+        return;
+    }
+    const databases = await indexedDB.databases();
+    for (const db of databases) {
+        const deleteRequest = indexedDB.deleteDatabase(db.name);
+        deleteRequest.onsuccess = () => {
+            console.log(`Database deleted: '${db.name}'`);
+        };
+        deleteRequest.onerror = (event) => {
+            console.error(`Database delete failed: '${db.name}'`, event.target.error);
+        };
+        deleteRequest.onblocked = () => {
+            console.error(`Database delete blocked (close all open connections): '${db.name}'`);
+        };
+    }
+}

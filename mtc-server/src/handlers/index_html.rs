@@ -2,7 +2,8 @@ use crate::prelude::{AppState, CONTENT_SECURITY_POLICY, CONTENT_TYPE};
 use rand::distr::Alphanumeric;
 use rand::Rng;
 use std::sync::Arc;
-
+use axum::body::Body;
+use axum::http::HeaderValue;
 use axum::response::{IntoResponse, Response};
 
 pub async fn get_index_html(state: Arc<AppState>) -> impl IntoResponse {
@@ -18,8 +19,8 @@ pub async fn get_index_html(state: Arc<AppState>) -> impl IntoResponse {
         .replace("{{nonce}}", &nonce);
     let index_html = state.template.index_html.replace("{{nonce}}", &nonce);
     Response::builder()
-        .header(CONTENT_SECURITY_POLICY, csp_header_value)
-        .header(CONTENT_TYPE, "text/html")
-        .body(index_html)
+        .header(CONTENT_SECURITY_POLICY, HeaderValue::from_str(&csp_header_value).unwrap())
+        .header(CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(Body::from(index_html))
         .unwrap()
 }

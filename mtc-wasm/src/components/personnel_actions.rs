@@ -15,6 +15,7 @@ use wasm_bindgen_futures::JsFuture;
 /// - Clear: Clears the personnel table.
 #[component]
 pub fn PersonnelActions() -> Element {
+    let personnel_import_element_id = "personnel-import";
     let mut users = state_fn!(personnel);
     let PersonnelColumns {
         actions: column_actions,
@@ -225,7 +226,7 @@ pub fn PersonnelActions() -> Element {
             }
             input {
                 class: "hidden",
-                id: "personnel-upload",
+                id: personnel_import_element_id,
                 r#type: "file",
                 accept: ".json",
                 multiple: false,
@@ -236,7 +237,7 @@ pub fn PersonnelActions() -> Element {
                 onclick: |event| {
                     event.prevent_default();
                     event.stop_propagation();
-                    jsFfiUploadPersonnel();
+                    jsFfiClickElement(personnel_import_element_id);
                 },
                 Icon { icon: Icons::Upload, class: "size-6" }
                 span {

@@ -166,18 +166,36 @@ export function clearFileInput() {
     });
 }
 
+export async function exportCsvFile(contentCsvStr, suggestedFileName) {
+    const file = new Blob([contentCsvStr], {type: "text/csv"});
+    const opts = {
+        types: [
+            {
+                description: 'CSV',
+                accept: {'text/csv': ['.csv']},
+            },
+        ],
+        suggestedName: suggestedFileName,
+    };
+    await exportFile(file, opts)
+}
+
 export async function exportJsonFile(contentJsonStr, suggestedFileName) {
     const file = new Blob([contentJsonStr], {type: "application/json"});
+    const opts = {
+        types: [
+            {
+                description: 'JSON',
+                accept: {'application/json': ['.json']},
+            },
+        ],
+        suggestedName: suggestedFileName,
+    };
+    await exportFile(file, opts)
+}
+
+async function exportFile(file, opts) {
     if (window.showSaveFilePicker) {
-        const opts = {
-            types: [
-                {
-                    description: 'JSON',
-                    accept: {'application/json': ['.json']},
-                },
-            ],
-            suggestedName: suggestedFileName,
-        };
         try {
             const handle = await window.showSaveFilePicker(opts);
             const writable = await handle.createWritable();
@@ -318,9 +336,18 @@ export async function stopBarcodeScanner() {
     }
 }
 
-export function openLink(element) {
+export function openElementLink(element) {
     try {
-        window.linkOpen(element);
+        window.elementLinkOpen(element);
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export function openLink(url) {
+    try {
+        window.linkOpen(url);
     } catch (error) {
         console.error(error);
         throw error;
@@ -345,11 +372,141 @@ export function blurActiveElement() {
     }
 }
 
-export function uploadPersonnel() {
+export function clickElement(elementId) {
     try {
-        document.getElementById('personnel-upload').click()
+        document.getElementById(elementId).click()
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
+
+// --- Html5 Qr code Scanner ---
+let activeHtml5QrcodeScanner = null;
+
+export async function createHtml5QrcodeScanner(elementId, camera_id, torch_on) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            await destroyHtml5QrcodeScanner();
+            const config = {
+                fps: 10,
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA, Html5QrcodeScanType.SCAN_TYPE_FILE]
+            };
+
+            async function onScanSuccess(decodedText, decodedResult) {
+                resolve(decodedText);
+                await destroyHtml5QrcodeScanner();
+            }
+
+            function onScanFailure(errorMessage) {
+                throw errorMessage;
+            }
+
+            activeHtml5QrcodeScanner = new Html5Qrcode(elementId);
+            await activeHtml5QrcodeScanner.start(camera_id, config, onScanSuccess, onScanFailure);
+            return toggleHtml5QrcodeScannerTorch(torch_on);
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    });
+}
+
+export async function toggleHtml5QrcodeScannerTorch(turnOn) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const torchFeature = activeHtml5QrcodeScanner.getRunningTrackCameraCapabilities().torchFeature();
+            if (torchFeature && torchFeature.isSupported()) {
+                await torchFeature.apply(turnOn);
+            } else {
+                console.warn("Torch is not supported")
+            }
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    });
+}
+
+export async function detectUserEnvironmentHtml5QrcodeCameras() {
+    let devices = await Html5Qrcode.getCameras();
+    if (!devices || devices.length === 0) {
+        return [];
+    }
+
+    let defaultCamera = null;
+    let userCamera = null;
+    let environmentCamera = null;
+    let isUserCamera = device =>
+        device.label.toLowerCase().includes("front") ||
+        device.label.toLowerCase().includes("user");
+    let isEnvironmentCamera = device =>
+        device.label.toLowerCase().includes("back") ||
+        device.label.toLowerCase().includes("environment")
+
+    const tempContainerId = "temp_gate_pass_validation_scanner";
+    const tempContainer = document.createElement('div');
+    tempContainer.id = tempContainerId;
+    tempContainer.style.cssText = "width: 1px; height: 1px; overflow: hidden; position: absolute; left: -9999px;";
+    document.body.appendChild(tempContainer);
+
+    try {
+        for (const device of devices) {
+            let tempHtml5QrcodeScanner = new Html5Qrcode(tempContainerId);
+            await tempHtml5QrcodeScanner.start(
+                device.id,
+                {fps: 1, qrbox: 250},
+                () => {
+                },
+                () => {
+                }
+            );
+
+            const torchSupported = tempHtml5QrcodeScanner
+                .getRunningTrackCameraCapabilities()
+                .torchFeature()
+                .isSupported();
+
+            await sleep(150);
+            await tempHtml5QrcodeScanner.stop();
+            await sleep(150);
+            tempHtml5QrcodeScanner.clear();
+
+            const camera = {
+                id: device.id,
+                torch_supported: torchSupported
+            };
+
+            // default camera
+            if (defaultCamera === null) {
+                defaultCamera = camera;
+            }
+
+            // first user camera
+            if (isUserCamera(device) && userCamera === null) {
+                userCamera = camera;
+            }
+
+            // environment camera, preferably with torch
+            if ((isEnvironmentCamera(device) && userCamera === null) || torchSupported) {
+                environmentCamera = camera;
+            }
+        }
+    } catch (error) {
+        console.error(error)
+    }
+    return [userCamera ?? defaultCamera, environmentCamera ?? defaultCamera];
+}
+
+export async function destroyHtml5QrcodeScanner() {
+    if (activeHtml5QrcodeScanner) {
+        await activeHtml5QrcodeScanner.stop();
+        activeHtml5QrcodeScanner = null;
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ---

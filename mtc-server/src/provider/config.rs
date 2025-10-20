@@ -6,6 +6,7 @@ pub struct Config {
     pub security: SecurityConfig,
     pub paths: PathConfig,
     pub database: DatabaseConfig,
+    pub smtp: SmtpConfig,
     pub cache: CacheConfig,
     pub pagination: PaginationConfig,
 }
@@ -14,6 +15,7 @@ pub struct Config {
 pub struct ServerConfig {
     pub host: Cow<'static, str>,
     pub http_port: Cow<'static, str>,
+    pub https_on: bool,
     pub https_port: Cow<'static, str>,
     pub front_end_url: Cow<'static, str>,
 }
@@ -48,6 +50,14 @@ pub struct DatabaseConfig {
 }
 
 #[derive(Debug, Clone)]
+pub struct SmtpConfig {
+    pub host: Cow<'static, str>,
+    pub client_id: Cow<'static, str>,
+    pub client_password: Cow<'static, str>,
+    pub sender: Cow<'static, str>,
+}
+
+#[derive(Debug, Clone)]
 pub struct CacheConfig {
     pub api_cache_control: Cow<'static, str>,
     pub public_cache_control: Cow<'static, str>,
@@ -62,37 +72,52 @@ pub struct PaginationConfig {
 impl Config {
     pub fn init() -> Config {
         dotenv::dotenv().ok();
-        let data_path = env!("DATA_PATH");
+        let data_path = if cfg!(debug_assertions) {
+            env("DBG_DATA_PATH", "./data")
+        } else {
+            env("DATA_PATH", "/etc/242-mtc")
+        };
 
         Config {
             server: ServerConfig {
-                host: env!("HOST").into(),
-                http_port: env!("HTTP_PORT").into(),
-                https_port: env!("HTTPS_PORT").into(),
-                front_end_url: env!("FRONT_END_URL").into(),
+                host: env("HOST", "0.0.0.0").into(),
+                http_port: env("HTTP_PORT", "80").into(),
+                https_port: env("HTTPS_PORT", "443").into(),
+                https_on: env("HTTPS_ON", "false").parse::<bool>().unwrap_or(false),
+                front_end_url: if cfg!(debug_assertions) {
+                    env("DBG_FRONT_END_URL", "http://localhost").into()
+                } else {
+                    env("FRONT_END_URL", "https://242.mil.gov.ua").into()
+                }
             },
             security: SecurityConfig {
-                password_salt: env!("PASSWORD_SALT").into(),
-                strict_transport_security: env!("STRICT_TRANSPORT_SECURITY").into(),
-                content_security_policy: env!("CONTENT_SECURITY_POLICY").into(),
-                x_frame_options: env!("X_FRAME_OPTIONS").into(),
-                x_content_type_options: env!("X_CONTENT_TYPE_OPTIONS").into(),
-                session_expiration: env!("SESSION_EXPIRATION_IN_MINUTES").parse().unwrap(),
-                max_body_limit: env!("MAX_BODY_LIMIT").parse().unwrap(),
+                password_salt: env("PASSWORD_SALT", "salt").into(),
+                strict_transport_security: env("STRICT_TRANSPORT_SECURITY", "max-age=63072000; includeSubDomains; preload").into(),
+                content_security_policy: env("CONTENT_SECURITY_POLICY", "default-src 'self' https://242.mil.gov.ua https://*.youtube.com https://*.gstatic.com https://*.googleapis.com https://*.youtube.com https://i.ytimg.com; frame-ancestors 'self'; script-src 'self' 'wasm-unsafe-eval' 'nonce-{{nonce}}'; img-src * data:; style-src 'self' 'unsafe-inline';").into(),
+                x_frame_options: env("X_FRAME_OPTIONS", "SAMEORIGIN").into(),
+                x_content_type_options: env("X_CONTENT_TYPE_OPTIONS", "nosniff").into(),
+                session_expiration: env("SESSION_EXPIRATION_IN_MINUTES", "1440").parse().unwrap(),
+                max_body_limit: env("MAX_BODY_LIMIT", "104857600").parse().unwrap(),
             },
             paths: Self::init_paths(&data_path),
             database: DatabaseConfig {
                 db_path: Self::build_path(&data_path, "db"),
-                db_namespace: env!("DB_NAMESPACE").into(),
-                db_name: env!("DB_NAME").into(),
+                db_namespace: env("DB_NAMESPACE", "mtc-242").into(),
+                db_name: env("DB_NAME", "core").into(),
+            },
+            smtp: SmtpConfig {
+                host: env("SMTP_HOST", "smtp.ukr.net").into(),
+                client_id: env("SMTP_CLIENT_ID", "mtc-242@ukr.net").into(),
+                client_password: env("SMTP_CLIENT_PASSWORD", "change_me").into(),
+                sender: env("SMTP_SENDER", "mtc-242@ukr.net").into(),
             },
             cache: CacheConfig {
-                api_cache_control: env!("API_CACHE_CONTROL").into(),
-                public_cache_control: env!("PUBLIC_CACHE_CONTROL").into(),
-                protected_cache_control: env!("PROTECTED_CACHE_CONTROL").into(),
+                api_cache_control: env("API_CACHE_CONTROL", "private; no-cache; no-store").into(),
+                public_cache_control: env("PUBLIC_CACHE_CONTROL", "public; max-age=14400").into(),
+                protected_cache_control: env("PROTECTED_CACHE_CONTROL", "private; max-age=14400").into(),
             },
             pagination: PaginationConfig {
-                rows_per_page: env!("ROWS_PER_PAGE").parse().unwrap(),
+                rows_per_page: env("ROWS_PER_PAGE", "50").parse().unwrap(),
             },
         }
     }
@@ -102,13 +127,17 @@ impl Config {
             www_path: if cfg!(debug_assertions) {
                 "./target/dx/mtc-wasm/debug/web/public".into()
             } else {
-                Self::build_path(data_path, "www")
+                env_opt("WWW_PATH")
+                    .map(Cow::from)
+                    .unwrap_or_else(|| Self::build_path(data_path, "www"))
             },
             storage_path: Self::build_path(data_path, "public"),
             private_storage_path: Self::build_path(data_path, "protected"),
             cert_path: Self::build_path(data_path, "cert"),
             log_path: Self::build_path(data_path, "log"),
-            migration_path: Self::build_path(data_path, "migrations"),
+            migration_path: env_opt("DB_MIGRATION_PATH")
+                .map(Cow::from)
+                .unwrap_or_else(|| Self::build_path(data_path, "migrations")),
             data_path: Cow::Owned(data_path.to_string()),
         }
     }
@@ -116,4 +145,12 @@ impl Config {
     fn build_path(base: &str, path: &str) -> Cow<'static, str> {
         [base, path].join("/").into()
     }
+}
+
+fn env(key: &str, default: &'static str) -> String {
+    dotenv::var(key).unwrap_or(default.into())
+}
+
+fn env_opt(key: &str) -> Option<String> {
+    dotenv::var(key).ok()
 }

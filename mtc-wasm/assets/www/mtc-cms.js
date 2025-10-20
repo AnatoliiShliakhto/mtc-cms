@@ -259,12 +259,16 @@ window.ScreenAlwaysOn = (enable) => {
     }
 };
 
-window.linkOpen = (element) => {
+window.elementLinkOpen = (element) => {
+    window.linkOpen(element.href);
+};
+
+window.linkOpen = (url) => {
     if (tauri) {
-        tauri.core.invoke('open_in_browser', {url: decodeURI(element.href)});
+        tauri.core.invoke('open_in_browser', {url: decodeURI(url)});
     } else {
         const link = document.createElement('a');
-        link.href = element.href;
+        link.href = url;
         link.target = '_blank';
         document.body.appendChild(link);
         link.click();
