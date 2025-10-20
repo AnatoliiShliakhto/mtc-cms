@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перепустка</title>
+    <style>
+        /* Gate Pass */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            height: 100vh;
+            background: #fff;
+        }
+
+        .gate-pass {
+            width: 600px;
+            height: 150px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            color: #333;
+            overflow: hidden;
+            z-index: 1;
+            border: 10px double black;
+        }
+
+        .header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .logo-qr-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="gate-pass">
+    <div class="logo-qr-container">
+        <img src="cid:logo_id" alt="Логотип" style="width: 150px; height: 150px;">
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="header">
+                242 ЦЕНТР ПІДГОТОВКИ ПІДРОЗДІЛІВ
+                <br/>
+                ПЕРЕПУСТКА № {{number}}
+                <br/>
+                <span style="font-size: 0.6em"> Для проходження валідації пред'явіть цю перепустку, або QR код із вкладень</span>
+            </div>
+        </div>
+
+        <img src="cid:qr_code_id" alt="QR-код" style="width: 150px; height: 150px;">
+    </div>
+</div>
+
+</body>
+</html>

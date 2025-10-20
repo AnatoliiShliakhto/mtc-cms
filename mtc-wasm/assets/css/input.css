@@ -170,8 +170,30 @@
         @apply transition-opacity ease-in-out duration-300;
     }
 
+    .main-menu {
+        @apply flex flex-col;
+    }
+
     .main-menu :where(svg) {
         @apply -translate-x-4 sm:-translate-x-2;
+    }
+
+    .main-menu li {
+        @apply w-full flex;
+    }
+
+    .main-menu li > a,
+    .main-menu li > details > summary {
+        @apply flex flex-wrap w-full min-w-0;
+        @apply text-ellipsis overflow-hidden;
+    }
+
+    .main-menu :where(svg) {
+        @apply flex-shrink-0 mr-2;
+    }
+
+    .main-menu :where(span, div) {
+        @apply min-w-0 flex-1;
     }
 
     .personnel-list {

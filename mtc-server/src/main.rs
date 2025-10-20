@@ -9,6 +9,7 @@ mod handlers;
 mod repository;
 mod types;
 mod models;
+mod service;
 
 pub(crate) mod prelude {
     pub(crate) use {
@@ -30,8 +31,8 @@ pub(crate) mod prelude {
             },
             http::{
                 header::{
-                    CACHE_CONTROL, STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS,
-                    CONTENT_TYPE, ACCEPT_ENCODING, CONTENT_SECURITY_POLICY,
+                    CACHE_CONTROL, STRICT_TRANSPORT_SECURITY, X_FRAME_OPTIONS,
+                    X_CONTENT_TYPE_OPTIONS, CONTENT_TYPE, ACCEPT_ENCODING, CONTENT_SECURITY_POLICY,
                 },
                 HeaderValue, HeaderName, status::StatusCode},
             middleware::{Next, from_fn}, Router, Form, Json,
@@ -46,7 +47,7 @@ pub(crate) mod prelude {
         tower::ServiceBuilder,
         tower_http::{
             compression::CompressionLayer, cors::CorsLayer,
-            services::{ServeDir, ServeFile},
+            services::{ServeDir},
             set_header::SetResponseHeaderLayer,
         },
 
@@ -75,6 +76,7 @@ pub(crate) mod prelude {
             repository::prelude::*,
             middleware::prelude::*,
             handlers::prelude::*,
+            service::prelude::*,
         }
     };
 }
@@ -103,13 +105,11 @@ async fn main() {
             .await
             .unwrap();
 
+    let smtp_client = Provider::smtp_client_init(&config).await;
 
-    let state = Arc::new(AppState::init(config, db));
+    let template = Provider::template_init(&config).await;
 
-    let tls_config = RustlsConfig::from_pem_file(
-        PathBuf::from(&*state.config.paths.cert_path).join("ssl.crt"),
-        PathBuf::from(&*state.config.paths.cert_path).join("private.key"),
-    ).await.unwrap();
+    let state = Arc::new(AppState::init(config, db, smtp_client, template));
 
     let compression_layer: CompressionLayer = CompressionLayer::new()
         .br(true)
@@ -130,22 +130,22 @@ async fn main() {
             HeaderValue::from_str(&state.config.security.x_content_type_options).unwrap())
         )
         .layer(SetResponseHeaderLayer::if_not_present(
-            CONTENT_SECURITY_POLICY,
-            HeaderValue::from_str(&state.config.security.content_security_policy).unwrap())
+            X_FRAME_OPTIONS,
+            HeaderValue::from_str(&state.config.security.x_frame_options).unwrap())
         );
 
     let cors_layer = CorsLayer::new()
-            .allow_origin([state.config.server.front_end_url.parse().unwrap()])
-            .allow_headers([CONTENT_TYPE, ACCEPT_ENCODING,
-                HeaderName::from_static("session"),
-            ])
-            .allow_methods([
-                axum::http::Method::GET,
-                axum::http::Method::POST,
-                axum::http::Method::PATCH,
-                axum::http::Method::DELETE,
-                axum::http::Method::OPTIONS
-            ])
+        .allow_origin([state.config.server.front_end_url.parse().unwrap()])
+        .allow_headers([CONTENT_TYPE, ACCEPT_ENCODING,
+            HeaderName::from_static("session"),
+        ])
+        .allow_methods([
+            axum::http::Method::GET,
+            axum::http::Method::POST,
+            axum::http::Method::PATCH,
+            axum::http::Method::DELETE,
+            axum::http::Method::OPTIONS
+        ])
         .allow_credentials(true);
 
     let app = Router::new()
@@ -173,23 +173,44 @@ async fn main() {
             "/wasm",
             ServeDir::new(format!("{}/wasm", state.config.paths.www_path))
         )
-        .route_service(
+        .route(
             "/",
-            ServeFile::new(format!("{}/index.html", state.config.paths.www_path))
+            get({
+                let state = state.clone();
+                move || async move { get_index_html(state).await }
+            }),
         )
         .layer(compression_layer)
         .layer(static_headers)
         .layer(cors_layer)
         .layer(DefaultBodyLimit::max(state.config.security.max_body_limit));
+    if state.config.server.https_on == true {
+        start_https_server(app, &state).await;
+    } else {
+        start_http_server(app, &state).await;
+    }
+}
 
+async fn start_http_server(app: Router, state: &Arc<AppState>) {
+    info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{0}:{1}\x1b[0m -> {2}:{3}",
+        &state.config.server.host, &state.config.server.http_port,
+        &state.config.server.front_end_url, &state.config.server.http_port);
+    let http_host: SocketAddr = format!("{}:{}", state.config.server.host, state.config.server.http_port)
+        .parse().expect("Unable to parse socket address");
+    axum_server::bind(http_host)
+        .serve(app.into_make_service()).await.unwrap();
+}
+
+async fn start_https_server(app: Router, state: &Arc<AppState>) {
     info!("\x1b[38;5;6mServer started successfully at \x1b[38;5;13m{0}:{1}\x1b[0m -> {2}:{3}",
         &state.config.server.host, &state.config.server.https_port,
         &state.config.server.front_end_url, &state.config.server.https_port);
-
+    let tls_config = RustlsConfig::from_pem_file(
+        PathBuf::from(&*state.config.paths.cert_path).join("ssl.crt"),
+        PathBuf::from(&*state.config.paths.cert_path).join("private.key"),
+    ).await.unwrap();
     let https_host: SocketAddr = format!("{}:{}", &state.config.server.host, &state.config.server.https_port)
         .parse().expect("Unable to parse socket address");
-
-    // run AXUM server with TLS
     axum_server::bind_rustls(https_host, tls_config)
         .serve(app.into_make_service()).await.unwrap();
 }

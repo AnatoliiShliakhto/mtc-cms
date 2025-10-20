@@ -1,6 +1,7 @@
 mod consts;
 mod models;
 mod services;
+mod validators;
 
 pub mod prelude {
     pub use serde::{Deserialize, Deserializer, Serialize, de::DeserializeOwned};
@@ -12,5 +13,6 @@ pub mod prelude {
         consts::prelude::*,
         models::prelude::*,
         services::prelude::*,
+        validators::prelude::*,
     };
 }

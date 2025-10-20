@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
+use wasm_bindgen_futures::JsFuture;
 use super::*;
 
 static CHAR_MAP: LazyLock<HashMap<char, char>> = LazyLock::new(|| {
@@ -67,13 +68,11 @@ pub fn SignIn() -> Element {
     };
 
     if platform.eq("android") {
-        eval(r#"
-            try {
-                await window.__TAURI__.barcodeScanner.cancel();
-            } catch (error) {
-                console.log(error);
+        spawn( async move {
+            if JsFuture::from(jsFfiStopBarcodeScanner()).await.is_err() {
+                error!("failed to invoke jsFfiStopBarcodeScanner");
             }
-        "#);
+        });
     }
 
     rsx! {

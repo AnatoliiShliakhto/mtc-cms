@@ -259,12 +259,16 @@ window.ScreenAlwaysOn = (enable) => {
     }
 };
 
-window.linkOpen = (element) => {
+window.elementLinkOpen = (element) => {
+    window.linkOpen(element.href);
+};
+
+window.linkOpen = (url) => {
     if (tauri) {
-        tauri.core.invoke('open_in_browser', {url: decodeURI(element.href)});
+        tauri.core.invoke('open_in_browser', {url: decodeURI(url)});
     } else {
         const link = document.createElement('a');
-        link.href = element.href;
+        link.href = url;
         link.target = '_blank';
         document.body.appendChild(link);
         link.click();
@@ -284,7 +288,7 @@ window.openIfExists = async (file) => {
     return false;
 };
 
-window.downloadFile = async (url, path) => {
+window.tauriDownloadFile = async (url, path) => {
     try {
         await tauri.core.invoke('download', {url, path});
         return true;
@@ -314,7 +318,7 @@ window.linkDownloadThenOpen = async (element) => {
 
     if (tauri) {
         try {
-            if (await downloadFile(fileUrl, filePath)) {
+            if (await tauriDownloadFile(fileUrl, filePath)) {
                 await openIfExists(filePath);
                 element.classList.remove('text-error');
             } else {
@@ -326,21 +330,13 @@ window.linkDownloadThenOpen = async (element) => {
         }
     } else {
         try {
-            const response = await fetch(fileUrl);
-            if (response.ok) {
-                const link = document.createElement('a');
-                document.body.appendChild(link);
-                let blob = await response.blob();
-                let urlObj = window.URL.createObjectURL(blob)
-                link.href = urlObj;
-                link.download = fileName;
-                link.click();
-                window.URL.revokeObjectURL(urlObj)
-                document.body.removeChild(link);
-                element.classList.remove('text-error');
-            } else {
-                element.classList.add('text-error');
-            }
+            const link = document.createElement('a');
+            document.body.appendChild(link);
+            link.href = fileUrl;
+            link.download = fileName;
+            link.click();
+            document.body.removeChild(link);
+            element.classList.remove('text-error');
         } catch (err) {
             console.error(err);
             element.classList.add('text-error');

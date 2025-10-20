@@ -14,7 +14,7 @@ pub fn build_breadcrumbs(slug: &str) {
     let slug: Cow<'static, str> = slug.to_owned().into();
 
     use_effect(use_reactive!(|(slug,)| {
-        let breadcrumbs: Vec<(Cow<str>, &str)> = match &*slug {
+        let breadcrumbs: Vec<(String, &str)> = match &*slug {
             "menu-sign-in" => vec![(t!("menu-sign-in"), "/auth/sign-in")],
             "menu-change-password" => vec![(t!("menu-change-password"), "/auth/change-password")],
             "menu-search" => vec![(t!("menu-search"), "")],
@@ -69,6 +69,20 @@ pub fn build_breadcrumbs(slug: &str) {
             "menu-app-download"
             | "menu-app-data" => vec![
                 (t!("menu-application"), ""),
+            ],
+
+            "menu-gate-passes" => vec![
+                (t!("menu-administrator"), "/administrator"),
+                (t!("menu-gate-passes"), "/administrator/gate-passes")
+            ],
+
+            "menu-gate-pass-validation-scan" => vec![
+                (t!("menu-gate-pass-validation-scan"), "")
+            ],
+
+            "menu-gate-pass-validation-scan-result" => vec![
+                (t!("menu-gate-pass-validation-scan"), "/gate-pass-validation-scans"),
+                (t!("menu-gate-pass-validation-scan-result"), "")
             ],
 
             _ => vec![],

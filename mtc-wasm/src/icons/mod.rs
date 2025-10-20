@@ -64,6 +64,12 @@ mod qr_code;
 mod qr_scan;
 mod tablet;
 mod windows;
+mod front_side;
+mod back_side;
+mod email;
+mod block;
+mod internet;
+mod phone;
 
 pub mod prelude {
     pub use super::{
@@ -137,8 +143,20 @@ pub enum Icons {
     Map,
     QrCode,
     QrScan,
+    QrPhoneScan,
     Tablet,
     Windows,
+    FrontSide,
+    BackSide,
+    SendEmail,
+    ActiveBlockIcon,
+    ExpiredBlockIcon,
+    InactiveBlockIcon,
+    Online,
+    Offline,
+    PhoneRotation,
+    PhoneFlashOn,
+    PhoneFlashOff,
 }
 
 #[component]
@@ -211,7 +229,19 @@ pub fn Icon(
         Icons::Map => map::MapIcon(class),
         Icons::QrCode => qr_code::QrCodeIcon(class),
         Icons::QrScan => qr_scan::QrScanIcon(class),
+        Icons::QrPhoneScan => qr_scan::QrPhoneScanIcon(class),
         Icons::Tablet => tablet::TabletIcon(class),
         Icons::Windows => windows::WindowsIcon(class),
+        Icons::FrontSide => front_side::FrontSideIcon(class),
+        Icons::BackSide => back_side::BackSideIcon(class),
+        Icons::SendEmail => email::SendEmailIcon(class),
+        Icons::ActiveBlockIcon => block::ActiveBlockIcon(class),
+        Icons::ExpiredBlockIcon => block::ExpiredBlockIcon(class),
+        Icons::InactiveBlockIcon => block::InactiveBlockIcon(class),
+        Icons::Online => internet::OnlineIcon(class),
+        Icons::Offline => internet::OfflineIcon(class),
+        Icons::PhoneRotation => phone::PhoneRotationIcon(class),
+        Icons::PhoneFlashOn => phone::PhoneFlashOnIcon(class),
+        Icons::PhoneFlashOff => phone::PhoneFlashOffIcon(class),
     }
 }

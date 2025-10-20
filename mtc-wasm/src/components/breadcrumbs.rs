@@ -28,14 +28,14 @@ pub fn Breadcrumbs() -> Element {
                             li {
                                 span {
                                     class: "inline-flex items-center gap-2",
-                                    { item.0 }
+                                    { &*item.0 }
                                 }
                             }
                         } else {
                             li {
                                 a {
                                     onclick: move |_| { navigator().push(&*item.1); },
-                                    { item.0 }
+                                    { &*item.0 }
                                 }
                             }
                         }

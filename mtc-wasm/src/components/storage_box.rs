@@ -1,4 +1,5 @@
 use super::*;
+use wasm_bindgen_futures::JsFuture;
 
 /// A component to display the content of the private or public storage.
 ///
@@ -84,44 +85,45 @@ pub fn StorageBox(
     let upload_task = move |event: Event<FormData>| {
         spawn(async move {
             loop {
-                match eval(
-                    if is_private() {
-                        JS_PRIVATE_FILE_UPLOAD
-                    } else {
-                        JS_PUBLIC_FILE_UPLOAD
-                    }
-                ).recv().await {
-                    Ok(Value::Number(value)) => {
-                        download_progress.set(value.as_i64().unwrap_or_default())
-                    }
-                    Ok(Value::String(value)) => {
-                        if value.is_empty() {
+                let storage_type = if is_private() { "private" } else { "public" };
+                match JsFuture::from(jsFfiUploadFile(storage_type))
+                    .await
+                    .map(|value| value.as_string())
+                    .map(|value| value.filter(|value| value.is_empty()))
+                {
+                    Ok(value) => match value {
+                        Some(value) => {
                             download_progress.set(100);
                             if let Some(file_engine) = &event.files() {
                                 let files = file_engine.files();
                                 if files.len() == 1 {
-                                    match eval(JS_COPY_TO_CLIPBOARD)
-                                        .send(format!("{:0}/{:1}", path(), files[0])) {
+                                    let text = format!("{:0}/{:1}", path(), files[0]);
+                                    match JsFuture::from(jsFfiCopyToClipboard(&text)).await {
                                         Ok(_) => {
                                             download_progress.set(0);
-                                            eval(JS_FILE_INPUTS_CLEAR);
+                                            if JsFuture::from(jsFfiClearFileInput()).await.is_err() {
+                                                error!("failed to invoke jsFfiClearFileInput");
+                                            }
                                             is_show.set(false)
-                                        },
+                                        }
                                         Err(_) => {}
                                     }
                                 } else {
                                     future.restart()
                                 }
                             }
-                        } else {
-                            download_progress.set(101)
+                            break;
                         }
-                        break
-                    }
-                    _ => {
+                        None => {
+                            download_progress.set(101);
+                            break;
+                        }
+                    },
+                    Err(error) => {
+                        error!("failed to invoke jsFfiUploadFile");
                         download_progress.set(101);
                         break;
-                    },
+                    }
                 }
             }
         });
@@ -228,13 +230,15 @@ pub fn StorageBox(
                                         rsx! {
                                             tr {
                                                 onclick: move |_| {
-                                                    match eval(JS_COPY_TO_CLIPBOARD)
-                                                    .send(file_path.clone()) {
-                                                        Ok(_) => is_show.set(false),
-                                                        Err(_) => {}
-                                                    }
+                                                    let file_path = file_path.clone();
+                                                    spawn(async move {
+                                                        match JsFuture::from(jsFfiCopyToClipboard(&file_path)).await {
+                                                            Ok(_) => is_show.set(false),
+                                                            Err(_) => error!("failed to invoke jsFfiCopyToClipboard")
+                                                        }
+                                                    });
                                                 },
-                                                td { { file_name.clone() } }
+                                                td { { &*file_name } }
                                                 td { { human_bytes(file_size as f64) } }
                                                 if can_delete {
                                                     td {

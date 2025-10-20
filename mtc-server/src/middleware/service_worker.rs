@@ -5,7 +5,9 @@ use std::sync::LazyLock;
 static JS_SERVICE_WORKER: LazyLock<String> = LazyLock::new(|| {
     let mut precache = vec!["".to_string(), "/index.html".to_string()];
 
-    let mut path = Path::new(env!("DATA_PATH")).join("www");
+
+    let www_path = env("WWW_PATH", "/etc/242-mtc/www");
+    let mut path = Path::new(&www_path);
     if cfg!(debug_assertions) {
         path = Path::new("./target/dx/mtc-wasm/debug/web/public").into()
     }
@@ -47,4 +49,8 @@ pub async fn service_worker_handler(
             (CONTENT_TYPE, "application/javascript"),
             (CACHE_CONTROL, "no-cache; no-store; must-revalidate; private; max-age=0"),
         ], service_worker))
+}
+
+fn env(key: &str, default: &'static str) -> String {
+    dotenv::var(key).unwrap_or(default.into())
 }

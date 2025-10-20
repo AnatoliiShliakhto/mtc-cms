@@ -1,14 +1,17 @@
+use validator::ValidationErrors;
 use crate::prelude::*;
 
 mod generic;
 mod database;
 mod session;
+mod smtp;
 
 pub(crate) mod prelude {
     pub(crate) use super::{
         database::*,
         generic::*,
         session::*,
+        smtp::*,
         Error,
     };
 }
@@ -24,6 +27,10 @@ pub enum Error {
     DatabaseError(#[from] DatabaseError),
     #[error[transparent]]
     SurrealDbError(#[from] surrealdb::Error),
+    #[error[transparent]]
+    SmtpError(#[from] SmtpError),
+    #[error(transparent)]
+    ValidationError(#[from] ValidationErrors),
     #[error[transparent]]
     FormatError(#[from] core::fmt::Error),
     #[error[transparent]]
@@ -44,6 +51,13 @@ impl IntoResponse for Error {
             Error::SessionError(error) => error.into_response(),
             Error::DatabaseError(error) => error.into_response(),
             Error::GenericError(error) => error.into_response(),
+            Error::ValidationError(error) => {
+                error!("{error}");
+                (
+                    StatusCode::BAD_REQUEST,
+                    Json(json!({ "message": "error-bad-request", "errors": error.to_string() })),
+                ).into_response()
+            }
             Error::MultipartError(..)
             | Error::FormRejection(..)
             | Error::JsonRejection(..) => {

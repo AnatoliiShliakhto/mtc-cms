@@ -6,6 +6,8 @@ pub enum Error {
     Generic(Cow<'static, str>),
     Network(Cow<'static, str>),
     Response(Cow<'static, str>),
+    Deserialization(Cow<'static, str>),
+    IndexedDb(Cow<'static, str>),
     None,
 }
 
@@ -14,9 +16,17 @@ impl Error {
         match self {
             Error::Generic(message)
             | Error::Network(message)
-            | Error::Response(message) => Cow::from(t!(message)),
+            | Error::Response(message)
+            | Error::Deserialization(message)
+            | Error::IndexedDb(message) => Cow::from(t!(message)),
             Error::None => "".into(),
         }
+    }
+}
+
+impl From<indexed_db::Error<Error>> for Error {
+    fn from(value: indexed_db::Error<Error>) -> Self {
+        Error::IndexedDb(Cow::Owned(format!("{:?}", value)))
     }
 }
 
@@ -31,7 +41,9 @@ impl From<Error> for Cow<'static, str> {
         match value {
             Error::Generic(message) 
             | Error::Network(message)
-            | Error::Response(message) => message,
+            | Error::Response(message)
+            | Error::Deserialization(message)
+            | Error::IndexedDb(message) => message,
             Error::None => "".into(),
         }
     }

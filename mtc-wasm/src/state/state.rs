@@ -1,4 +1,5 @@
 use super::*;
+use indexed_db::Database;
 
 /// Initializes the application state with the provided internationalization (i18n) data.
 ///
@@ -14,8 +15,7 @@ use super::*;
 /// # Returns
 /// - A `Signal` containing the session string.
 pub fn use_init_state(i18n: &str) -> Signal<Cow<'static, str>> {
-    let mut lang_entries =
-        BTreeMap::<Cow<'static, str>, Cow<'static, str>>::new();
+    let mut lang_entries = BTreeMap::<Cow<'static, str>, Cow<'static, str>>::new();
 
     let mut reader = csv::ReaderBuilder::new()
         .delimiter(b'=')
@@ -48,6 +48,7 @@ pub fn use_init_state(i18n: &str) -> Signal<Cow<'static, str>> {
         personnel_columns: Default::default(),
         search: Default::default(),
         platform: Signal::new(Cow::Borrowed("web")),
+        indexed_db: Signal::new(None),
     }).session
 }
 
@@ -75,7 +76,8 @@ pub struct UseState {
     personnel: Signal<BTreeMap<Cow<'static, str>, UserDetails>>,
     personnel_columns: PersonnelColumns,
     search: SearchEngine,
-    platform: Signal<Cow<'static,str>>,
+    platform: Signal<Cow<'static, str>>,
+    indexed_db: Signal<Option<Database<Error>>>,
 }
 
 impl UseState {
@@ -183,5 +185,12 @@ impl UseState {
     }
     pub fn set_platform(&self, platform: Cow<'static, str>) {
         *self.platform.write_unchecked() = platform
+    }
+
+    pub fn indexed_db(&self) -> Signal<Option<Database<Error>>> {
+        self.indexed_db
+    }
+    pub fn set_indexed_db(&self, indexed_db: Option<Database<Error>>) {
+        *self.indexed_db.write_unchecked() = indexed_db
     }
 }
