@@ -42,8 +42,8 @@ pub mod prelude {
         components::prelude::*,
         elements::prelude::*,
         error::*,
-        icons::prelude::*,
-        js::*,
+        icons::prelude::*
+        ,
         macros::prelude::*,
         packs::prelude::*, // site packs
         pages::prelude::*,
@@ -149,13 +149,10 @@ fn main() {
             }
             ErrorBoundary {
                 handle_error: |errors: ErrorContext| {
-                    match errors.show() {
-                        Some(view) => view,
-                        None => rsx! {
-                            pre {
-                                color: "red",
-                                "Oops, we ran into an error\n{errors:#?}"
-                            }
+                    rsx! {
+                        pre {
+                            color: "red",
+                            "Oops, we ran into an error\n{errors:#?}"
                         }
                     }
                 },

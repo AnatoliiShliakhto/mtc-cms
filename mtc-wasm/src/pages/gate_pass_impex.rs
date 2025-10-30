@@ -1,6 +1,6 @@
 use super::*;
-use crate::prelude::dioxus_elements::FileEngine;
 use csv::{Reader, Writer};
+use dioxus::html::FileData;
 use futures_util::TryFutureExt;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -168,29 +168,25 @@ pub struct CreateGatePassRequestCsvRecord {
     pub body_type: Cow<'static, str>,
 }
 
-async fn read_from_csv_file(
-    file_engine_opt: Option<Arc<dyn FileEngine>>,
-) -> Result<Vec<CreateGatePassRequest>, Error> {
-    if let Some(file_engine) = file_engine_opt {
-        if let Some(file_name) = file_engine.files().into_iter().next() {
-            if let Some(csv_bytes) = file_engine.read_file(&file_name).await {
-                let cursor = Cursor::new(csv_bytes);
-                let mut csv_reader = Reader::from_reader(cursor);
-                let import_mappers = ImportMappers::new();
-                return csv_reader
-                    .deserialize::<CreateGatePassRequestCsvRecord>()
-                    .collect::<Vec<_>>()
-                    .into_iter()
-                    .map(|record_result| {
-                        record_result
-                            .map_err(|error| Error::Generic(Cow::Owned(error.to_string())))
-                            .and_then(validate_create_gate_pass_csv_request_record)
-                            .and_then(|record| {
-                                convert_to_create_gate_pass_request(&import_mappers, record)
-                            })
-                    })
-                    .collect();
-            }
+async fn read_from_csv_file(files: Vec<FileData>) -> Result<Vec<CreateGatePassRequest>, Error> {
+    if let Some(file) = files.into_iter().next() {
+        if let Ok(csv_bytes) = file.read_bytes().await {
+            let cursor = Cursor::new(csv_bytes);
+            let mut csv_reader = Reader::from_reader(cursor);
+            let import_mappers = ImportMappers::new();
+            return csv_reader
+                .deserialize::<CreateGatePassRequestCsvRecord>()
+                .collect::<Vec<_>>()
+                .into_iter()
+                .map(|record_result| {
+                    record_result
+                        .map_err(|error| Error::Generic(Cow::Owned(error.to_string())))
+                        .and_then(validate_create_gate_pass_csv_request_record)
+                        .and_then(|record| {
+                            convert_to_create_gate_pass_request(&import_mappers, record)
+                        })
+                })
+                .collect();
         }
     }
     Ok(Vec::new())

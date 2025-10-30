@@ -92,9 +92,14 @@ impl UserRepository for Repository {
 
     async fn find_user(&self, id: impl ToString, access: Access) -> Result<User> {
         let mut sql = r#"
-            SELECT *, id.id() as id,
-            (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group
-            FROM type::thing('users', $id) WHERE access_level > $access_level
+            SELECT * FROM (
+                SELECT
+                    *,
+                    id.id() as id,
+                    (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group,
+                    math::max(->user_roles->roles.user_access_level) as access_level
+                FROM type::thing('users', $id)
+            ) WHERE access_level > $access_level
         "#.to_string();
 
         if !access.full {
@@ -112,10 +117,14 @@ impl UserRepository for Repository {
 
     async fn find_user_by_login(&self, login: impl ToString, access: Access) -> Result<User> {
         let mut sql = r#"
-            SELECT *, id.id() as id,
-            (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group,
-            math::max(->user_roles->roles.user_access_level) as access_level
-            FROM users WHERE login=$login AND access_level > $access_level
+            SELECT * FROM (
+                SELECT
+                    *,
+                    id.id() as id,
+                    (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group,
+                    math::max(->user_roles->roles.user_access_level) as access_level
+                FROM users
+            ) WHERE login=$login AND access_level > $access_level
             "#.to_string();
 
         if !access.full {

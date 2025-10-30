@@ -111,12 +111,12 @@ pub fn PersonnelActions() -> Element {
     };
 
     let from_file = move |event: Event<FormData>| async move {
-        if let Some(file_engine) = event.files() {
-            let files = file_engine.files();
-            if files.is_empty() {
-                return;
-            }
-            if let Some(json_string) = file_engine.read_file_to_string(&files[0]).await {
+        let files = event.files();
+        if files.is_empty() {
+            return;
+        }
+        if let Some(file) = files.into_iter().next() {
+            if let Ok(json_string) = file.read_string().await {
                 let Ok(personnel) = serde_json::from_str::<Vec<PersonDto>>(&json_string) else {
                     return;
                 };

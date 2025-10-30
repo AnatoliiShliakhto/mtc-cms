@@ -51,8 +51,8 @@ tracing = { version = "0.1.41" }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-appender = { version = "0.2.3" }
 
-dioxus = { version = "0.7.0-rc.0", features = ["web", "router"] }
-dioxus-logger = { version = "0.7.0-rc.0" }
+dioxus = { version = "0.7.0-rc.3", features = ["web", "router"] }
+dioxus-logger = { version = "0.7.0-rc.3" }
 
 validator = { version = "0.19", features = ["derive"] }
 
