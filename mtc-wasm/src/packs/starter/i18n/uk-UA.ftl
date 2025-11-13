@@ -39,6 +39,8 @@ action-sync = Перевірка
 action-try-again = Спробувати ще
 action-upload = Імпорт
 action-yes = Так точно!
+action-print = Друк
+action-renew = Подовжити
 
 caption-administrator-dashboard = Панель керування платформою
 caption-alert = Увага!
@@ -210,7 +212,7 @@ menu-gate-pass-validation = Валідатор перепусток
 menu-gate-pass-validation-scan = Валідатор за QR кодом
 menu-gate-pass-validation-scan-result = Результат валідації
 
-gate-pass-action-search = Пошук за прізвищем чи номером автомобіля
+gate-pass-action-search = Пошук за прізвищем власника чи номерним знаком автомобіля
 gate-pass-action-sync = Синхронізувати перепустки
 gate-pass-action-switch-camera = Переключити камеру
 gate-pass-action-offline-mode = Валідувати без інтернету
@@ -219,8 +221,9 @@ gate-pass-action-reblock = Оновити блокування
 gate-pass-action-unblock = Розблокувати перепустку
 gate-pass-action-edit-block = Редагувати блокування
 gate-pass-action-send-email = Надіслати перепустку
-gate-pass-action-print-front = Роздрукувати лицьову сторону перепустки
-gate-pass-action-print-back = Роздрукувати зворотну сторону перепустки
+gate-pass-action-print = Роздрукувати перепустку
+gate-pass-action-print-all = Роздрукувати перепустки
+gate-pass-action-renew-all = Подовжити перепустки
 
 gate-pass-owner-title-soldier = Солдат
 gate-pass-owner-title-seniorsoldier = Старший солдат
@@ -292,6 +295,7 @@ gate-pass-field-owner-middle-name = Побатькові
 gate-pass-field-owner-title = Звання
 gate-pass-field-owner-unit = Підрозділ
 gate-pass-field-vehicle-number-plate = Номерний знак
+gate-pass-field-vehicle-number-plates = Номерні знаки
 gate-pass-field-vehicle-vin-code = VIN код
 gate-pass-field-vehicle-manufacturer = Марка
 gate-pass-field-vehicle-model = Модель
@@ -305,4 +309,10 @@ gate-pass-field-block-expired-at = Чинне до
 gate-pass-field-block-reason = Причина
 gate-pass-field-recipient-email = Адреса електронної пошти отримувача
 
+gate-pass-print-description = За замовчуванням будуть роздруковані всі активні перепустки. Щоб вибрати лише деякі, введіть їхні номерні знаки через кому.
+gate-pass-renew-description = За замовчуванням будуть подовжені всі активні перепустки. Щоб вибрати лише деякі, введіть їхні номерні знаки через кому.
 gate-pass-import-error = Імпорт перепусток завершено: успішних {succeeded}, помилкових {failed}. Експортувати помилкові записи?
+
+two-side-print-mode = Режим двостороннього друку
+two-side-print-mode-manual = Ручний
+two-side-print-mode-automatic = Автоматичний

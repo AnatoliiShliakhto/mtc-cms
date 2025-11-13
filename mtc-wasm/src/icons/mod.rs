@@ -64,12 +64,12 @@ mod qr_code;
 mod qr_scan;
 mod tablet;
 mod windows;
-mod front_side;
-mod back_side;
+mod printer;
 mod email;
 mod block;
 mod internet;
 mod phone;
+mod renew;
 
 pub mod prelude {
     pub use super::{
@@ -146,8 +146,8 @@ pub enum Icons {
     QrPhoneScan,
     Tablet,
     Windows,
-    FrontSide,
-    BackSide,
+    PrinterIcon,
+    RenewIcon,
     SendEmail,
     ActiveBlockIcon,
     ExpiredBlockIcon,
@@ -232,8 +232,8 @@ pub fn Icon(
         Icons::QrPhoneScan => qr_scan::QrPhoneScanIcon(class),
         Icons::Tablet => tablet::TabletIcon(class),
         Icons::Windows => windows::WindowsIcon(class),
-        Icons::FrontSide => front_side::FrontSideIcon(class),
-        Icons::BackSide => back_side::BackSideIcon(class),
+        Icons::PrinterIcon => printer::PrinterIcon(class),
+        Icons::RenewIcon => renew::RenewIcon(class),
         Icons::SendEmail => email::SendEmailIcon(class),
         Icons::ActiveBlockIcon => block::ActiveBlockIcon(class),
         Icons::ExpiredBlockIcon => block::ExpiredBlockIcon(class),

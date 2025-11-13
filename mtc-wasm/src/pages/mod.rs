@@ -32,6 +32,8 @@ mod gate_pass_block;
 mod gate_pass_email;
 mod gate_pass_impex;
 mod navigation_loop;
+mod gate_pass_print;
+mod gate_pass_renew;
 
 pub mod prelude {
     pub use super::{

@@ -158,7 +158,7 @@
     }
 
     .action-right-panel {
-        @apply bg-base-200 fixed w-36 -right-20 transition-transform ease-in-out duration-300 hover:-translate-x-20;
+        @apply bg-base-200 fixed w-40 -right-20 transition-transform ease-in-out duration-300 hover:-translate-x-20;
         @apply rounded-l-lg rounded-r-none shadow-md z-[10];
     }
 

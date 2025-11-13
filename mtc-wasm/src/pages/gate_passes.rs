@@ -1,5 +1,8 @@
 use super::*;
 use crate::pages::gate_pass_email::GatePassSendEmailDialogView;
+use crate::pages::gate_pass_print::{GatePassPrintButton, GatePassPrintDialogView};
+use crate::pages::gate_pass_renew::{GatePassRenewButton, GatePassRenewDialogView};
+use chrono::{Datelike, NaiveDate};
 use dioxus::prelude::*;
 use std::collections::HashMap;
 use tokio::join;
@@ -10,9 +13,12 @@ pub fn GatePasses() -> Element {
     check_permission!(PERMISSION_GATE_PASS_READ);
 
     let search_signal = use_signal(String::new);
+    let gate_pass_id_print_signal = use_signal(|| None::<String>);
+    let gate_pass_print_visible_signal = use_signal(|| false);
     let gate_pass_id_block_signal = use_signal(|| None::<String>);
     let gate_pass_block_signal = use_signal(|| None::<GatePassBlock>);
     let gate_pass_id_send_email_signal = use_signal(|| None::<String>);
+    let gate_pass_renew_visible_signal = use_signal(|| false);
     let gate_passes_resource = use_resource(move || async move {
         let search = search_signal();
         let upper_case_search = search.to_uppercase();
@@ -21,8 +27,8 @@ pub fn GatePasses() -> Element {
             vec![search_top_gate_passes]
         } else {
             let gate_passes = join!(
-                search_gate_passes(Some("last_name"), Some(&search)),
-                search_gate_passes(Some("number_plate"), Some(&upper_case_search))
+                search_gate_passes(Some("last_names"), Some(&search)),
+                search_gate_passes(Some("number_plates"), Some(&upper_case_search))
             );
             vec![
                 gate_passes.0.get_value().await,
@@ -43,13 +49,18 @@ pub fn GatePasses() -> Element {
     rsx! {
         section { class: "w-full grow xl:pr-16",
             GatePassSearchView { search_signal }
+            GatePassPrintDialogView {gate_pass_id_print_signal, gate_pass_print_visible_signal}
             GatePassBlockDialogView { gate_pass_id_block_signal, gate_pass_block_signal }
             GatePassSendEmailDialogView { gate_pass_id_send_email_signal }
+            GatePassRenewDialogView{ gate_pass_renew_visible_signal }
             GatePassListView {
                 gate_passes_resource,
+                gate_pass_id_print_signal,
+                gate_pass_print_visible_signal,
                 gate_pass_id_block_signal,
                 gate_pass_id_send_email_signal,
                 gate_pass_block_signal,
+                gate_pass_renew_visible_signal
             }
         }
     }
@@ -61,7 +72,7 @@ fn search_gate_passes(
 ) -> impl Future<Output = Result<Response, reqwest::Error>> {
     let mut payload = HashMap::new();
     if let (Some(name), Some(value)) = (criteria_name, criteria_value) {
-        payload.insert(name.to_string(), value.to_string());
+        payload.insert(name.to_string(), split(value, ","));
     }
     state!(client)
         .post(url!(API_GATE_PASSES, "searches"))
@@ -102,9 +113,12 @@ pub fn GatePassSearchView(search_signal: Signal<String>) -> Element {
 #[component]
 pub fn GatePassListView(
     gate_passes_resource: Resource<Vec<GatePass>>,
+    gate_pass_id_print_signal: Signal<Option<String>>,
+    gate_pass_print_visible_signal: Signal<bool>,
     gate_pass_id_block_signal: Signal<Option<String>>,
     gate_pass_id_send_email_signal: Signal<Option<String>>,
     gate_pass_block_signal: Signal<Option<GatePassBlock>>,
+    gate_pass_renew_visible_signal: Signal<bool>,
 ) -> Element {
     let gate_passes = gate_passes_resource.suspend()?;
 
@@ -113,7 +127,6 @@ pub fn GatePassListView(
             table { class: "entry-table",
                 thead {
                     tr {
-                        th { class: "w-12" }
                         th { class: "text-wrap", {t!("gate-pass-field-owner-full-name")} }
                         th { class: "text-wrap", {t!("gate-pass-field-vehicle-number-plate")} }
                         th { class: "text-wrap", {t!("gate-pass-field-vehicle-info")} }
@@ -127,8 +140,7 @@ pub fn GatePassListView(
                             let owner = &gate_pass.owner;
                             let vehicle = gate_pass.require_first_vehicle();
                             let block = gate_pass.block.clone();
-                            let front_url = url!(API_GATE_PASSES, & gate_pass.id.as_ref(), "fronts");
-                            let back_url = url!(API_GATE_PASSES, & gate_pass.id.as_ref(), "backs");
+                            let gate_path_id = gate_pass.id.clone();
                             rsx! {
                                 tr {
                                     onclick: {
@@ -137,30 +149,6 @@ pub fn GatePassListView(
                                             navigator().push(route!(API_ADMINISTRATOR, API_GATE_PASSES, gate_pass_id));
                                         }
                                     },
-                                    td {
-                                        a {
-                                            class: "btn btn-xs btn-ghost",
-                                            title: t!("gate-pass-action-print-front"),
-                                            onclick: move |event| {
-                                                event.prevent_default();
-                                                event.stop_propagation();
-
-                                                jsFfiOpenLink(&front_url);
-                                            },
-                                            Icon { icon: Icons::FrontSide, class: "size-6" }
-                                        }
-                                        a {
-                                            class: "btn btn-xs btn-ghost",
-                                            title: t!("gate-pass-action-print-back"),
-                                            onclick: move |event| {
-                                                event.prevent_default();
-                                                event.stop_propagation();
-
-                                                jsFfiOpenLink(&back_url);
-                                            },
-                                            Icon { icon: Icons::BackSide, class: "size-6" }
-                                        }
-                                    }
                                     td { {format!("{} {} {}", &*owner.last_name, &*owner.first_name, &*owner.middle_name)} }
                                     td { {vehicle.number_plate.as_ref()} }
                                     td {
@@ -176,7 +164,22 @@ pub fn GatePassListView(
                                     }
                                     td {
                                         button {
-                                            class: "btn btn-xl btn-ghost",
+                                            class: "btn btn-ghost",
+                                            title: t!("gate-pass-action-print"),
+                                            onclick: move |event| {
+                                                event.prevent_default();
+                                                event.stop_propagation();
+
+                                                gate_pass_id_print_signal
+                                                    .set(Some(gate_path_id.to_string()));
+                                                gate_pass_print_visible_signal
+                                                    .set(true);
+                                            },
+                                            Icon { icon: Icons::PrinterIcon, class: "size-6" }
+                                        }
+
+                                        button {
+                                            class: "btn btn-ghost",
                                             title: if gate_pass.block.is_some() {
                                                 {t!("gate-pass-action-edit-block")}
                                             } else {
@@ -193,16 +196,16 @@ pub fn GatePassListView(
                                                 }
                                             },
                                             if gate_pass.blocked() {
-                                                Icon { icon: Icons::ActiveBlockIcon, class: "size-8" }
+                                                Icon { icon: Icons::ActiveBlockIcon, class: "size-6" }
                                             } else if gate_pass.block.is_some() {
-                                                Icon { icon: Icons::ExpiredBlockIcon, class: "size-8" }
+                                                Icon { icon: Icons::ExpiredBlockIcon, class: "size-6" }
                                             } else {
-                                                Icon { icon: Icons::InactiveBlockIcon, class: "size-8" }
+                                                Icon { icon: Icons::InactiveBlockIcon, class: "size-6" }
                                             }
                                         }
 
                                         button {
-                                            class: "btn btn-xl btn-ghost",
+                                            class: "btn btn-ghost",
                                             title: t!("gate-pass-action-send-email"),
                                             onclick: {
                                                 let gate_pass_id = gate_pass.id.to_string();
@@ -213,7 +216,7 @@ pub fn GatePassListView(
                                                     gate_pass_id_send_email_signal.set(Some(gate_pass_id.clone()));
                                                 }
                                             },
-                                            Icon { icon: Icons::SendEmail, class: "size-8" }
+                                            Icon { icon: Icons::SendEmail, class: "size-6" }
                                         }
                                     }
                                 }
@@ -227,7 +230,21 @@ pub fn GatePassListView(
                 future: gate_passes_resource,
                 route: route!(API_ADMINISTRATOR, API_GATE_PASSES, ID_CREATE),
                 permission: PERMISSION_GATE_PASS_WRITE,
-                extra_buttons: vec!(GatePassExportButton(), GatePassImportButton())
+                extra_buttons: vec!(
+                rsx! {
+                    GatePassRenewButton {
+                        gate_pass_renew_visible_signal
+                    }
+                },
+                rsx! {
+                    GatePassPrintButton {
+                        gate_pass_id_print_signal,
+                        gate_pass_print_visible_signal
+                    }
+                },
+                GatePassExportButton(),
+                GatePassImportButton()
+                )
             }
         }
     }
@@ -254,4 +271,15 @@ pub fn gate_pass_allow_any_vehicle_name(allow_any_vehicle: &bool) -> String {
     } else {
         t!("field-no")
     }
+}
+
+pub fn default_expired_at() -> Option<String> {
+    NaiveDate::from_ymd_opt(Local::now().year() + 1, 1, 1).map(|naive_date| naive_date.to_string())
+}
+
+pub fn split(string: &str, separator: &str) -> Vec<String> {
+    string
+        .split(separator)
+        .map(|part| part.to_string())
+        .collect()
 }

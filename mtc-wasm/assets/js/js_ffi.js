@@ -381,10 +381,20 @@ export function clickElement(elementId) {
     }
 }
 
+export function openHtml(html) {
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+        newWindow.document.write(html);
+        newWindow.document.close();
+    } else {
+        alert("Please allow pop-ups for this site");
+    }
+}
+
 // --- Html5 Qr code Scanner ---
 let activeHtml5QrcodeScanner = null;
 
-export async function createHtml5QrcodeScanner(elementId, camera_id, torch_on) {
+export async function createHtml5QrcodeScanner(elementId, cameraId, torchOn) {
     return new Promise(async (resolve, reject) => {
         try {
             await destroyHtml5QrcodeScanner();
@@ -403,8 +413,8 @@ export async function createHtml5QrcodeScanner(elementId, camera_id, torch_on) {
             }
 
             activeHtml5QrcodeScanner = new Html5Qrcode(elementId);
-            await activeHtml5QrcodeScanner.start(camera_id, config, onScanSuccess, onScanFailure);
-            return toggleHtml5QrcodeScannerTorch(torch_on);
+            await activeHtml5QrcodeScanner.start(cameraId, config, onScanSuccess, onScanFailure);
+            return toggleHtml5QrcodeScannerTorch(torchOn);
         } catch (error) {
             console.error(error);
             reject(error);
@@ -426,6 +436,11 @@ export async function toggleHtml5QrcodeScannerTorch(turnOn) {
             reject(error);
         }
     });
+}
+
+export async function supportedCameraLabelToId() {
+    let devices = await Html5Qrcode.getCameras();
+    return new Map(devices.map(device => [device.label, device.id]));
 }
 
 export async function detectUserEnvironmentHtml5QrcodeCameras() {
@@ -473,7 +488,7 @@ export async function detectUserEnvironmentHtml5QrcodeCameras() {
             tempHtml5QrcodeScanner.clear();
 
             const camera = {
-                id: device.id,
+                label: device.label,
                 torch_supported: torchSupported
             };
 

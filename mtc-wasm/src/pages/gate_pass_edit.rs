@@ -111,7 +111,6 @@ fn GatePassEditorView(
                 name: "expired_at",
                 title: "gate-pass-field-expired-at",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: gate_pass_value
                     .key_string("expired_at")
                     .map(|expired_at| expired_at[0..10].to_string())
@@ -224,8 +223,4 @@ fn GatePassEditorView(
             }
         }
     }
-}
-
-fn default_expired_at() -> Option<String> {
-    NaiveDate::from_ymd_opt(Local::now().year() + 1, 1, 1).map(|naive_date| naive_date.to_string())
 }

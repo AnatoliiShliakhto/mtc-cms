@@ -29,7 +29,7 @@ pub fn QrPhoneScanIcon(class: &'static str) -> Element {
     rsx! {
         svg {
             xmlns: "http://www.w3.org/2000/svg",
-            fill: "#000000",
+            fill: "currentColor",
             version: "1.1",
             view_box: "0 0 371.643 371.643",
             width:"40",

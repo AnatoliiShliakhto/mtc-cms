@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printable 2x2 Grid (A4 Landscape)</title>
+    <style>
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+
+            .page-wrapper {
+                page-break-after: always;
+                page-break-inside: avoid;
+            }
+
+            .gate-pass {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-image: linear-gradient(to top, #c8e6c9 0%, #ffffff 100%) !important;
+                background-color: #c8e6c9 !important;
+                transform-origin: top left;
+            }
+        }
+
+        .print-container {
+            width: calc(29.7cm - 2cm);
+            height: calc(21cm - 2cm);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+        }
+
+        {% if manual_two_side_printing ==  true  %}
+        .print-back-container .item:nth-child(1) {
+            grid-row: 1;
+            grid-column: 2;
+        }
+
+        .print-back-container .item:nth-child(2) {
+            grid-row: 1;
+            grid-column: 1;
+        }
+
+        .print-back-container .item:nth-child(3) {
+            grid-row: 2;
+            grid-column: 2;
+        }
+
+        .print-back-container .item:nth-child(4) {
+            grid-row: 2;
+            grid-column: 1;
+        }
+        {% endif %}
+
+        .item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 3mm;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+
+        .gate-pass {
+            width: 118.5mm;
+            height: 75mm;
+            padding: 3.75mm;
+            text-align: center;
+            position: relative;
+            color: #333;
+            overflow: hidden;
+            z-index: 1;
+            border: 2mm double black;
+        }
+
+        .gate-pass::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, #c8e6c9 0%, #ffffff 100%);
+            z-index: -1;
+        }
+
+        .header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 1.875mm;
+        }
+
+        .logo-qr-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-qr-container-item {
+            width: 30mm;
+            height: 30mm;
+        }
+
+        .body-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 115.5mm;
+            margin: auto;
+        }
+
+        .body-container-line-text {
+            margin-bottom: 0.6mm;
+            font-size: 1.2em;
+        }
+
+        .body-container-separation-line {
+            width: 100%;
+            border-bottom: 0.6mm solid black;
+        }
+
+        .body-container-line-label {
+            margin-top: 0.6mm;
+            margin-bottom: 0.6mm;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .number-plate-zsu {
+            display: flex;
+            border: 1.5mm double white;
+            border-radius: 2.25mm;
+            background-color: black;
+            color: white;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            width: 47.25mm;
+            height: 7.5mm;
+        }
+
+        .plate-number-zsu {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            letter-spacing: 0.375mm;
+            padding: 0 7.875mm;
+        }
+
+        .number-plate {
+            display: flex;
+            border: 0.75mm solid black;
+            border-radius: 2.25mm;
+            background-color: white;
+            color: black;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            width: 47.625mm;
+            height: 7.875mm;
+        }
+
+        .eu-bar {
+            background-color: #0033a0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 1.5mm;
+            border-top-left-radius: 1.5mm;
+            border-bottom-left-radius: 1.5mm;
+            box-sizing: border-box;
+        }
+
+        .eu-bar img {
+            width: 4.9mm;
+            height: auto;
+        }
+
+        .ua-code {
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 0.75mm;
+        }
+
+        .plate-number {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            letter-spacing: 0.4mm;
+            padding: 0 1.875mm;
+        }
+
+        .main-number {
+            font-weight: bold;
+        }
+
+        .rules-section {
+            width: 100%;
+            text-align: left;
+        }
+
+        .rules-title {
+            font-size: 1.6em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+
+        .rules-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-size: 1.0em;
+        }
+
+        .rules-list li {
+            margin-bottom: 2mm;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+{% for front_chunk in front_chunks %}
+<div class="page-wrapper">
+    <div class="print-container">
+        {% for front in front_chunk %}
+        <div class="item">
+            {{ front | safe }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="page-wrapper">
+    <div class="print-container print-back-container">
+        {% for front in front_chunk %}
+        <div class="item">
+            {{ back | safe }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+</body>
+</html>
