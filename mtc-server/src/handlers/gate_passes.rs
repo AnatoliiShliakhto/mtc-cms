@@ -112,7 +112,8 @@ pub async fn find_gate_pass_handler(
 #[handler(permission = "gate_passes::read")]
 pub async fn find_gate_passes_handler(state: State<Arc<AppState>>, session: Session) {
     info!("Received get Gate Passes request");
-    state.repository.find_gate_passes().await.map(Json)
+    let request = SearchGatePassRequest::all_gate_passes(None, None, None);
+    state.repository.search_gate_passes(request).await.map(Json)
 }
 
 #[handler(permission = "gate_passes::read")]
@@ -184,13 +185,10 @@ pub async fn find_sync_gate_passes_handler(
 
 fn erase_sensitive_data(gate_pass: &mut SyncGatePass) {
     gate_pass.owner = None;
-    gate_pass
-        .vehicles
-        .iter_mut()
-        .for_each(|vehicle| {
-            vehicle.number_plate = Cow::Borrowed(EMPTY_STR);
-            vehicle.vin_code = None
-        });
+    gate_pass.vehicles.iter_mut().for_each(|vehicle| {
+        vehicle.number_plate = Cow::Borrowed(EMPTY_STR);
+        vehicle.vin_code = None
+    });
 }
 
 #[handler(permission = "gate_passes::write")]
@@ -209,11 +207,7 @@ pub async fn send_gate_pass_email_handler(
     ))
     .await?;
     let qr_code_bytes = generate_qr_code_png(&gate_pass.id).unwrap_or_default();
-    let gate_pass_email_html = state
-        .template
-        .gate_pass_email_html
-        .clone()
-        .replace("{{number}}", &gate_pass.number);
+    let gate_pass_email_html = gate_pass_email_html(&gate_pass)?;
     let mail_request = GatePassSendMailRequest {
         sender: state.config.smtp.sender.clone(),
         recipient: request.recipient_email.clone(),
@@ -226,26 +220,54 @@ pub async fn send_gate_pass_email_handler(
 }
 
 #[handler(permission = "gate_passes::write")]
-pub async fn generate_gate_pass_front_handler(
+pub async fn print_gate_pass_handler(
     state: State<Arc<AppState>>,
     session: Session,
-    Path(gate_pass_id): Path<Cow<'static, str>>,
+    Payload(request): Payload<PrintGatePassRequest>,
 ) {
-    info!("Received generate Gate Pass front request: gate_pass_id={gate_pass_id}");
-    let gate_pass = state.repository.find_gate_pass(gate_pass_id).await?;
-    let qr_code_png_base64 = generate_qr_code_png(&gate_pass.id)
-        .map(|qr_code| general_purpose::STANDARD.encode(qr_code.as_slice()))
-        .unwrap_or_default();
-    let gate_pass_front_html_template = state.template.gate_pass_front_html.clone();
-    let gate_pass_front_html = gate_pass_front_html(
-        &gate_pass,
-        &qr_code_png_base64,
-        &gate_pass_front_html_template,
-    )?;
+    info!(
+        "Received print Gate Pass request: number_of_ids={}, number_of_number_plates={}",
+        request.ids.as_ref().map(|vector| vector.len()).unwrap_or(0),
+        request
+            .number_plates
+            .as_ref()
+            .map(|vector| vector.len())
+            .unwrap_or(0),
+    );
+    let gate_pass_print_html = gate_pass_print_html(
+        request.two_side_print_mode.is_manual(),
+        gate_pass_fronts(request, state).await?,
+        gate_pass_back_html()?,
+    );
     Ok(Response::builder()
         .header(CONTENT_TYPE, "text/html")
-        .body(gate_pass_front_html)
+        .body(gate_pass_print_html?)
         .unwrap())
+}
+
+async fn gate_pass_fronts(
+    mut request: PrintGatePassRequest,
+    state: State<Arc<AppState>>,
+) -> Result<Vec<String>> {
+    let mut search_request = SearchGatePassRequest::all_gate_passes(
+        request.ids.take(),
+        None,
+        request.number_plates.take(),
+    );
+    search_request.normalize();
+    let gate_pass_fronts = state
+        .repository
+        .search_gate_passes(search_request)
+        .await?
+        .into_iter()
+        .map(|gate_pass| {
+            let qr_code_png_base64 = generate_qr_code_png(&gate_pass.id)
+                .map(|qr_code| general_purpose::STANDARD.encode(qr_code.as_slice()))
+                .unwrap_or_default();
+            gate_pass_front_html(&gate_pass, &qr_code_png_base64)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(gate_pass_fronts)
 }
 
 fn generate_qr_code_png(gate_pass_id: &Cow<'static, str>) -> Option<Vec<u8>> {
@@ -258,10 +280,21 @@ fn generate_qr_code_png(gate_pass_id: &Cow<'static, str>) -> Option<Vec<u8>> {
 }
 
 #[handler(permission = "gate_passes::write")]
-pub async fn generate_gate_pass_back_handler(state: State<Arc<AppState>>, session: Session) {
-    info!("Received generate Gate Pass back request");
-    Ok(Response::builder()
-        .header(CONTENT_TYPE, "text/html")
-        .body(state.template.gate_pass_back_html.clone().into_owned())
-        .unwrap())
+pub async fn renew_gate_pass_handler(
+    state: State<Arc<AppState>>,
+    session: Session,
+    Payload(mut request): Payload<RenewGatePassRequest>,
+) {
+    info!(
+        "Received renew Gate Pass request: expired_at={}, number_of_number_plates={}",
+        request.expired_at,
+        request
+            .number_plates
+            .as_ref()
+            .map(|vector| vector.len())
+            .unwrap_or(0),
+    );
+    request.normalize();
+    state.repository.renew_gate_passes(request).await?;
+    Ok(())
 }

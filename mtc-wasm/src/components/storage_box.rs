@@ -94,23 +94,21 @@ pub fn StorageBox(
                     Ok(value) => match value {
                         Some(value) => {
                             download_progress.set(100);
-                            if let Some(file_engine) = &event.files() {
-                                let files = file_engine.files();
-                                if files.len() == 1 {
-                                    let text = format!("{:0}/{:1}", path(), files[0]);
-                                    match JsFuture::from(jsFfiCopyToClipboard(&text)).await {
-                                        Ok(_) => {
-                                            download_progress.set(0);
-                                            if JsFuture::from(jsFfiClearFileInput()).await.is_err() {
-                                                error!("failed to invoke jsFfiClearFileInput");
-                                            }
-                                            is_show.set(false)
+                            let files = event.files();
+                            if files.len() == 1 {
+                                let text = format!("{}/{}", path(), files[0].name());
+                                match JsFuture::from(jsFfiCopyToClipboard(&text)).await {
+                                    Ok(_) => {
+                                        download_progress.set(0);
+                                        if JsFuture::from(jsFfiClearFileInput()).await.is_err() {
+                                            error!("failed to invoke jsFfiClearFileInput");
                                         }
-                                        Err(_) => {}
+                                        is_show.set(false)
                                     }
-                                } else {
-                                    future.restart()
+                                    Err(_) => {}
                                 }
+                            } else {
+                                future.restart()
                             }
                             break;
                         }

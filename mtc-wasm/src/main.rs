@@ -149,13 +149,10 @@ fn main() {
             }
             ErrorBoundary {
                 handle_error: |errors: ErrorContext| {
-                    match errors.show() {
-                        Some(view) => view,
-                        None => rsx! {
-                            pre {
-                                color: "red",
-                                "Oops, we ran into an error\n{errors:#?}"
-                            }
+                    rsx! {
+                        pre {
+                            color: "red",
+                            "Oops, we ran into an error\n{errors:#?}"
                         }
                     }
                 },

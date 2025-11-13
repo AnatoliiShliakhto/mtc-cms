@@ -33,12 +33,11 @@ impl FormDataService for Event<FormData> {
     /// assert!(result.is_some());
     /// ```
     fn get_str(&self, field: &str) -> Option<Cow<'static, str>> {
-        if let Some(value) = self.values().get(field) {
-            if !value.0.is_empty() {
-                return Some(value.0[0].to_owned().into())
-            }
+        if let Some(FormValue::Text(value)) = self.get_first(field) {
+            Some(Cow::Owned(value))
+        } else {
+            None
         }
-        None
     }
 
     /// Checks if the specified field exists in the form data.
@@ -61,7 +60,7 @@ impl FormDataService for Event<FormData> {
     /// assert!(result);
     /// ```
     fn get_bool(&self, field: &str) -> bool {
-        self.values().contains_key(field)
+        self.get_first(field).is_some()
     }
 
     /// Returns all values associated with the given field as an array of string slices.
@@ -84,13 +83,16 @@ impl FormDataService for Event<FormData> {
     /// assert!(result);
     /// ```
     fn get_str_array(&self, field: &str) -> Option<Vec<Cow<'static, str>>> {
-        if let Some(FormValue(value)) = self.values().get(field) {
-            return Some(value
-                .iter()
-                .map(|val| val.to_owned().into())
-                .collect::<Vec<Cow<'static, str>>>());
-        }
-        None
+        let values = self.get(field)
+            .into_iter()
+            .filter_map(|form_value| {
+                if let FormValue::Text(value) = form_value {
+                    Some(Cow::Owned(value))
+                } else {
+                    None
+                }
+            }).collect::<Vec<_>>();
+        Some(values).filter(|values| !values.is_empty())
     }
 
     /// Attempts to parse the first value associated with the given field as an `i64`.
@@ -112,12 +114,11 @@ impl FormDataService for Event<FormData> {
     /// assert!(result);
     /// ```
     fn get_i64(&self, field: &str) -> Option<i64> {
-        if let Some(FormValue(value)) = self.values().get(field) {
-            if let Ok(value) = value[0].parse::<i64>() {
-                return Some(value);
-            }
+        if let Some(FormValue::Text(value)) = self.get_first(field) {
+            value.parse::<i64>().ok()
+        } else {
+            None
         }
-        None
     }
 
     /// Attempts to parse the first value associated with the given field as a `usize`.
@@ -139,12 +140,11 @@ impl FormDataService for Event<FormData> {
     /// assert!(result.is_some());
     /// ```
     fn get_usize(&self, field: &str) -> Option<usize> {
-        if let Some(FormValue(value)) = self.values().get(field) {
-            if let Ok(value) = value[0].parse::<usize>() {
-                return Some(value);
-            }
+        if let Some(FormValue::Text(value)) = self.get_first(field) {
+            value.parse::<usize>().ok()
+        } else {
+            None
         }
-        None
     }
 
     /// Attempts to parse the form data associated with the "fields-kind",

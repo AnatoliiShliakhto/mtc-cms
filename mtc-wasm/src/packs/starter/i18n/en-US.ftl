@@ -39,6 +39,8 @@ action-sync = Verify
 action-try-again = Try again
 action-upload = Import
 action-yes = Yes, that's right!
+action-print = Print
+action-renew = Renew
 
 caption-administrator-dashboard = Platform Dashboard
 caption-alert = Alert!
@@ -219,8 +221,9 @@ gate-pass-action-reblock = Update Block
 gate-pass-action-unblock = Unblock
 gate-pass-action-edit-block = Edit Block
 gate-pass-action-send-email = Send pass
-gate-pass-action-print-front = Print pass front
-gate-pass-action-print-back = Print pass back
+gate-pass-action-print = Print pass
+gate-pass-action-print-all = Print passes
+gate-pass-action-renew-all = Renew passes
 
 gate-pass-owner-title-soldier = Soldier
 gate-pass-owner-title-seniorsoldier = Senior soldier
@@ -292,6 +295,7 @@ gate-pass-field-owner-middle-name = Middle Name
 gate-pass-field-owner-title = Title
 gate-pass-field-owner-unit = Unit
 gate-pass-field-vehicle-number-plate = Number Plate
+gate-pass-field-vehicle-number-plates = Number plates
 gate-pass-field-vehicle-vin-code = VIN Code
 gate-pass-field-vehicle-manufacturer = Manufacturer
 gate-pass-field-vehicle-model = Model
@@ -305,4 +309,10 @@ gate-pass-field-block-expired-at = Valid until
 gate-pass-field-block-reason = Reason
 gate-pass-field-recipient-email = Recipient email
 
+gate-pass-print-description = By default, all passes are printed. If you only want to print particular ones, please enter the comma separated number plates.
+gate-pass-renew-description = By default, all passes are renewed. If you only want to renew particular ones, please enter the comma separated number plates.
 gate-pass-import-error = Gate pass import completed: succeeded {succeeded}, failed {failed}. Export failed entries?
+
+two-side-print-mode = Two-sided printing mode
+two-side-print-mode-manual = Manual
+two-side-print-mode-automatic = Automatic

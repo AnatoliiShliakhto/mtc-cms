@@ -1,47 +1,94 @@
-use crate::prelude::error;
+use crate::error::Error;
 use crate::prelude::GenericError::InternalError;
+use crate::prelude::{error};
+use askama::Template;
 use chrono::{DateTime, Datelike, Utc};
+use itertools::Itertools;
 use mtc_common::prelude::{
     GatePass, GatePassOwnerTitle, GatePassVehicleNumberPlateType, VehicleColor,
 };
-use std::borrow::Cow;
+
+#[derive(Template)]
+#[template(path = "gate_pass_print.html")]
+pub struct GatePassPrintHtmlTemplate {
+    pub manual_two_side_printing: bool,
+    pub front_chunks: Vec<Vec<String>>,
+    pub back: String,
+}
+
+pub fn gate_pass_print_html(
+    manual_two_side_printing: bool,
+    fronts: Vec<String>,
+    back: String,
+) -> crate::prelude::Result<String> {
+    let front_chunks = fronts
+        .into_iter()
+        .chunks(4)
+        .into_iter()
+        .map(|chunk| chunk.collect::<Vec<_>>())
+        .collect();
+    let gate_pass_print_html_template = GatePassPrintHtmlTemplate {
+        manual_two_side_printing,
+        front_chunks,
+        back,
+    };
+    gate_pass_print_html_template.render().map_err(|error| {
+        error!("failed to render gate pass print html template: {error:?}",);
+        Error::GenericError(InternalError)
+    })
+}
+
+#[derive(Template)]
+#[template(path = "gate_pass_front.html")]
+pub struct GatePassFrontHtmlTemplate<'a> {
+    pub number: &'a str,
+    pub vehicle_number_plate_zsu: bool,
+    pub vehicle_number_plate_civil: &'a str,
+    pub vehicle_number_plate_numbers_zsu: &'a str,
+    pub vehicle_number_plate_letters_zsu: &'a str,
+    pub qr_code: &'a str,
+    pub owner_details: &'a str,
+    pub vehicle_details: &'a str,
+    pub expired_at_details: &'a str,
+}
 
 pub fn gate_pass_front_html(
     gate_pass: &GatePass,
     qr_code_png_base64: &String,
-    gate_pass_front_html_template: &Cow<'static, str>,
 ) -> crate::prelude::Result<String> {
-    let mut gate_pass_front_html = gate_pass_front_html_template
-        .replace("{{qr_code}}", &qr_code_png_base64)
-        .replace("{{number}}", &gate_pass.number)
-        .replace("{{owner_details}}", &owner_details(&gate_pass))
-        .replace("{{vehicle_details}}", &vehicle_details(&gate_pass))
-        .replace("{{expired_at_details}}", &expired_at_details(&gate_pass)?);
+    let mut vehicle_number_plate_zsu = false;
+    let mut vehicle_number_plate_civil = "".to_string();
+    let mut vehicle_number_plate_numbers_zsu = "".to_string();
+    let mut vehicle_number_plate_letters_zsu = "".to_string();
     match gate_pass.require_first_number_plate_type() {
         GatePassVehicleNumberPlateType::UNKNOWN(number) => {
-            gate_pass_front_html = gate_pass_front_html
-                .replace("{{number-plate-class}}", "number-plate")
-                .replace("{{number-plate-zsu-class}}", "hidden")
-                .replace("{{number_plate}}", &number);
+            vehicle_number_plate_civil = number.to_string()
         }
         GatePassVehicleNumberPlateType::CIVIL(start_letters, numbers, end_letters) => {
-            gate_pass_front_html = gate_pass_front_html
-                .replace("{{number-plate-class}}", "number-plate")
-                .replace("{{number-plate-zsu-class}}", "hidden")
-                .replace(
-                    "{{number_plate}}",
-                    &format!("{start_letters} {numbers} {end_letters}"),
-                );
+            vehicle_number_plate_civil = format!("{start_letters} {numbers} {end_letters}")
         }
         GatePassVehicleNumberPlateType::MILITARY(numbers, letters) => {
-            gate_pass_front_html = gate_pass_front_html
-                .replace("{{number-plate-class}}", "hidden")
-                .replace("{{number-plate-zsu-class}}", "number-plate-zsu")
-                .replace("{{numbers}}", &numbers)
-                .replace("{{letters}}", &letters);
+            vehicle_number_plate_zsu = true;
+            vehicle_number_plate_numbers_zsu = numbers.to_string();
+            vehicle_number_plate_letters_zsu = letters.to_string();
         }
     }
-    Ok(gate_pass_front_html)
+    let gate_pass_front_html_template = GatePassFrontHtmlTemplate {
+        number: &gate_pass.number,
+        vehicle_number_plate_zsu,
+        vehicle_number_plate_civil: vehicle_number_plate_civil.as_str(),
+        vehicle_number_plate_numbers_zsu: vehicle_number_plate_numbers_zsu.as_ref(),
+        vehicle_number_plate_letters_zsu: vehicle_number_plate_letters_zsu.as_ref(),
+        qr_code: &qr_code_png_base64,
+        owner_details: &owner_details(&gate_pass),
+        vehicle_details: &vehicle_details(&gate_pass),
+        expired_at_details: &expired_at_details(&gate_pass)?,
+    };
+
+    gate_pass_front_html_template.render().map_err(|error| {
+        error!("failed to render gate pass front html template: {error:?}",);
+        Error::GenericError(InternalError)
+    })
 }
 
 fn owner_details(gate_pass: &GatePass) -> String {
@@ -140,4 +187,32 @@ fn expired_at_details(gate_pass: &GatePass) -> crate::prelude::Result<String> {
         month,
         expired_at.year()
     ))
+}
+
+#[derive(Template)]
+#[template(path = "gate_pass_back.html")]
+pub struct GatePassBackHtmlTemplate {}
+
+pub fn gate_pass_back_html() -> crate::prelude::Result<String> {
+    GatePassBackHtmlTemplate {}.render().map_err(|error| {
+        error!("failed to render gate pass back html template: {error:?}",);
+        Error::GenericError(InternalError)
+    })
+}
+
+#[derive(Template)]
+#[template(path = "gate_pass_email.html")]
+pub struct GatePassEmailHtmlTemplate<'a> {
+    pub number: &'a str,
+}
+
+pub fn gate_pass_email_html(gate_pass: &GatePass) -> crate::prelude::Result<String> {
+    GatePassEmailHtmlTemplate {
+        number: gate_pass.number.as_ref(),
+    }
+    .render()
+    .map_err(|error| {
+        error!("failed to render gate pass email html template: {error:?}",);
+        Error::GenericError(InternalError)
+    })
 }

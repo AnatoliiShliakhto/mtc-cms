@@ -1,6 +1,7 @@
 use super::*;
 use indexed_db::Database;
 use serde_wasm_bindgen::from_value;
+use std::collections::HashMap;
 use wasm_bindgen_futures::JsFuture;
 
 static MTC_QR_CODE_SUFFIX: &str = "MTC:GATE-PASS:";
@@ -12,13 +13,13 @@ static ROUT_GATE_PASS_VALIDATION_SCANS: &str = "gate-pass-validation-scans";
 struct CameraSettings {
     user_camera: Camera,
     environment_camera: Camera,
-    selected_camera_id: String,
+    selected_camera_label: String,
     torch_on: bool,
 }
 
 impl CameraSettings {
     pub fn selectedCamera(&self) -> &Camera {
-        if self.selected_camera_id == self.user_camera.id {
+        if self.selected_camera_label == self.user_camera.label {
             &self.user_camera
         } else {
             &self.environment_camera
@@ -26,10 +27,10 @@ impl CameraSettings {
     }
 
     pub fn switchCamera(&mut self) {
-        if self.selected_camera_id == self.user_camera.id {
-            self.selected_camera_id = self.environment_camera.id.clone()
+        if self.selected_camera_label == self.user_camera.label {
+            self.selected_camera_label = self.environment_camera.label.clone()
         } else {
-            self.selected_camera_id = self.user_camera.id.clone()
+            self.selected_camera_label = self.user_camera.label.clone()
         }
     }
 
@@ -40,7 +41,7 @@ impl CameraSettings {
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct Camera {
-    id: String,
+    label: String,
     torch_supported: bool,
 }
 
@@ -183,12 +184,48 @@ pub fn GatePassScanView() -> Element {
 
 async fn use_camera_settings_local_storage() -> UseLocalStorage {
     let mut camera_settings_ls = use_local_storage(MTC_CAMERA_SETTINGS_KEY, || Value::Null);
-    if camera_settings_ls.get().is_null() {
+    if !validate_camera_settings(camera_settings_ls).await {
         if let Some(camera_settings) = init_camera_settings().await {
             camera_settings_ls.set(serde_json::to_value(camera_settings).unwrap_or_default());
         }
     }
     camera_settings_ls
+}
+
+/// Validates camera_settings: settings are valid if not null and all camera labels are still supported.
+async fn validate_camera_settings(camera_settings_ls: UseLocalStorage) -> bool {
+    let camera_settings = camera_settings_ls.get();
+    if camera_settings.is_null() {
+        false
+    } else {
+        let supported_camera_labels = supported_camera_label_to_id().await;
+        let camera_settings = serde_json::from_value::<CameraSettings>(camera_settings_ls.get())
+            .ok()
+            .unwrap_or_default();
+        supported_camera_labels.contains_key(&camera_settings.selected_camera_label)
+            && supported_camera_labels.contains_key(&camera_settings.user_camera.label)
+            && supported_camera_labels.contains_key(&camera_settings.environment_camera.label)
+    }
+}
+
+async fn init_camera_settings() -> Option<CameraSettings> {
+    match JsFuture::from(jsFfiDetectUserEnvironmentHtml5QrcodeCameras())
+        .await
+        .map(|value| from_value::<Vec<Camera>>(value).ok())
+    {
+        Ok(user_environment_cameras_opt) => {
+            user_environment_cameras_opt.map(|user_environment_cameras| CameraSettings {
+                user_camera: user_environment_cameras.get(0).unwrap().clone(),
+                environment_camera: user_environment_cameras.get(1).unwrap().clone(),
+                selected_camera_label: user_environment_cameras.get(1).unwrap().clone().label,
+                torch_on: false,
+            })
+        }
+        Err(error) => {
+            error!("failed to detect camera ids: {:?}", error);
+            None
+        }
+    }
 }
 
 async fn sync_indexed_db_gate_passes(
@@ -262,30 +299,15 @@ fn last_synced_at_details(last_synced_at_opt: Option<Cow<'static, str>>) -> Cow<
     ))
 }
 
-async fn init_camera_settings() -> Option<CameraSettings> {
-    match JsFuture::from(jsFfiDetectUserEnvironmentHtml5QrcodeCameras())
-        .await
-        .map(|value| from_value::<Vec<Camera>>(value).ok())
-    {
-        Ok(user_environment_cameras_opt) => {
-            user_environment_cameras_opt.map(|user_environment_cameras| CameraSettings {
-                user_camera: user_environment_cameras.get(0).unwrap().clone(),
-                environment_camera: user_environment_cameras.get(1).unwrap().clone(),
-                selected_camera_id: user_environment_cameras.get(1).unwrap().clone().id,
-                torch_on: false,
-            })
-        }
-        Err(error) => {
-            error!("failed to detect camera ids: {:?}", error);
-            None
-        }
-    }
-}
-
 async fn scan_gate_pass(qr_code_scanner_element_id: &str, camera: &Camera, torch_on: bool) {
+    let camera_id = supported_camera_label_to_id()
+        .await
+        .get(&camera.label)
+        .map(|camera_id| camera_id.to_string())
+        .unwrap_or_default();
     match JsFuture::from(jsFfiCreateHtml5QrcodeScanner(
         qr_code_scanner_element_id,
-        &camera.id.to_lowercase(),
+        &camera_id,
         torch_on,
     ))
     .await
@@ -324,6 +346,13 @@ async fn scan_gate_pass(qr_code_scanner_element_id: &str, camera: &Camera, torch
             ));
         }
     }
+}
+
+async fn supported_camera_label_to_id() -> HashMap<String, String> {
+    JsFuture::from(jsFfiSupportedCameraLabelToId())
+        .await
+        .map(|value| from_value::<HashMap<String, String>>(value).unwrap_or_default())
+        .unwrap_or_default()
 }
 
 #[component]

@@ -80,6 +80,12 @@ pub fn routes(
             "/gate-passes/syncs", post(find_sync_gate_passes_handler),
         )
         .route(
+            "/gate-passes/prints", post(print_gate_pass_handler),
+        )
+        .route(
+            "/gate-passes/renews", post(renew_gate_pass_handler),
+        )
+        .route(
             "/gate-passes/{gate_pass_id}",
             patch(update_gate_pass_handler)
                 .delete(delete_gate_pass_handler)
@@ -91,12 +97,6 @@ pub fn routes(
         )
         .route(
             "/gate-passes/{gate_pass_id}/emails", post(send_gate_pass_email_handler),
-        )
-        .route(
-            "/gate-passes/{gate_pass_id}/backs", get(generate_gate_pass_back_handler),
-        )
-        .route(
-            "/gate-passes/{gate_pass_id}/fronts", get(generate_gate_pass_front_handler),
         )
         .route(
             "/gate-passes/{gate_pass_id}/validations", get(find_validation_gate_pass_handler))

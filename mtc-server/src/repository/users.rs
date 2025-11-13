@@ -61,16 +61,19 @@ impl UserRepository for Repository {
         archive: Option<bool>,
     ) -> Result<Vec<Entry>> {
         let mut sql = r#"
-            SELECT id.id() as id, login as slug,
-            (SELECT VALUE title FROM ->user_groups->groups)[0] ?? "" as title,
-            blocked as variant
-            FROM users WHERE access_level > $access_level
+            SELECT * FROM (
+                SELECT id.id() as id, login as slug,
+                (SELECT VALUE title FROM ->user_groups->groups)[0] ?? "" as title,
+                math::max(->user_roles->roles.user_access_level) as access_level,
+                blocked as variant
+                FROM users
+            ) WHERE access_level > $access_level
         "#.to_string();
 
         if !access.full {
-            sql.write_str(r#" AND blocked = false "#)?
+            sql.write_str(r#" AND variant = false "#)?
         } else if let Some(false) = archive {
-            sql.write_str(r#" AND blocked = false "#)?
+            sql.write_str(r#" AND variant = false "#)?
         }
 
         let login = login.unwrap_or_default();
@@ -92,9 +95,14 @@ impl UserRepository for Repository {
 
     async fn find_user(&self, id: impl ToString, access: Access) -> Result<User> {
         let mut sql = r#"
-            SELECT *, id.id() as id,
-            (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group
-            FROM type::thing('users', $id) WHERE access_level > $access_level
+            SELECT * FROM (
+                SELECT
+                    *,
+                    id.id() as id,
+                    (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group,
+                    math::max(->user_roles->roles.user_access_level) as access_level
+                FROM type::thing('users', $id)
+            ) WHERE access_level > $access_level
         "#.to_string();
 
         if !access.full {
@@ -112,10 +120,14 @@ impl UserRepository for Repository {
 
     async fn find_user_by_login(&self, login: impl ToString, access: Access) -> Result<User> {
         let mut sql = r#"
-            SELECT *, id.id() as id,
-            (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group,
-            math::max(->user_roles->roles.user_access_level) as access_level
-            FROM users WHERE login=$login AND access_level > $access_level
+            SELECT * FROM (
+                SELECT
+                    *,
+                    id.id() as id,
+                    (SELECT VALUE id.id() FROM ->user_groups->groups)[0] ?? "" as group,
+                    math::max(->user_roles->roles.user_access_level) as access_level
+                FROM users
+            ) WHERE login=$login AND access_level > $access_level
             "#.to_string();
 
         if !access.full {

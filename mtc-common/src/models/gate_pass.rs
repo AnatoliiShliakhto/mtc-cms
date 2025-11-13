@@ -69,7 +69,7 @@ impl CreateGatePassRequest {
         self.owner.middle_name = normalize(&self.owner.middle_name);
         self.owner.unit = uppercase(&self.owner.unit);
         self.vehicles.iter_mut().for_each(|vehicle| {
-            vehicle.number_plate = Cow::Owned(uppercase(&vehicle.number_plate).replace(" ", ""));
+            vehicle.number_plate = normalize_number_plate(&vehicle.number_plate);
             vehicle.vin_code = vehicle
                 .vin_code
                 .as_ref()
@@ -95,6 +95,7 @@ pub struct CreateGatePassBatchResponse {
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
 pub struct UpdateGatePassRequest {
     pub id: Option<Cow<'static, str>>,
+    pub expired_at: Cow<'static, str>,
     #[validate(nested)]
     pub owner: UpdateGatePassOwnerRequest,
     pub updated_by: Option<Cow<'static, str>>,
@@ -326,21 +327,36 @@ impl VehicleColor {
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SearchGatePassRequest {
-    pub last_name: Option<Cow<'static, str>>,
-    pub number_plate: Option<Cow<'static, str>>,
-    pub number_of_results: Option<i32>,
+    pub ids: Option<Vec<Cow<'static, str>>>,
+    pub last_names: Option<Vec<Cow<'static, str>>>,
+    pub number_plates: Option<Vec<Cow<'static, str>>>,
+    pub number_of_results: Option<usize>,
 }
 
 impl SearchGatePassRequest {
+    pub fn all_gate_passes(
+        ids: Option<Vec<Cow<'static, str>>>,
+        last_names: Option<Vec<Cow<'static, str>>>,
+        number_plates: Option<Vec<Cow<'static, str>>>,
+    ) -> Self {
+        SearchGatePassRequest {
+            ids,
+            last_names,
+            number_plates,
+            number_of_results: Some(1000000000),
+        }
+    }
+
     pub fn normalize(&mut self) {
-        self.last_name = self
-            .last_name
-            .as_ref()
-            .map(|last_name| normalize(&last_name));
-        self.number_plate = self
-            .number_plate
-            .as_ref()
-            .map(|number_plate| uppercase(&number_plate));
+        let normalized_last_names = self.last_names.as_ref().map(|last_names| {
+            last_names
+                .into_iter()
+                .map(|last_name| normalize(&last_name))
+                .collect::<Vec<_>>()
+        });
+        self.last_names = normalized_last_names;
+
+        self.number_plates = self.number_plates.as_ref().map(normalize_number_plates);
     }
 }
 
@@ -396,6 +412,58 @@ pub struct SendGatePassEmailRequest {
     pub recipient_email: Cow<'static, str>,
 }
 
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
+pub struct PrintGatePassRequest {
+    pub ids: Option<Vec<Cow<'static, str>>>,
+    pub number_plates: Option<Vec<Cow<'static, str>>>,
+    pub two_side_print_mode: TwoSidePrintMode,
+}
+
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum TwoSidePrintMode {
+    #[default]
+    Manual,
+    Automatic,
+}
+
+impl TwoSidePrintMode {
+    pub fn is_manual(&self) -> bool {
+        self == &TwoSidePrintMode::Manual
+    }
+
+    pub fn values() -> Vec<TwoSidePrintMode> {
+        vec![TwoSidePrintMode::Manual, TwoSidePrintMode::Automatic]
+    }
+}
+
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
+pub struct RenewGatePassRequest {
+    #[validate(custom(function = "not_blank"))]
+    pub expired_at: Cow<'static, str>,
+    pub number_plates: Option<Vec<Cow<'static, str>>>,
+}
+
+impl RenewGatePassRequest {
+    pub fn normalize(&mut self) {
+        self.number_plates = self.number_plates.as_ref().map(normalize_number_plates);
+    }
+}
+
+fn normalize_number_plates(number_plates: &Vec<Cow<'static, str>>) -> Vec<Cow<'static, str>> {
+    number_plates
+        .iter()
+        .map(|number_plate| normalize_number_plate(&number_plate))
+        .collect::<Vec<_>>()
+}
+
+fn normalize_number_plate(number_plate: &Cow<'static, str>) -> Cow<'static, str> {
+    Cow::Owned(uppercase(number_plate).replace(" ", ""))
+}
+
+fn uppercase(string: &Cow<'static, str>) -> Cow<'static, str> {
+    Cow::Owned(string.trim().to_uppercase())
+}
+
 fn normalize(string: &Cow<'static, str>) -> Cow<'static, str> {
     let string = string.trim().to_lowercase();
     let mut chars = string.chars();
@@ -403,10 +471,6 @@ fn normalize(string: &Cow<'static, str>) -> Cow<'static, str> {
         None => Cow::Borrowed(""),
         Some(first) => Cow::Owned(first.to_uppercase().collect::<String>() + chars.as_str()),
     }
-}
-
-fn uppercase(string: &Cow<'static, str>) -> Cow<'static, str> {
-    Cow::Owned(string.trim().to_uppercase())
 }
 
 fn expired(expired_at: &Cow<'static, str>) -> bool {

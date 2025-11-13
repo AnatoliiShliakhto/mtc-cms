@@ -1,0 +1,60 @@
+<div class="gate-pass">
+    <div class="logo-qr-container">
+        <img src="/./assets/logo.webp" alt="Логотип" class="logo-qr-container-item">
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="header">
+                242 ЦЕНТР ПІДГОТОВКИ ПІДРОЗДІЛІВ
+                <br/>
+                ПЕРЕПУСТКА № {{ number }}
+            </div>
+
+            {% if vehicle_number_plate_zsu == false %}
+            <div class="number-plate">
+                <div class="eu-bar">
+                    <img src="/./assets/flag_of_ukraine.svg" alt="Ukrainian flag">
+                    <span class="ua-code">UA</span>
+                </div>
+                <div class="plate-number">
+                    <span class="main-number">{{ vehicle_number_plate_civil }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="number-plate-zsu">
+                <div class="plate-number-zsu">
+                    <span>{{ vehicle_number_plate_numbers_zsu }}</span>
+                    <span>{{ vehicle_number_plate_letters_zsu }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <img src="data:image/png;base64,{{ qr_code }}" alt="QR-код" class="logo-qr-container-item">
+    </div>
+
+    <div class="body-container">
+        <p class="body-container-line-text">
+            <strong>{{ owner_details }}</strong>
+        </p>
+        <div class="body-container-separation-line"></div>
+        <p class="body-container-line-label">
+            <strong>власник авто</strong>
+        </p>
+
+        <p class="body-container-line-text">
+            <strong>{{ vehicle_details }}</strong>
+        </p>
+        <div class="body-container-separation-line"></div>
+        <p class="body-container-line-label">
+            <strong>марка авто, реєстраційний номер, колір</strong>
+        </p>
+
+        <p class="body-container-line-text">
+            <strong>{{ expired_at_details }}</strong>
+        </p>
+        <div class="body-container-separation-line"></div>
+        <p class="body-container-line-label">
+            <strong>дійсна до</strong>
+        </p>
+    </div>
+</div>
