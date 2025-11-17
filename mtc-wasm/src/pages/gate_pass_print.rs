@@ -35,6 +35,7 @@ pub fn GatePassPrintDialogView(
         .into_iter()
         .map(|mode| (format!("{:?}", mode), two_side_print_mode_name(&mode)))
         .collect::<Vec<(String, String)>>();
+    let mut loading_spinner_hidden_signal = use_signal(|| true);
     let single_gate_pass_print = gate_pass_id_print_signal.read().is_some();
     let on_submit_gate_pass_print = move |event: Event<FormData>| {
         event.prevent_default();
@@ -51,14 +52,17 @@ pub fn GatePassPrintDialogView(
             "two_side_print_mode": event.get_str("two_side_print_mode"),
         });
 
+        loading_spinner_hidden_signal.set(false);
         spawn(async move {
             match generate_print_gate_pass_html(payload).await {
                 Ok(html) => {
                     jsFfiOpenHtml(html.as_str());
                     gate_pass_id_print_signal.set(None);
                     gate_pass_print_visible_signal.set(false);
+                    loading_spinner_hidden_signal.set(true);
                 }
                 Err(error) => {
+                    loading_spinner_hidden_signal.set(true);
                     error!("failed to generate Gate Pass print HTML: {error:?}");
                 }
             }
@@ -106,6 +110,10 @@ pub fn GatePassPrintDialogView(
                     div {style: "justify-content:center", class: "flex gap-3",
                         button {
                             class: "btn btn-primary",
+                            span {
+                                class: "loading loading-spinner",
+                                hidden: loading_spinner_hidden_signal(),
+                            }
                             if single_gate_pass_print {
                                 { t!("gate-pass-action-print") }
                             } else {
