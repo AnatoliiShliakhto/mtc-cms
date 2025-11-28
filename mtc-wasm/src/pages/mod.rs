@@ -34,6 +34,7 @@ mod gate_pass_impex;
 mod navigation_loop;
 mod gate_pass_print;
 mod gate_pass_renew;
+mod gate_pass_delete;
 
 pub mod prelude {
     pub use super::{

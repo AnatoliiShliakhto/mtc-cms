@@ -18,7 +18,10 @@ pub trait GatePassRepository {
 
     async fn find_gate_pass(&self, gate_pass_id: impl ToString) -> Result<GatePass>;
 
-    async fn search_gate_passes(&self, request: SearchGatePassRequest) -> Result<Vec<GatePass>>;
+    async fn search_gate_passes(
+        &self,
+        request: SearchGatePassRequest,
+    ) -> Result<PageResponse<GatePass>>;
 
     async fn find_sync_gate_passes(
         &self,
@@ -44,11 +47,11 @@ impl GatePassRepository for Repository {
             RETURN SELECT *, id.id() as id FROM $gate_pass_record.id;
         COMMIT TRANSACTION;
         "#;
-        self.database
-            .query(query)
-            .bind(("gate_pass", request))
-            .await
-            .map(take_successful_response)??
+
+        let query_params = QueryParams::from_params(json!({"gate_pass": request}));
+
+        self.execute_query_with_params(query, query_params)
+            .await?
             .take::<Option<GatePass>>(0)
             .map(|gate_pass_opt| {
                 if let Some(gate_pass) = gate_pass_opt {
@@ -90,22 +93,24 @@ impl GatePassRepository for Repository {
     async fn update_gate_pass(&self, request: UpdateGatePassRequest) -> Result<GatePass> {
         let query = r#"
         BEGIN TRANSACTION;
-            LET $gate_pass_record = SELECT * FROM ONLY type::thing('gate_passes', $gate_pass_patch.id) WHERE deleted = false;
+            LET $gate_pass_record = SELECT * FROM ONLY type::thing('gate_passes', $gate_pass.id) WHERE deleted = false;
             IF $gate_pass_record = NONE THEN {
                 RETURN NONE
             } END;
             UPDATE $gate_pass_record SET
-                expired_at = type::datetime($gate_pass_patch.expired_at),
-                owner.title = $gate_pass_patch.owner.title,
-                owner.unit = $gate_pass_patch.owner.unit;
+                expired_at = type::datetime($gate_pass.expired_at),
+                owner = $gate_pass.owner,
+                vehicles = $gate_pass.vehicles,
+                allow_any_vehicle = $gate_pass.allow_any_vehicle,
+                updated_by = $gate_pass.updated_by;
             RETURN SELECT *, id.id() as id FROM $gate_pass_record.id;
         COMMIT TRANSACTION;
         "#;
-        self.database
-            .query(query)
-            .bind(("gate_pass_patch", request))
-            .await
-            .map(take_successful_response)??
+
+        let query_params = QueryParams::from_params(json!({"gate_pass": request}));
+
+        self.execute_query_with_params(query, query_params)
+            .await?
             .take::<Option<GatePass>>(0)
             .map(|gate_pass_opt| {
                 if let Some(gate_pass) = gate_pass_opt {
@@ -141,11 +146,11 @@ impl GatePassRepository for Repository {
             RETURN SELECT *, id.id() as id FROM $gate_pass_record.id;
         COMMIT TRANSACTION;
         "#;
-        self.database
-            .query(query)
-            .bind(("gate_pass_block", request))
-            .await
-            .map(take_successful_response)??
+
+        let query_params = QueryParams::from_params(json!({"gate_pass_block": request}));
+
+        self.execute_query_with_params(query, query_params)
+            .await?
             .take::<Option<GatePass>>(0)
             .map(|gate_pass_opt| {
                 if let Some(gate_pass) = gate_pass_opt {
@@ -168,11 +173,12 @@ impl GatePassRepository for Repository {
             RETURN SELECT *, id.id() as id FROM $gate_pass_record.id;
         COMMIT TRANSACTION;
         "#;
-        self.database
-            .query(query)
-            .bind(("gate_pass_id", gate_pass_id.to_string()))
-            .await
-            .map(take_successful_response)??
+
+        let query_params =
+            QueryParams::from_params(json!({"gate_pass_id": gate_pass_id.to_string()}));
+
+        self.execute_query_with_params(query, query_params)
+            .await?
             .take::<Option<GatePass>>(0)
             .map(|gate_pass_opt| {
                 if let Some(gate_pass) = gate_pass_opt {
@@ -188,11 +194,12 @@ impl GatePassRepository for Repository {
         let query = r#"
             SELECT *, id.id() as id FROM ONLY type::thing('gate_passes', $gate_pass_id);
         "#;
-        self.database
-            .query(query)
-            .bind(("gate_pass_id", gate_pass_id.to_string()))
-            .await
-            .map(take_successful_response)??
+
+        let query_params =
+            QueryParams::from_params(json!({"gate_pass_id": gate_pass_id.to_string()}));
+
+        self.execute_query_with_params(query, query_params)
+            .await?
             .take::<Option<GatePass>>(0)
             .map(|gate_pass_opt| match gate_pass_opt {
                 Some(gate_pass) => {
@@ -203,21 +210,20 @@ impl GatePassRepository for Repository {
             })?
     }
 
-    async fn search_gate_passes(&self, request: SearchGatePassRequest) -> Result<Vec<GatePass>> {
+    async fn search_gate_passes(
+        &self,
+        request: SearchGatePassRequest,
+    ) -> Result<PageResponse<GatePass>> {
         let mut where_clauses = String::from("WHERE deleted = false");
         let id_param_name = "ids";
         let mut id_param_values = vec![];
-        if let Some(ids) = request.ids {
-            let param_value = ids
-                .into_iter()
-                .map(|id| RecordId::from(("gate_passes", id.to_string())))
-                .collect::<Vec<_>>();
+        if let Some(ids) = request.ids.filter(|list| !list.is_empty()) {
             where_clauses.push_str(&format!(" AND id IN ${} ", id_param_name));
-            id_param_values.extend(param_value.into_iter());
+            id_param_values.extend(gate_pass_record_ids(ids).into_iter());
         }
         let last_name_param_name = "owner_last_names";
         let mut last_name_param_values = vec![];
-        if let Some(last_names) = request.last_names {
+        if let Some(last_names) = request.last_names.filter(|list| !list.is_empty()) {
             where_clauses.push_str(&format!(
                 " AND owner.last_name IN ${} ",
                 last_name_param_name
@@ -226,34 +232,45 @@ impl GatePassRepository for Repository {
         }
         let number_plate_param_name = "vehicle_number_plate_names";
         let mut number_plate_param_values = vec![];
-        if let Some(number_plates) = request.number_plates {
+        if let Some(number_plates) = request.number_plates.filter(|list| !list.is_empty()) {
             where_clauses.push_str(&format!(
                 " AND vehicles[0].number_plate IN ${} ",
                 number_plate_param_name
             ));
             number_plate_param_values.extend(number_plates.into_iter());
         }
-        let query = format!(
-            "SELECT *, id.id() as id FROM gate_passes {} ORDER BY created_at DESC LIMIT {}",
-            where_clauses,
-            request.number_of_results.unwrap_or(25)
-        );
 
-        self.database
-            .query(query)
-            .bind((id_param_name, id_param_values))
-            .bind((last_name_param_name, last_name_param_values))
-            .bind((number_plate_param_name, number_plate_param_values))
-            .await
-            .map(take_successful_response)??
-            .take::<Vec<GatePass>>(0)
-            .map(|gate_passes| {
-                info!(
-                    "GatePasses found: number_of_gate_passes={}",
-                    gate_passes.len()
-                );
-                Ok(gate_passes)
-            })?
+        let query_params = QueryParams {
+            params: json!({
+                last_name_param_name: last_name_param_values,
+                number_plate_param_name: number_plate_param_values
+            }),
+            ids: vec![(id_param_name.to_string(), id_param_values)]
+                .into_iter()
+                .collect(),
+        };
+
+        let query = format!("SELECT *, id.id() as id FROM gate_passes {where_clauses}");
+
+        let mut page_request = PageRequest::new(
+            40,
+            0,
+            vec![OrderBy::new("created_at".to_string(), SortDirection::Desc)],
+        );
+        if let Some((page_size, page_index)) = request
+            .page_request
+            .map(|page_request| (page_request.page_size, page_request.page_index))
+        {
+            page_request.page_size = page_size;
+            page_request.page_index = page_index;
+        }
+
+        self.execute_query_with_params_and_pagination::<GatePass>(
+            &query,
+            query_params,
+            &page_request,
+        )
+        .await
     }
 
     async fn find_sync_gate_passes(
@@ -273,11 +290,12 @@ impl GatePassRepository for Repository {
                     "gate_passes": SELECT *, id.id() as id FROM gate_passes WHERE updated_at >= $start_updated_at AND updated_at < $end_updated_at
                 };
         "#;
-        self.database
-            .query(query)
-            .bind(("last_synced_at", request.last_synced_at))
-            .await
-            .map(take_successful_response)??
+
+        let query_params =
+            QueryParams::from_params(json!({"last_synced_at": request.last_synced_at}));
+
+        self.execute_query_with_params(query, query_params)
+            .await?
             .take::<Option<SyncGatePassResponse>>(3)
             .map(|response_opt| match response_opt {
                 Some(response) => {
@@ -292,26 +310,39 @@ impl GatePassRepository for Repository {
     }
 
     async fn renew_gate_passes(&self, request: RenewGatePassRequest) -> Result<()> {
-        let mut vehicle_number_plate_clause = String::new();
+        let mut where_clauses = String::from(" WHERE deleted = false ");
+        let mut id_values = vec![];
+        if let Some(ids) = request.ids.filter(|list| !list.is_empty()) {
+            where_clauses.push_str(" AND id IN $id_values ");
+            id_values.extend(gate_pass_record_ids(ids).into_iter());
+        }
         let mut vehicle_number_plate_values = vec![];
-        if let Some(number_plates) = request.number_plates {
-            vehicle_number_plate_clause
-                .push_str(" AND vehicles[0].number_plate IN $vehicle_number_plate_values");
+        if let Some(number_plates) = request.number_plates.filter(|list| !list.is_empty()) {
+            where_clauses
+                .push_str(" AND vehicles[0].number_plate IN $vehicle_number_plate_values ");
             vehicle_number_plate_values.extend(number_plates.into_iter());
         }
-        let mut query = String::new();
-        query.push_str("BEGIN TRANSACTION; ");
-        query.push_str(" (SELECT count() FROM ( ");
-        query.push_str(format!(" UPDATE gate_passes SET expired_at = type::datetime($new_expired_at) WHERE deleted = false {vehicle_number_plate_clause} ").as_str());
-        query.push_str(" ) GROUP ALL).count; ");
-        query.push_str("COMMIT TRANSACTION;");
 
-        self.database
-            .query(query)
-            .bind(("new_expired_at", request.expired_at))
-            .bind(("vehicle_number_plate_values", vehicle_number_plate_values))
-            .await
-            .map(take_successful_response)??
+        let query_params = QueryParams {
+            params: json!({
+                "new_expired_at": request.expired_at,
+                "vehicle_number_plate_values": vehicle_number_plate_values
+            }),
+            ids: vec![("id_values".to_string(), id_values)]
+                .into_iter()
+                .collect(),
+        };
+
+        let query = r#"
+            BEGIN TRANSACTION;
+                (SELECT count() FROM (
+                    UPDATE gate_passes SET expired_at = type::datetime($new_expired_at) {WHERE_CLAUSES}
+                ) GROUP ALL).count;
+            COMMIT TRANSACTION;
+        "#.replace("{WHERE_CLAUSES}", &where_clauses);
+
+        self.execute_query_with_params(&query, query_params)
+            .await?
             .take::<Vec<usize>>(0)
             .map(|gate_pass_ids| {
                 info!(
@@ -323,16 +354,8 @@ impl GatePassRepository for Repository {
     }
 }
 
-fn take_successful_response(mut response: surrealdb::Response) -> Result<surrealdb::Response> {
-    let errors = response.take_errors();
-    if errors.is_empty() {
-        Ok(response)
-    } else {
-        let errors = errors
-            .values()
-            .map(|error| error.to_string())
-            .collect::<String>();
-        error!("Error occurred: {}", errors);
-        Err(DatabaseError::SomethingWentWrong.into())
-    }
+fn gate_pass_record_ids(ids: Vec<Cow<str>>) -> Vec<RecordId> {
+    ids.into_iter()
+        .map(|id| RecordId::from(("gate_passes", id.to_string())))
+        .collect::<Vec<_>>()
 }

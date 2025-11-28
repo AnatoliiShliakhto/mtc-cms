@@ -1,3 +1,4 @@
+use super::*;
 use crate::prelude::not_blank;
 use chrono::{DateTime, Utc};
 use regex::Regex;
@@ -50,6 +51,7 @@ impl GatePass {
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
 pub struct CreateGatePassRequest {
+    pub id: Option<Cow<'static, str>>,
     #[validate(custom(function = "not_blank"))]
     pub expired_at: Cow<'static, str>,
     #[validate(nested)]
@@ -92,20 +94,7 @@ pub struct CreateGatePassBatchResponse {
     pub failed_requests: Vec<CreateGatePassRequest>,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
-pub struct UpdateGatePassRequest {
-    pub id: Option<Cow<'static, str>>,
-    pub expired_at: Cow<'static, str>,
-    #[validate(nested)]
-    pub owner: UpdateGatePassOwnerRequest,
-    pub updated_by: Option<Cow<'static, str>>,
-}
-
-impl UpdateGatePassRequest {
-    pub fn normalize(&mut self) {
-        self.owner.unit = uppercase(&self.owner.unit);
-    }
-}
+pub type UpdateGatePassRequest = CreateGatePassRequest;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
 pub struct GatePassOwner {
@@ -330,7 +319,7 @@ pub struct SearchGatePassRequest {
     pub ids: Option<Vec<Cow<'static, str>>>,
     pub last_names: Option<Vec<Cow<'static, str>>>,
     pub number_plates: Option<Vec<Cow<'static, str>>>,
-    pub number_of_results: Option<usize>,
+    pub page_request: Option<PageRequest>,
 }
 
 impl SearchGatePassRequest {
@@ -339,11 +328,32 @@ impl SearchGatePassRequest {
         last_names: Option<Vec<Cow<'static, str>>>,
         number_plates: Option<Vec<Cow<'static, str>>>,
     ) -> Self {
-        SearchGatePassRequest {
+        Self {
             ids,
             last_names,
             number_plates,
-            number_of_results: Some(1000000000),
+            page_request: Some(PageRequest::all()),
+        }
+    }
+
+    pub fn from_number_plates(number_plates: Vec<Cow<'static, str>>) -> Self {
+        Self {
+            number_plates: Some(number_plates),
+            ..Default::default()
+        }
+    }
+
+    pub fn from_last_names(last_names: Vec<Cow<'static, str>>) -> Self {
+        Self {
+            last_names: Some(last_names),
+            ..Default::default()
+        }
+    }
+
+    pub fn from_page_request(page_request: PageRequest) -> Self {
+        Self {
+            page_request: Some(page_request),
+            ..Default::default()
         }
     }
 
@@ -438,9 +448,10 @@ impl TwoSidePrintMode {
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
 pub struct RenewGatePassRequest {
+    pub ids: Option<Vec<Cow<'static, str>>>,
+    pub number_plates: Option<Vec<Cow<'static, str>>>,
     #[validate(custom(function = "not_blank"))]
     pub expired_at: Cow<'static, str>,
-    pub number_plates: Option<Vec<Cow<'static, str>>>,
 }
 
 impl RenewGatePassRequest {
