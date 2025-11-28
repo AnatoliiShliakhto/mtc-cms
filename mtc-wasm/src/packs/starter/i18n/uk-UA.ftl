@@ -221,7 +221,7 @@ gate-pass-action-reblock = Оновити блокування
 gate-pass-action-unblock = Розблокувати перепустку
 gate-pass-action-edit-block = Редагувати блокування
 gate-pass-action-send-email = Надіслати перепустку
-gate-pass-action-print = Роздрукувати перепустку
+gate-pass-action-delete-all = Видалити перепустки
 gate-pass-action-print-all = Роздрукувати перепустки
 gate-pass-action-renew-all = Подовжити перепустки
 
@@ -308,6 +308,10 @@ gate-pass-field-actions = Дії
 gate-pass-field-block-expired-at = Чинне до
 gate-pass-field-block-reason = Причина
 gate-pass-field-recipient-email = Адреса електронної пошти отримувача
+
+gate-pass-selected-delete-description = Будуть видалені всі вибрані перепустки, кількість:
+gate-pass-selected-print-description = Будуть роздруковані всі вибрані перепустки, кількість:
+gate-pass-selected-renew-description = Будуть подовжені всі вибрані перепустки, кількість:
 
 gate-pass-print-description = За замовчуванням будуть роздруковані всі активні перепустки. Щоб вибрати лише деякі, введіть їхні номерні знаки через кому.
 gate-pass-renew-description = За замовчуванням будуть подовжені всі активні перепустки. Щоб вибрати лише деякі, введіть їхні номерні знаки через кому.

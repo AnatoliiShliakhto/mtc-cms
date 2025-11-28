@@ -113,7 +113,12 @@ pub async fn find_gate_pass_handler(
 pub async fn find_gate_passes_handler(state: State<Arc<AppState>>, session: Session) {
     info!("Received get Gate Passes request");
     let request = SearchGatePassRequest::all_gate_passes(None, None, None);
-    state.repository.search_gate_passes(request).await.map(Json)
+    state
+        .repository
+        .search_gate_passes(request)
+        .await
+        .map(|response| response.page_rows)
+        .map(Json)
 }
 
 #[handler(permission = "gate_passes::read")]
@@ -259,6 +264,7 @@ async fn gate_pass_fronts(
         .repository
         .search_gate_passes(search_request)
         .await?
+        .page_rows
         .into_iter()
         .map(|gate_pass| {
             let qr_code_png_base64 = generate_qr_code_png(&gate_pass.id)
@@ -286,8 +292,8 @@ pub async fn renew_gate_pass_handler(
     Payload(mut request): Payload<RenewGatePassRequest>,
 ) {
     info!(
-        "Received renew Gate Pass request: expired_at={}, number_of_number_plates={}",
-        request.expired_at,
+        "Received renew Gate Pass request: number_of_ids={}, number_of_number_plates={}",
+        request.ids.as_ref().map(|vector| vector.len()).unwrap_or(0),
         request
             .number_plates
             .as_ref()

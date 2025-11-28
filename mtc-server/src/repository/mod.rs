@@ -10,6 +10,7 @@ mod storage_utils;
 mod content;
 mod system;
 mod gate_passes;
+mod base_repository;
 
 pub(crate) mod prelude {
     pub(crate) use super::{
@@ -24,6 +25,7 @@ pub(crate) mod prelude {
         content::*,
         system::*,
         gate_passes::*,
+        base_repository::*,
     };
 }
 

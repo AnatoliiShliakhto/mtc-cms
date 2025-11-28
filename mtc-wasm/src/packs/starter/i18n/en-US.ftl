@@ -221,7 +221,7 @@ gate-pass-action-reblock = Update Block
 gate-pass-action-unblock = Unblock
 gate-pass-action-edit-block = Edit Block
 gate-pass-action-send-email = Send pass
-gate-pass-action-print = Print pass
+gate-pass-action-delete-all = Delete passes
 gate-pass-action-print-all = Print passes
 gate-pass-action-renew-all = Renew passes
 
@@ -308,6 +308,10 @@ gate-pass-field-actions = Actions
 gate-pass-field-block-expired-at = Valid until
 gate-pass-field-block-reason = Reason
 gate-pass-field-recipient-email = Recipient email
+
+gate-pass-selected-delete-description = All selected gate passes will be deleted, count:
+gate-pass-selected-print-description = All selected gate passes will be printed, count:
+gate-pass-selected-renew-description = All selected gate passes will be renewed, count:
 
 gate-pass-print-description = By default, all passes are printed. If you only want to print particular ones, please enter the comma separated number plates.
 gate-pass-renew-description = By default, all passes are renewed. If you only want to renew particular ones, please enter the comma separated number plates.

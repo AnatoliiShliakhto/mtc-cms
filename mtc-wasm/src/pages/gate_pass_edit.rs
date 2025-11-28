@@ -1,5 +1,5 @@
 use super::*;
-use chrono::{Datelike, NaiveDate};
+use chrono::{NaiveDate};
 
 #[component]
 pub fn GatePassEdit(#[props(into)] id: String) -> Element {
@@ -121,21 +121,18 @@ fn GatePassEditorView(
                 name: "owner_last_name",
                 title: "gate-pass-field-owner-last-name",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: owner.key_string("last_name"),
             }
             FormTextField {
                 name: "owner_first_name",
                 title: "gate-pass-field-owner-first-name",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: owner.key_string("first_name"),
             }
             FormTextField {
                 name: "owner_middle_name",
                 title: "gate-pass-field-owner-middle-name",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: owner.key_string("middle_name"),
             }
             FormSimpleSelectField {
@@ -157,35 +154,30 @@ fn GatePassEditorView(
                 name: "vehicle_number_plate",
                 title: "gate-pass-field-vehicle-number-plate",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: vehicle.key_string("number_plate"),
             }
             FormTextField {
                 name: "vehicle_vin_code",
                 title: "gate-pass-field-vehicle-vin-code",
                 required: false,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: vehicle.key_string("vin_code"),
             }
             FormTextField {
                 name: "vehicle_manufacturer",
                 title: "gate-pass-field-vehicle-manufacturer",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: vehicle.key_string("manufacturer"),
             }
             FormTextField {
                 name: "vehicle_model",
                 title: "gate-pass-field-vehicle-model",
                 required: false,
-                disabled: Some(!new_gate_pass_memo()),
                 initial_value: vehicle.key_string("model"),
             }
             FormSimpleSelectField {
                 name: "vehicle_color",
                 title: "gate-pass-field-vehicle-color",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 selected: vehicle.key_string("color").unwrap_or_default(),
                 items: colors,
             }
@@ -193,14 +185,12 @@ fn GatePassEditorView(
                 name: "vehicle_body_type",
                 title: "gate-pass-field-vehicle-body-type",
                 required: true,
-                disabled: Some(!new_gate_pass_memo()),
                 selected: vehicle.key_string("body_type").unwrap_or_default(),
                 items: body_types,
             }
             FormCheckBoxField {
                 name: "allow_any_vehicle",
                 title: "gate-pass-field-allow-any-vehicle",
-                disabled: Some(!new_gate_pass_memo()),
                 initial_checked: gate_pass_value.key_bool("allow_any_vehicle"),
             }
         }

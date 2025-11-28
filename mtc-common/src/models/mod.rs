@@ -25,6 +25,7 @@ mod query_uuid;
 mod file_entry;
 mod group_stat;
 mod gate_pass;
+mod pagination;
 
 pub mod prelude {
     pub use super::{
@@ -53,5 +54,6 @@ pub mod prelude {
         file_entry::*,
         group_stat::*,
         gate_pass::*,
+        pagination::*,
     };
 }

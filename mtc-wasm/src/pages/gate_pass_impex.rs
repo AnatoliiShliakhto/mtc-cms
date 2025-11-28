@@ -5,7 +5,6 @@ use futures_util::TryFutureExt;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io::Cursor;
-use std::sync::Arc;
 use validator::Validate;
 use wasm_bindgen_futures::JsFuture;
 
@@ -221,6 +220,7 @@ fn convert_to_create_gate_pass_request(
     }
 
     let request = CreateGatePassRequest {
+        id: None,
         expired_at: record.expired_at.clone(),
         owner: GatePassOwner {
             last_name: record.last_name.clone(),
