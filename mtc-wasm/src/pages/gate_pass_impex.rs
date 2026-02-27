@@ -376,6 +376,8 @@ pub struct GatePassCsvRecord {
     pub color: Cow<'static, str>,
     #[validate(length(min = 1))]
     pub body_type: Cow<'static, str>,
+    pub valid: Cow<'static, str>,
+    pub status: Cow<'static, str>,
 }
 
 async fn get_gate_passes() -> Result<Vec<GatePass>, Error> {
@@ -432,6 +434,7 @@ where
 fn convert_to_gate_pass_csv_record(gate_pass: &GatePass) -> GatePassCsvRecord {
     let owner = &gate_pass.owner;
     let vehicle = &gate_pass.require_first_vehicle();
+    let validation_result = validate_gate_pass(&gate_pass);
     GatePassCsvRecord {
         id: gate_pass.id.clone(),
         number: gate_pass.number.clone(),
@@ -450,5 +453,21 @@ fn convert_to_gate_pass_csv_record(gate_pass: &GatePass) -> GatePassCsvRecord {
         )),
         body_type: Cow::Owned(gate_pass_vehicle_body_type_name(&vehicle.body_type)),
         vin_code: vehicle.vin_code.clone(),
+        valid: Cow::Owned(gate_pass_valid(&validation_result.valid())),
+        status: Cow::Owned(gate_pass_validation_result_name(&validation_result))
     }
+}
+
+fn validate_gate_pass(gate_pass: &GatePass) -> GatePassValidationResult {
+    GatePassValidationResult::validate(
+        || gate_pass.deleted,
+        || gate_pass.expired(),
+        || {
+            if gate_pass.blocked() {
+                gate_pass.block.clone().map(|block| block.reason.clone())
+            } else {
+                None
+            }
+        },
+    )
 }

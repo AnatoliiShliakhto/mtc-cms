@@ -332,6 +332,26 @@ pub fn gate_pass_allow_any_vehicle_name(allow_any_vehicle: &bool) -> String {
     }
 }
 
+pub fn gate_pass_valid(valid: &bool) -> String {
+    if valid == &true {
+        t!("field-yes")
+    } else {
+        t!("field-no")
+    }
+}
+
+pub fn gate_pass_validation_result_name(result: &GatePassValidationResult) -> String {
+    match result {
+        GatePassValidationResult::Blocked(..) => {
+            t!("gate-pass-validation-result-blocked")
+        }
+        _ => {
+            let key = format!("gate-pass-validation-result-{:?}", result).to_lowercase();
+            t!(key.as_str())
+        }
+    }
+}
+
 pub fn default_expired_at() -> Option<String> {
     NaiveDate::from_ymd_opt(Local::now().year() + 1, 1, 1).map(|naive_date| naive_date.to_string())
 }

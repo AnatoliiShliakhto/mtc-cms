@@ -416,6 +416,34 @@ pub enum GatePassValidationResult {
     NotFound,
 }
 
+impl GatePassValidationResult {
+    pub fn validate<D, E, B>(
+        mut gate_pass_deleted: D,
+        mut gate_pass_expired: E,
+        mut gate_pass_blocked: B,
+    ) -> GatePassValidationResult
+    where
+        D: FnMut() -> bool,
+        E: FnMut() -> bool,
+        B: FnMut() -> Option<Cow<'static, str>>,
+    {
+        if gate_pass_deleted() {
+            return GatePassValidationResult::Deleted;
+        }
+        if gate_pass_expired() == true {
+            return GatePassValidationResult::Expired;
+        }
+        if let Some(reason) = gate_pass_blocked() {
+            return GatePassValidationResult::Blocked(reason);
+        }
+        GatePassValidationResult::Valid
+    }
+
+    pub fn valid(&self) -> bool {
+        self == &GatePassValidationResult::Valid
+    }
+}
+
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, Validate)]
 pub struct SendGatePassEmailRequest {
     #[validate(email)]

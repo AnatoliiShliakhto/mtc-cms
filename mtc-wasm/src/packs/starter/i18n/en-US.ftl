@@ -276,6 +276,11 @@ gate-pass-vehicle-color-orange = Orange
 gate-pass-vehicle-color-brown = Brown
 gate-pass-vehicle-color-black = Black
 
+gate-pass-validation-result-valid = Valid
+gate-pass-validation-result-blocked = Blocked
+gate-pass-validation-result-expired = Expired
+gate-pass-validation-result-deleted = Deleted
+
 gate-pass-message-scan-result-valid = Pass is valid!
 gate-pass-message-scan-result-invalid = Pass is invalid!
 gate-pass-message-scan-result-blocked = Pass is blocked!

@@ -500,23 +500,20 @@ async fn get_indexed_db_gate_pass(
 
 fn validate_gate_pass(gate_pass: &Option<SyncGatePass>) -> GatePassValidationResult {
     match gate_pass {
-        Some(sync_gate_pass) => {
-            if sync_gate_pass.deleted {
-                return GatePassValidationResult::Deleted;
-            }
-            if sync_gate_pass.expired() == true {
-                return GatePassValidationResult::Expired;
-            }
-            if sync_gate_pass.blocked() == true {
-                let reason = gate_pass
-                    .as_ref()
-                    .and_then(|gate_pass| gate_pass.block.as_ref())
-                    .map(|block| block.reason.clone())
-                    .unwrap_or_default();
-                return GatePassValidationResult::Blocked(reason);
-            }
-            GatePassValidationResult::Valid
-        }
+        Some(sync_gate_pass) => GatePassValidationResult::validate(
+            || sync_gate_pass.deleted,
+            || sync_gate_pass.expired(),
+            || {
+                if sync_gate_pass.blocked() {
+                    sync_gate_pass
+                        .block
+                        .clone()
+                        .map(|block| block.reason.clone())
+                } else {
+                    None
+                }
+            },
+        ),
         None => GatePassValidationResult::NotFound,
     }
 }

@@ -276,6 +276,11 @@ gate-pass-vehicle-color-orange = Помаранчевий
 gate-pass-vehicle-color-brown = Коричневий
 gate-pass-vehicle-color-black = Чорний
 
+gate-pass-validation-result-valid = Дійсна
+gate-pass-validation-result-blocked = Заблокована
+gate-pass-validation-result-expired = Протермінована
+gate-pass-validation-result-deleted = Відкликана
+
 gate-pass-message-scan-result-valid = Перепустка дійсна!
 gate-pass-message-scan-result-invalid = Перепустка недійсна!
 gate-pass-message-scan-result-blocked = Перепустка заблокована!
@@ -291,7 +296,7 @@ gate-pass-message-last-sync-not-found = не знайдена
 gate-pass-field-expired-at = Чинна до
 gate-pass-field-owner-last-name = Прізвище
 gate-pass-field-owner-first-name = Імʼя
-gate-pass-field-owner-middle-name = Побатькові
+gate-pass-field-owner-middle-name = По батькові
 gate-pass-field-owner-title = Звання
 gate-pass-field-owner-unit = Підрозділ
 gate-pass-field-vehicle-number-plate = Номерний знак
